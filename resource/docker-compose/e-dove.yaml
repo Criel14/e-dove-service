@@ -1,0 +1,64 @@
+# 启动命令: docker compose -f e-dove.yaml -p e-dove up -d
+# 关闭命令: docker compose -f e-dove.yaml -p e-dove down
+
+networks:
+  e-dove-network: # 声明自定义网络
+    driver: bridge # 将在up时自动创建，在down时自动删除
+
+volumes:
+  e-dove-mysql-data: # 声明MySQL数据卷
+    driver: local # 将在up时自动创建，在down时不会删除
+  e-dove-redis-data: # 声明Redis数据卷
+    driver: local
+  e-dove-nacos-data: # 声明Nacos数据卷
+    driver: local
+
+services:
+  nacos:
+    container_name: e-dove-nacos-standalone
+    image: nacos/nacos-server:v3.0.3
+    environment:
+      - PREFER_HOST_MODE=hostname # 优先使用主机名
+      - MODE=standalone # 单机模式
+      - NACOS_AUTH_IDENTITY_KEY=serverIdentity # 身份验证密钥名称
+      - NACOS_AUTH_IDENTITY_VALUE=security # 身份验证密钥值
+      - NACOS_AUTH_TOKEN=Q3JpZWxDaGVuR3JhZHVhdGlvblByb2plY3RFRG92ZTE= # API令牌（自定义32位Base64编码，这里加密前是"CrielChenGraduationProjectEDove1"）
+    volumes:
+      - ./e-dove/nacos-standalone-logs/:/home/nacos/logs # 挂载日志
+      - e-dove-nacos-data:/home/nacos/data # 持久化数据目录
+    ports:
+      - "8080:8080" # 控台（给人用）
+      - "8848:8848" # 核心服务（给微服务用）
+      - "9848:9848" # 内部通信（系统用）
+    networks:
+      - e-dove-network # 自定义网络
+    restart: unless-stopped # 自动重启
+  mysql:
+    container_name: e-dove-mysql
+    image: mysql:8.4.6-oraclelinux9 # 版本：MySQL 8.4.6 LTS
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=edove@1014 # 管理员密码
+      - TZ=Asia/Shanghai # 时区
+      - MYSQL_CHARSET=utf8mb4 # 字符集
+      - MYSQL_COLLATION=utf8mb4_unicode_ci # 校对集
+    volumes:
+      - e-dove-mysql-data:/var/lib/mysql # 挂载数据
+      - ./e-dove/mysql/conf:/etc/mysql/conf.d # 挂载配置文件
+    networks:
+      - e-dove-network # 自定义网络
+    restart: unless-stopped # 自动重启
+  redis:
+    container_name: e-dove-redis
+    image: redis:7.2.10-alpine
+    ports:
+      - "6379:6379" # 主机端口:容器端口
+    volumes:
+      - ./e-dove/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 挂载配置文件
+      - ./e-dove/redis/logs:/logs # 挂载日志目录
+      - e-dove-redis-data:/data # 挂载数据
+    command: redis-server /usr/local/etc/redis/redis.conf # 指定配置文件启动
+    networks:
+      - e-dove-network # 自定义网络
+    restart: unless-stopped

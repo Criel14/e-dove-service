@@ -1,0 +1,9 @@
+edove:
+  jwt:
+    # Access Token 配置
+    access-key: "Q3JpZWxFRG92ZUp3dEFjY2Vzc1Rva2VuS2V5MTIzNDU=" # 密钥
+    access-ttl: 3600000 # 1小时
+
+    # Refresh Token 配置
+    refresh-key: "Q3JpZWxFRG92ZUp3dFJlZnJlc2hUb2tlbktleTEyMzQ=" # 密钥
+    refresh-ttl: 604800000 # 7天
