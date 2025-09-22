@@ -1,14 +1,29 @@
+server:
+  port: 8120
+
 spring:
   application:
     name: e-dove-user
 
-  # redis配置
+  cloud:
+    # nacos 配置
+    nacos:
+      discovery:
+        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: ${E_DOVE_NACOS_NAMESPACE}
+      config:
+        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: ${E_DOVE_DOCKER_IP_ADDR}
+        file-extension: properties
+
   data:
+    # redis配置
     redis:
       host: ${E_DOVE_DOCKER_IP_ADDR}
       port: 6379
       password: eDoveRedis1014
 
+# 自定义配置
 edove:
   # jwt配置
   jwt:
@@ -24,6 +39,3 @@ edove:
   snowflake:
     data-center-id: 1001 # 数据中心ID
     worker-id: 1001 # 机器ID
-
-
-

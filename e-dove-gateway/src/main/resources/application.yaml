@@ -1,0 +1,37 @@
+server:
+  port: 8110
+
+spring:
+  application:
+    name: e-dove-gateway
+
+  cloud:
+    # nacos 配置
+    nacos:
+      discovery:
+        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: ${E_DOVE_NACOS_NAMESPACE}
+
+    gateway:
+      # 路由 CORS 配置
+      globalcors:
+        cors-configurations:
+          '[/**]': # 匹配所有路径
+            allowedOriginPatterns: "*" # 允许请求来源
+            allowedHeaders: "*" # 允许携带的头信息
+            allowedMethods: "*" # 允许的请求方式
+            allowCredentials: true # 允许的请求方式
+            maxAge: 3600 # 跨域检测的有效期（单位：秒；在这段时间内，浏览器不会对同一跨域请求再次发起预检请求，而是直接使用缓存的结果进行后续的请求操作）
+
+      # 路由配置
+      routes:
+        # user模块
+        - id: e-dove-user
+          uri: lb://e-dove-user
+          predicates:
+            - Path=/user/**
+
+edove:
+  uri:
+    # 验证jwt接口
+    jwt-auth: lb://e-dove-user/user/auth/validate
