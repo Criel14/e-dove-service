@@ -1,0 +1,14 @@
+package com.criel.edove.common.constant;
+
+/**
+ * Redis key前缀
+ */
+public class RedisKeyConstant {
+
+    // 用户的refresh token
+    public static final String REFRESH_TOKEN_PREFIX = "refresh:token:";
+
+    // refresh token黑名单
+    public static final String REFRESH_TOKEN_BLACK_LIST = "refresh:token:black:list:";
+
+}

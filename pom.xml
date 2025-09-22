@@ -18,6 +18,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>e-dove-common</module>
+        <module>e-dove-user</module>
     </modules>
 
     <developers>
@@ -82,18 +83,18 @@
                 <version>5.8.35</version>
             </dependency>
 
-            <!-- lombok -->
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
-            </dependency>
-
             <!-- 日志 -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>1.5.18</version>
+            </dependency>
+
+            <!-- lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.30</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,4 +1,4 @@
-package com.edove.criel.common.exception;
+package com.criel.edove.common.exception;
 
 import lombok.Getter;
 

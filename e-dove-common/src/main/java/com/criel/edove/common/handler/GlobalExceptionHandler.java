@@ -1,8 +1,8 @@
-package com.edove.criel.common.handler;
+package com.criel.edove.common.handler;
 
-import com.edove.criel.common.exception.BaseException;
-import com.edove.criel.common.exception.ErrorCode;
-import com.edove.criel.common.result.Result;
+import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.ErrorCode;
+import com.criel.edove.common.result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;

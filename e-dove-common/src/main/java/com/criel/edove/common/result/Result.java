@@ -1,4 +1,4 @@
-package com.edove.criel.common.result;
+package com.criel.edove.common.result;
 
 import lombok.Data;
 

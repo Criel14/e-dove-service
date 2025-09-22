@@ -1,7 +1,7 @@
-package com.edove.criel.common.exception.impl;
+package com.criel.edove.common.exception.impl;
 
-import com.edove.criel.common.exception.BaseException;
-import com.edove.criel.common.exception.ErrorCode;
+import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.ErrorCode;
 
 public class SystemException extends BaseException {
 
@@ -12,4 +12,5 @@ public class SystemException extends BaseException {
     public SystemException(String extraMessage) {
         super(ErrorCode.SYSTEM_ERROR, extraMessage);
     }
+
 }
