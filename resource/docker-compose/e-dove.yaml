@@ -39,13 +39,13 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=edove@1014 # 管理员密码
+      - MYSQL_ROOT_PASSWORD=eDoveMysql1014 # 管理员密码
       - TZ=Asia/Shanghai # 时区
       - MYSQL_CHARSET=utf8mb4 # 字符集
       - MYSQL_COLLATION=utf8mb4_unicode_ci # 校对集
     volumes:
       - e-dove-mysql-data:/var/lib/mysql # 挂载数据
-      - ./e-dove/mysql/conf:/etc/mysql/conf.d # 挂载配置文件
+      - ./e-dove/mysql/conf:/etc/mysql/conf.d # 挂载配置文件（可以不需要配置文件）
     networks:
       - e-dove-network # 自定义网络
     restart: unless-stopped # 自动重启
@@ -55,7 +55,7 @@ services:
     ports:
       - "6379:6379" # 主机端口:容器端口
     volumes:
-      - ./e-dove/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 挂载配置文件
+      - ./e-dove/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 挂载配置文件（需要配置文件）
       - ./e-dove/redis/logs:/logs # 挂载日志目录
       - e-dove-redis-data:/data # 挂载数据
     command: redis-server /usr/local/etc/redis/redis.conf # 指定配置文件启动
