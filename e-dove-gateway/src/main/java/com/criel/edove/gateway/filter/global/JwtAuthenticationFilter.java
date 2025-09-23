@@ -61,8 +61,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                         UserInfoContext userInfoContext = result.getData();
                         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                                 .header("X-User-Id", Long.toString(userInfoContext.getUserId()))
-                                .header("X-User-Name", userInfoContext.getUserName())
-                                .header("X-Phone-Number", userInfoContext.getPhoneNumber())
+                                .header("X-Username", userInfoContext.getUsername())
+                                .header("X-Phone", userInfoContext.getPhone())
                                 .build();
 
                         return chain.filter(exchange.mutate()

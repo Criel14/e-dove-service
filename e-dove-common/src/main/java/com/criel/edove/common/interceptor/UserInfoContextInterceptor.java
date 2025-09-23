@@ -23,11 +23,11 @@ public class UserInfoContextInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String userId = request.getHeader("X-User-Id");
-        String userName = request.getHeader("X-User-Name");
-        String phoneNumber = request.getHeader("X-Phone-Number");
-        if (!StrUtil.isEmpty(userId) && !StrUtil.isEmpty(userName) && !StrUtil.isEmpty(phoneNumber)) {
-            UserInfoContextHolder.setUserInfoContext(Long.valueOf(userId), userName, phoneNumber);
-            LOGGER.info("当前登录用户：user id: {}, user name: {}", userId, userName);
+        String username = request.getHeader("X-Username");
+        String phone = request.getHeader("X-Phone");
+        if (!StrUtil.isEmpty(userId) && !StrUtil.isEmpty(username) && !StrUtil.isEmpty(phone)) {
+            UserInfoContextHolder.setUserInfoContext(Long.valueOf(userId), username, phone);
+            LOGGER.info("当前登录用户：{}({})", username, userId);
         }
         return true;
     }

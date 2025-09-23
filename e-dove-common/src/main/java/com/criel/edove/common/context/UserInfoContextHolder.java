@@ -10,8 +10,8 @@ public class UserInfoContextHolder {
     /**
      * 设置值
      */
-    public static void setUserInfoContext(Long userId, String userName, String phoneNumber) {
-        UserInfoContext info = new UserInfoContext(userId, userName, phoneNumber);
+    public static void setUserInfoContext(Long userId, String username, String phone) {
+        UserInfoContext info = new UserInfoContext(userId, username, phone);
         userInfoContext.set(info);
     }
 

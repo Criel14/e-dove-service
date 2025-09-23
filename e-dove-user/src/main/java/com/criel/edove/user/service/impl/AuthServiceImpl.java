@@ -1,7 +1,6 @@
 package com.criel.edove.user.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTPayload;
 import cn.hutool.jwt.JWTUtil;
@@ -187,9 +186,9 @@ public class AuthServiceImpl implements AuthService {
      */
     private UserInfoContext getUserInfoContext(JWT jwt) {
         String userId = jwt.getPayload(JWTConstant.USER_ID).toString();
-        String userName = jwt.getPayload(JWTConstant.USER_NAME).toString();
-        String phoneNumber = jwt.getPayload(JWTConstant.PHONE_NUMBER).toString();
-        return new UserInfoContext(Long.valueOf(userId), userName, phoneNumber);
+        String username = jwt.getPayload(JWTConstant.USERNAME).toString();
+        String phone = jwt.getPayload(JWTConstant.PHONE).toString();
+        return new UserInfoContext(Long.valueOf(userId), username, phone);
     }
 
     /**
@@ -212,8 +211,8 @@ public class AuthServiceImpl implements AuthService {
     private Map<String, Object> createUserInfoPayload(UserInfoContext userInfoContext, Instant expiryInstant) {
         Map<String, Object> payload = new HashMap<>();
         payload.put(JWTConstant.USER_ID, userInfoContext.getUserId()); // 用户ID
-        payload.put(JWTConstant.USER_NAME, userInfoContext.getUserName()); // 用户名
-        payload.put(JWTConstant.PHONE_NUMBER, userInfoContext.getPhoneNumber()); // 手机号
+        payload.put(JWTConstant.USERNAME, userInfoContext.getUsername()); // 用户名
+        payload.put(JWTConstant.PHONE, userInfoContext.getPhone()); // 手机号
         payload.put(JWTPayload.ISSUED_AT, Instant.now()); // 签发时间
         payload.put(JWTPayload.NOT_BEFORE, Instant.now()); // 生效时间
         payload.put(JWTPayload.EXPIRES_AT, expiryInstant); // 过期时间

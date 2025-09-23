@@ -14,8 +14,8 @@ public class UserInfoContext {
     private Long userId;
 
     // 用户名
-    private String userName;
+    private String username;
 
     // 手机号
-    private String phoneNumber;
+    private String phone;
 }

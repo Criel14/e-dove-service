@@ -7,6 +7,9 @@ import com.criel.edove.user.vo.TokenRefreshVO;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 权限认证 Controller
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/user/auth")
@@ -24,7 +27,8 @@ public class AuthController {
     }
 
     /**
-     * 刷新 refresh token，成功则返回新的 access token 和 refresh token
+     * 刷新 refresh token，成功则返回新的 access token 和 refresh token；
+     * 前端接收到401后会尝试调用这里
      */
     @PostMapping("/refresh")
     public Result<TokenRefreshVO> refresh(@RequestParam String refreshToken) {
