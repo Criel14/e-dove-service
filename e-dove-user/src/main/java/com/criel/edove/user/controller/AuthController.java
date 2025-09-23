@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 权限认证 Controller
+ *
+ * @author Criel
+ * @since 2025-09-22
  */
 @AllArgsConstructor
 @RestController

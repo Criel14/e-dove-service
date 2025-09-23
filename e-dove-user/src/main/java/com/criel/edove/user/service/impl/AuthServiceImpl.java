@@ -28,6 +28,9 @@ import java.util.Map;
 
 /**
  * 用户身份验证
+ *
+ * @author Criel
+ * @since 2025-09-22
  */
 @Service
 @AllArgsConstructor
