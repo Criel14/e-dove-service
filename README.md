@@ -85,7 +85,9 @@ docker compose -f e-dove.yaml -p e-dove down
 
 
 
-## 添加redis配置
+## 添加配置文件
+
+### 添加redis配置
 
 redis的配置已准备在项目中：`./resource/redis/redis.conf`；
 
@@ -97,9 +99,16 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 
 
 
+## 初始化MySQL
+
+1. 使用 docker compose 中的 root 用户登录MySQL；
+2. 执行 `./resource/mysql` 目录下的所有sql语句；
+
+
+
 ## 环境变量
 
-项目中一些地方需要使用环境变量做配置
+项目中一些地方需要使用环境变量做配置，需要配置**项目运行的系统**的环境变量（可以是windows，也可以是打包后运行在的linux或docker）
 
 ### docker所在地址
 
@@ -132,7 +141,7 @@ criel@CrielLaptop:~$ ip a
 3: ... # 省略
 ```
 
-配置项目运行在的系统的环境变量（可以是windows，也可以是打包后运行在的linux或docker）
+将IP地址保存在环境变量中：
 
 ```
 E_DOVE_DOCKER_IP_ADDR = docker所在的主机的地址 （如果部署在本机，则可以配置成127.0.0.1）
@@ -156,7 +165,7 @@ spring:
 
 ![](./resource/images/nacos命名空间.png)
 
-将生成后的命名空间ID设置在环境变量中：
+将生成后的命名空间ID保存在环境变量中：
 
 ```
 E_DOVE_NACOS_NAMESPACE = Nacos自动生成的命名空间ID
@@ -168,5 +177,193 @@ E_DOVE_NACOS_NAMESPACE = Nacos自动生成的命名空间ID
 
 # 业务流程
 
-## refresh token
+## 身份校验
+
+jwt + refresh token
+
+时序图：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as 用户端
+    participant Server as 服务端
+    participant Redis as Redis 存储
+
+    %% 登录流程
+    User->>Server: login 请求（手机号 + 密码/验证码）
+    Server-->>User: 返回 accessToken + refreshToken
+
+    %% 普通业务请求流程
+    loop 多次业务请求
+        User->>Server: 携带 accessToken 的业务请求
+        alt accessToken 验证成功
+            Server-->>User: 返回业务数据（200 OK）
+        else 验证失败（如 token 过期／无效）
+            Server-->>User: 返回 401 Unauthorized
+        end
+    end
+
+    %% refresh 流程
+    User->>Server: 发起 refresh 请求（带 refreshToken）
+    Server->>Server: 验证 refreshToken 签名＆格式＆过期合法性
+    alt 验证失败
+        Server-->>User: 返回 401 Unauthorized
+    else 验证成功
+        Server->>Redis: 检查黑名单中是否存在 jti
+        alt 在黑名单中
+            Server-->>User: 返回 401 Unauthorized
+        else 不在黑名单
+            Server->>Redis: 获取 REFRESH_TOKEN_PREFIX + userId 存储的 jti
+            Redis-->>Server: 返回存储的 jti
+            Server->>Server: 比对提交来的 jti 和 Redis 中的 jti
+            alt 不一致
+                Server-->>User: 返回 401 Unauthorized
+            else 一致
+                Server->>Server: 生成 新 accessToken
+                Server->>Server: 生成 新 refreshToken（包含新的 jti）
+                Server->>Redis: 更新 REFRESH_TOKEN_PREFIX + userId 的 jti 并设置过期时间
+                Server-->>User: 返回 新的 accessToken + 新的 refreshToken
+            end
+        end
+    end
+
+```
+
+
+
+# 数据库表设计
+
+为每个微服务创建一个单独的数据库和对应用户；
+
+不添加**外键约束**，由应用层维护外键的映射关系；
+
+## User微服务
+
+### 1. 用户表 (`user`)
+
+**描述**：存储系统所有用户的基本信息，包括顾客和驿站工作人员。
+
+| 字段名      | 类型     | 长度 | 主键/外键 | 允许空 | 默认值                                        | 描述                             |
+| :---------- | :------- | :--- | :-------- | :----- | :-------------------------------------------- | :------------------------------- |
+| user_id     | BIGINT   | -    | 主键      | 否     | （程序设定）雪花算法                          | 用户唯一标识ID                   |
+| username    | VARCHAR  | 50   | 唯一索引  | 否     | （程序设定）手机号码后4位 + 随机字母          | 用户名                           |
+| password    | VARCHAR  | 255  | -         | 否     | -                                             | 加密后的密码                     |
+| phone       | VARCHAR  | 20   | 唯一索引  | 否     | -                                             | 手机号码                         |
+| email       | VARCHAR  | 100  | 索引      | 是     | NULL                                          | 电子邮箱                         |
+| avatar_url  | VARCHAR  | 255  | -         | 是     | NULL                                          | 头像图片URL地址                  |
+| status      | TINYINT  | 1    | -         | 否     | 1                                             | 账户状态：0-冻结，1-正常，2-注销 |
+| create_time | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP                             | 创建时间                         |
+| update_time | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间                     |
+
+**索引**：
+
+- 主键索引：`user_id`
+- 唯一索引：`username`, `phone`,`email`
+
+
+
+### 2. 收货地址表 (`user_address`)
+
+**描述**：存储用户的收货地址信息，支持设置默认地址。
+
+| 字段名         | 类型     | 长度 | 主键/外键          | 允许空 | 默认值                                        | 描述                     |
+| :------------- | :------- | :--- | :----------------- | :----- | :-------------------------------------------- | :----------------------- |
+| address_id     | BIGINT   | -    | 主键               | 否     | （程序设定）雪花算法                          | 地址唯一标识ID           |
+| user_id        | BIGINT   | -    | 外键→user(user_id) | 否     | -                                             | 关联的用户ID             |
+| receiver_name  | VARCHAR  | 50   | -                  | 否     | -                                             | 收件人姓名               |
+| receiver_phone | VARCHAR  | 20   | -                  | 否     | -                                             | 收件人手机号             |
+| country        | VARCHAR  | 50   | -                  | 否     | '中国'                                        | 国家                     |
+| province       | VARCHAR  | 50   | -                  | 否     | -                                             | 省份                     |
+| city           | VARCHAR  | 50   | -                  | 否     | -                                             | 城市                     |
+| district       | VARCHAR  | 50   | -                  | 否     | -                                             | 区/县                    |
+| detail_address | VARCHAR  | 255  | -                  | 否     | -                                             | 详细地址                 |
+| postal_code    | VARCHAR  | 10   | -                  | 是     | NULL                                          | 邮政编码（可选）         |
+| is_default     | TINYINT  | 1    | -                  | 否     | 0                                             | 是否默认地址：0-否，1-是 |
+| create_time    | DATETIME | -    | -                  | 否     | CURRENT_TIMESTAMP                             | 创建时间                 |
+| update_time    | DATETIME | -    | -                  | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间             |
+
+**索引建议**：
+
+- 主键索引：`address_id`
+- 复合索引：`(user_id, is_default)` 用于快速查询用户的默认地址
+
+
+
+### 3. 角色表 (`role`)
+
+**描述**：定义系统中的角色类型。
+
+| 字段名      | 类型     | 长度 | 主键/外键 | 允许空 | 默认值                                        | 描述                             |
+| :---------- | :------- | :--- | :-------- | :----- | :-------------------------------------------- | :------------------------------- |
+| role_id     | BIGINT   | -    | 主键      | 否     | AUTO_INCREMENT                                | 角色唯一标识ID                   |
+| role_name   | VARCHAR  | 50   | 唯一索引  | 否     | -                                             | 角色名称：普通用户、驿站管理员等 |
+| role_desc   | VARCHAR  | 255  | -         | 是     | NULL                                          | 角色描述                         |
+| create_time | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP                             | 创建时间                         |
+| update_time | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间                     |
+
+**示例数据**：
+
+- (1, 'user', '普通用户')
+- (2, 'courier', '快递员')
+- (3, 'station_admin', '驿站管理员')
+- (4, 'super_admin', '超级管理员')
+
+
+
+### 4. 用户角色表 (`user_role`)
+
+**描述**：用户与角色的关联关系表，支持一个用户拥有多个角色。
+
+| 字段名      | 类型     | 长度 | 主键/外键          | 允许空 | 默认值                                        | 描述         |
+| :---------- | :------- | :--- | :----------------- | :----- | :-------------------------------------------- | :----------- |
+| id          | BIGINT   | -    | 主键               | 否     | AUTO_INCREMENT                                | 主键ID       |
+| user_id     | BIGINT   | -    | 外键→user(user_id) | 否     | -                                             | 用户ID       |
+| role_id     | BIGINT   | -    | 外键→role(role_id) | 否     | -                                             | 角色ID       |
+| create_time | DATETIME | -    | -                  | 否     | CURRENT_TIMESTAMP                             | 关联创建时间 |
+| update_time | DATETIME | -    | -                  | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间 |
+
+**索引**：
+
+- 主键索引：`id`
+- 唯一复合索引：`(user_id, role_id)` 防止重复分配角色
+- 单字段索引：`user_id`, `role_id`
+
+
+
+### 5. 权限表 (`permission`) 
+
+**描述**：定义系统中具体的操作权限点。
+
+| 字段名          | 类型     | 长度 | 主键/外键 | 允许空 | 默认值                                        | 描述                                  |
+| :-------------- | :------- | :--- | :-------- | :----- | :-------------------------------------------- | :------------------------------------ |
+| permission_id   | BIGINT   | -    | 主键      | 否     | AUTO_INCREMENT                                | 权限唯一标识ID                        |
+| permission_code | VARCHAR  | 100  | 唯一索引  | 否     | -                                             | 权限代码：如user:create, parcel:query |
+| permission_name | VARCHAR  | 100  | -         | 否     | -                                             | 权限名称                              |
+| permission_desc | VARCHAR  | 255  | -         | 是     | NULL                                          | 权限描述                              |
+| create_time     | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP                             | 创建时间                              |
+| update_time     | DATETIME | -    | -         | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间                          |
+
+**示例数据**：
+
+- (1, 'user:read', '查询用户', '查看用户信息')
+- (2, 'user:update', '修改用户', '修改用户资料')
+- (3, 'parcel:create', '创建包裹', '录入新包裹')
+- (4, 'parcel:query', '查询包裹', '查看包裹信息')
+
+
+
+### 6. 角色权限表 (`role_permission`) 
+
+**描述**：角色与权限的关联关系表，实现灵活的权限控制。
+
+| 字段名        | 类型     | 长度 | 主键/外键                      | 允许空 | 默认值                                        | 描述         |
+| :------------ | :------- | :--- | :----------------------------- | :----- | :-------------------------------------------- | :----------- |
+| id            | BIGINT   | -    | 主键                           | 否     | AUTO_INCREMENT                                | 主键ID       |
+| role_id       | BIGINT   | -    | 外键→role(role_id)             | 否     | -                                             | 角色ID       |
+| permission_id | BIGINT   | -    | 外键→permission(permission_id) | 否     | -                                             | 权限ID       |
+| create_time   | DATETIME | -    | -                              | 否     | CURRENT_TIMESTAMP                             | 关联创建时间 |
+| update_time   | DATETIME | -    | -                              | 否     | CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 最后更新时间 |
+
+
 
