@@ -65,8 +65,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                                 .header("X-Phone-Number", userInfoContext.getPhoneNumber())
                                 .build();
 
-                        // TODO 还需要在common模块添加一个 UserInfoContextInterceptor，将信息保存到ThreadLocal；
-
                         return chain.filter(exchange.mutate()
                                 .request(modifiedRequest)
                                 .build()
