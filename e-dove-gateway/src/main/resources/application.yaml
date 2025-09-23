@@ -2,16 +2,7 @@ server:
   port: 8110
 
 spring:
-  application:
-    name: e-dove-gateway
-
   cloud:
-    # nacos 配置
-    nacos:
-      discovery:
-        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_NACOS_NAMESPACE}
-
     gateway:
       # 路由 CORS 配置
       globalcors:

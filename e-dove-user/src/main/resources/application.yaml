@@ -2,20 +2,6 @@ server:
   port: 8120
 
 spring:
-  application:
-    name: e-dove-user
-
-  cloud:
-    # nacos 配置
-    nacos:
-      discovery:
-        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_NACOS_NAMESPACE}
-      config:
-        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_DOCKER_IP_ADDR}
-        file-extension: properties
-
   data:
     # redis配置
     redis:
