@@ -28,11 +28,8 @@ import org.springframework.stereotype.Component;
 public class PhoneOtpLoginStrategy implements LoginStrategy {
 
     private final RedissonClient redissonClient;
-    private final SnowflakeService snowflakeService;
     private final AuthService authService;
     private final UserService userService;
-    private final RoleService roleService;
-    private final UserRoleService userRoleService;
 
     /**
      * @param loginDTO 调用时保证【手机号】和【验证码】不为空

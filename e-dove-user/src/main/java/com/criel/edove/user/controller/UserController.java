@@ -42,4 +42,9 @@ public class UserController {
         return userService.register(registerDTO);
     }
 
+    // TODO 验证码获取接口（手机 / 邮箱）
+
+    // TODO 修改用户信息接口
+
+    // TODO 头像上传接口（可能要写在其他微服务里）
 }
