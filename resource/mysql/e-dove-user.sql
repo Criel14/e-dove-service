@@ -26,20 +26,21 @@ FLUSH PRIVILEGES;
 
 
 -- ================================================
--- 创建表
+-- 创建表 并 初始化表数据
 -- ================================================
 USE e_dove_user;
 
 -- 创建用户表
+-- DROP TABLE `user`;
 CREATE TABLE `user`
 (
     `user_id`     BIGINT       NOT NULL COMMENT '用户唯一标识ID',
     `username`    VARCHAR(50)  NOT NULL COMMENT '用户名',
-    `password`    VARCHAR(255) NOT NULL COMMENT '加密后的密码',
+    `password`    VARCHAR(255) NULL COMMENT '加密后的密码',
     `phone`       VARCHAR(20)  NOT NULL COMMENT '手机号码',
     `email`       VARCHAR(100) NULL COMMENT '电子邮箱',
     `avatar_url`  VARCHAR(255) NULL COMMENT '头像图片URL地址',
-    `status`      TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '账户状态：0-冻结，1-正常，2-注销',
+    `status`      TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '账户状态：1-正常，0-注销',
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
     PRIMARY KEY (`user_id`),
@@ -50,6 +51,7 @@ CREATE TABLE `user`
   DEFAULT CHARSET = utf8mb4 COMMENT ='存储系统所有用户的基本信息，包括用户、驿站工作人员、系统管理员等';
 
 -- 创建角色表
+-- DROP TABLE `role`;
 CREATE TABLE `role`
 (
     `role_id`     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '角色唯一标识ID',
@@ -61,8 +63,16 @@ CREATE TABLE `role`
     UNIQUE KEY `uk_role_name` (`role_name`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='定义系统中的角色类型';
+-- 插入数据
+INSERT INTO `role` (`role_name`, `role_desc`)
+VALUES
+    ('admin', '系统管理员：拥有最高权限，负责系统配置和管理'),
+    ('user', '普通用户：可使用快递驿站的基本功能'),
+    ('station_admin', '驿站管理员：负责驿站的日常管理和运营'),
+    ('station_staff', '驿站普通工作人员：协助处理快递出入库等日常事务');
 
 -- 创建用户角色表
+-- DROP TABLE `user_role`;
 CREATE TABLE `user_role`
 (
     `id`          BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -78,6 +88,7 @@ CREATE TABLE `user_role`
   DEFAULT CHARSET = utf8mb4 COMMENT ='用户与角色的关联关系表，支持一个用户拥有多个角色';
 
 -- 创建权限表
+-- DROP TABLE `permission`;
 CREATE TABLE `permission`
 (
     `permission_id`   BIGINT       NOT NULL AUTO_INCREMENT COMMENT '权限唯一标识ID',
@@ -92,6 +103,7 @@ CREATE TABLE `permission`
   DEFAULT CHARSET = utf8mb4 COMMENT ='定义系统中具体的操作权限点';
 
 -- 创建角色权限表
+-- DROP TABLE `role_permission`;
 CREATE TABLE `role_permission`
 (
     `id`            BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -107,6 +119,7 @@ CREATE TABLE `role_permission`
   DEFAULT CHARSET = utf8mb4 COMMENT ='角色与权限的关联关系表，实现灵活的权限控制';
 
 -- 创建用户地址表
+-- DROP TABLE `user_address`;
 CREATE TABLE `user_address`
 (
     `address_id`     BIGINT       NOT NULL COMMENT '地址唯一标识ID',

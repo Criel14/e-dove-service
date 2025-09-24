@@ -13,10 +13,12 @@ import com.criel.edove.common.exception.impl.JWTException;
 import com.criel.edove.common.exception.impl.RefreshTokenException;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.user.entity.*;
 import com.criel.edove.user.properties.JwtProperties;
-import com.criel.edove.user.service.AuthService;
+import com.criel.edove.user.service.*;
+import com.criel.edove.user.vo.LoginVO;
 import com.criel.edove.user.vo.TokenRefreshVO;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,21 +36,17 @@ import java.util.Map;
  * @since 2025-09-22
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    // jwt配置
     private final JwtProperties jwtProperties;
-
-    // redisson
     private final RedissonClient redissonClient;
-
-    // 雪花算法服务
     private final SnowflakeService snowflakeService;
+    private final UserService userService;
 
 
     /**
-     * 校验并返回新的 access token 和 refresh token
+     * 校验 refresh token 并返回新的 access token 和 refresh token
      *
      * @param refreshToken 用户传来的 refresh token
      */
@@ -168,6 +167,30 @@ public class AuthServiceImpl implements AuthService {
         // 解析token中的用户信息并返回
         JWT jwt = JWTUtil.parseToken(refreshToken).setKey(jwtProperties.getRefreshKey().getBytes());
         return getUserInfoContext(jwt);
+    }
+
+    /**
+     * 用户登录：生成2个token + 获取权限列表
+     */
+    @Override
+    public LoginVO login(User user) {
+        UserInfoContext userInfoContext = new UserInfoContext(user.getUserId(), user.getUsername(), user.getPhone());
+
+        // 生成2个token
+        String accessToken = createAccessToken(userInfoContext);
+        String refreshToken = createRefreshToken(userInfoContext);
+
+        // 获取用户角色和权限列表
+        List<Role> roles = userService.getRolesByUserId(user.getUserId());
+        List<Permission> permissions = userService.getPermissionsByUserId(user.getUserId());
+
+        return new LoginVO(accessToken,
+                refreshToken,
+                String.valueOf(user.getUserId()),
+                user.getUsername(),
+                roles.stream().map(Role::getRoleName).toList(),
+                permissions.stream().map(Permission::getPermissionCode).toList()
+        );
     }
 
     /**

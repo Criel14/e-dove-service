@@ -3,6 +3,9 @@ package com.criel.edove.common.exception.impl;
 import com.criel.edove.common.exception.BaseException;
 import com.criel.edove.common.exception.ErrorCode;
 
+/**
+ * token 刷新异常
+ */
 public class RefreshTokenException extends BaseException {
 
     public RefreshTokenException() {

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 封装刷新 refresh token 时的返回数据
+ * 刷新 refresh token 接口的响应数据
  */
 @Data
 @AllArgsConstructor

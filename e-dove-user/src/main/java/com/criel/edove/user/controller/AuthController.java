@@ -4,7 +4,7 @@ import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.user.service.AuthService;
 import com.criel.edove.user.vo.TokenRefreshVO;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Criel
  * @since 2025-09-22
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/user/auth")
 public class AuthController {

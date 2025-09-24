@@ -36,6 +36,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- common模块 -->
+            <dependency>
+                <groupId>com.scnu.criel</groupId>
+                <artifactId>e-dove-common</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -57,13 +64,6 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-gateway</artifactId>
                 <version>4.1.5</version>
-            </dependency>
-
-            <!-- common模块 -->
-            <dependency>
-                <groupId>com.scnu.criel</groupId>
-                <artifactId>e-dove-common</artifactId>
-                <version>1.0.0</version>
             </dependency>
 
             <!-- mysql -->
@@ -118,6 +118,18 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>1.18.30</version>
+            </dependency>
+
+            <!-- Argon2id算法 -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.82</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>1.82</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

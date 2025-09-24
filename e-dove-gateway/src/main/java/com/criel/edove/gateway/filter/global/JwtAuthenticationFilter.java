@@ -3,7 +3,7 @@ package com.criel.edove.gateway.filter.global;
 import com.criel.edove.gateway.context.UserInfoContext;
 import com.criel.edove.gateway.properties.EDoveUriProperties;
 import com.criel.edove.gateway.result.Result;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
  * jwt校验全局过滤器
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private final WebClient webClient;

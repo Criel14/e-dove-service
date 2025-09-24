@@ -2,6 +2,8 @@ package com.criel.edove.user.service;
 
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.user.entity.User;
+import com.criel.edove.user.vo.LoginVO;
 import com.criel.edove.user.vo.TokenRefreshVO;
 
 /**
@@ -23,5 +25,7 @@ public interface AuthService {
     UserInfoContext validateAccessToken(String accessToken);
 
     UserInfoContext validateRefreshToken(String refreshToken);
+
+    LoginVO login(User user);
 
 }
