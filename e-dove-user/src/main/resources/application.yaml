@@ -35,5 +35,5 @@ edove:
 
   # 雪花算法配置
   snowflake:
-    data-center-id: 1001 # 数据中心ID
-    worker-id: 1001 # 机器ID
+    data-center-id: 1 # 数据中心ID
+    worker-id: 1 # 机器ID
