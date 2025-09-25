@@ -1,13 +1,25 @@
 server:
   port: 8120
 
+
 spring:
+  profiles:
+    active: dev
+
+  # redis 配置
   data:
-    # redis配置
     redis:
       host: ${E_DOVE_DOCKER_IP_ADDR}
       port: 6379
       password: eDoveRedis1014
+
+  # mysql 配置
+  datasource:
+    url: jdbc:mysql://${E_DOVE_DOCKER_IP_ADDR}:3306/e_dove_user?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: e_dove_user_admin
+    password: eDoveMysql1014
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 
 # 自定义配置
 edove:
