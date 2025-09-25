@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -22,8 +23,10 @@ public class WebClientConfig {
 
     /**
      * 创建 WebClient 实例，并配置重试机制。
+     * tip：@Primary 注解表示当有多个相同类型的 Bean 时，优先使用这个 Bean，覆盖掉原本自带的配置
      */
-    @Bean
+    @Bean(name = "customWebClient")
+    @Primary
     public WebClient webClientBuilder() {
         return WebClient.builder()
                 .filter((request, next) -> next.exchange(request)
