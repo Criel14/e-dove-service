@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <!--  全局属性 -->
+    <!-- 日志文件存放目录 -->
+    <property name="LOG_HOME" value="logs/e-dove-user"/>
+    <!-- 应用名，用于日志文件命名 -->
+    <property name="APP_NAME" value="e-dove-user"/>
+
+    <!--  控制台输出  -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 日志输出格式：时间、线程、级别、logger 名称、消息 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--  文件输出 + 滚动  -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 当前正在写的日志文件 -->
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 滚动后文件名的格式，按日期切分 -->
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- （可选）保留历史日志的天数 -->
+            <!-- <maxHistory>30</maxHistory>-->
+            <!-- （可选）限制归档日志总大小 -->
+             <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+
+        <!-- 编码 -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 包级别日志控制 -->
+    <logger name="com.criel.edove" level="DEBUG"/>
+
+    <!-- 可以给第三方库降级日志级别 -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+
+    <!--  根日志  -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!--  针对不同 Spring Profile 的配置（可选）  -->
+    <springProfile name="dev">
+        <!-- 开发环境更详细一些 -->
+        <logger name="com.criel.edove" level="DEBUG"/>
+    </springProfile>
+    <springProfile name="prod">
+        <!-- 生产环境日志偏保守 -->
+        <logger name="com.criel.edove" level="INFO"/>
+    </springProfile>
+</configuration>
