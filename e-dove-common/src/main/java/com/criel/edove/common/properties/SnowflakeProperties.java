@@ -12,9 +12,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("edove.snowflake")
 public class SnowflakeProperties {
 
-    // 数据中心
+    // 数据中心（0-31）
     private long dataCenterId;
 
-    // 机器标识
+    // 机器标识（0 - 31）
     private long workerId;
 }
