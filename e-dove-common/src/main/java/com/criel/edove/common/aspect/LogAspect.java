@@ -31,7 +31,7 @@ public class LogAspect {
     /**
      * 切点：所有 Controller 公共方法
      */
-    @Pointcut("execution(public * com.edove.criel..*Controller.*(..))")
+    @Pointcut("execution(public * com.criel.edove..*Controller.*(..))")
     public void controllerMethods() {
     }
 
