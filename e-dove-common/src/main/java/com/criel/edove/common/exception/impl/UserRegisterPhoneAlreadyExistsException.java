@@ -9,11 +9,11 @@ import com.criel.edove.common.exception.ErrorCode;
 public class UserRegisterPhoneAlreadyExistsException extends BaseException {
 
     public UserRegisterPhoneAlreadyExistsException() {
-        super(ErrorCode.REGISTER_PHONE_EXIST);
+        super(ErrorCode.PHONE_ALREADY_EXISTS);
     }
 
     public UserRegisterPhoneAlreadyExistsException(String extraMessage) {
-        super(ErrorCode.REGISTER_PHONE_EXIST, extraMessage);
+        super(ErrorCode.PHONE_ALREADY_EXISTS, extraMessage);
     }
 
 }

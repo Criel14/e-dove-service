@@ -20,6 +20,7 @@ import com.criel.edove.user.enumeration.RoleEnum;
 import com.criel.edove.user.mapper.RoleMapper;
 import com.criel.edove.user.mapper.UserMapper;
 import com.criel.edove.user.mapper.UserRoleMapper;
+import com.criel.edove.user.service.AuthService;
 import com.criel.edove.user.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.user.strategy.factory.LoginStrategyFactory;
@@ -50,6 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final SnowflakeService snowflakeService;
+    private final AuthService authService;
 
     private final RoleMapper roleMapper;
     private final UserRoleMapper userRoleMapper;
@@ -89,13 +91,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String password = loginDTO.getPassword();
 
         // 根据参数的缺失情况选择登录策略
-        if (phone != null && phoneOtp != null) {
+        if (StrUtil.isNotEmpty(phone) && StrUtil.isNotEmpty(phoneOtp)) {
             // 手机号 + 验证码
             return loginStrategyFactory.getStrategy(LoginStrategyConstant.PHONE_OTP_LOGIN_STRATEGY).login(loginDTO);
-        } else if (phone != null && password != null) {
+        } else if (StrUtil.isNotEmpty(phone) && StrUtil.isNotEmpty(password)) {
             // 手机号 + 密码
             return loginStrategyFactory.getStrategy(LoginStrategyConstant.PHONE_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
-        } else if (email != null && password != null) {
+        } else if (StrUtil.isNotEmpty(email) && StrUtil.isNotEmpty(password)) {
             // 邮箱 + 密码
             return loginStrategyFactory.getStrategy(LoginStrategyConstant.EMAIL_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
         }
@@ -130,6 +132,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
 
+        // 校验用户名是否已存在
+        if (!StrUtil.isEmpty(registerDTO.getUsername())) {
+            LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+            userWrapper.eq(User::getUsername, registerDTO.getUsername());
+            if (this.count(userWrapper) > 0) {
+                throw new UsernameAlreadyExistsException();
+            }
+        }
+
         // 校验手机验证码
         String phoneOtp = registerDTO.getPhoneOtp();
         String phoneOtpKey = RedisKeyConstant.USER_OTP + registerDTO.getPhone();
@@ -152,14 +163,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 创建新用户
         User user = new User();
-        user.setPhone(registerDTO.getPhone());
-        user.setEmail(registerDTO.getEmail());
         user.setPassword(hash);
-        user.setAvatarUrl(registerDTO.getAvatarUrl());
+        if (StrUtil.isNotEmpty(registerDTO.getUsername())) {
+            user.setUsername(registerDTO.getUsername());
+        }
+        if (StrUtil.isNotEmpty(registerDTO.getPhone())) {
+            user.setPhone(registerDTO.getPhone());
+        }
+        if (StrUtil.isNotEmpty(registerDTO.getEmail())) {
+            user.setEmail(registerDTO.getEmail());
+        }
+        if (StrUtil.isNotEmpty(registerDTO.getAvatarUrl())) {
+            user.setAvatarUrl(registerDTO.getAvatarUrl());
+        }
         user = this.createUser(user, RoleEnum.USER);
 
         // 注册完自动完成登录
-        return this.login(new LoginDTO(user.getPhone(), null, null, registerDTO.getPhoneOtp()));
+        return Result.success(authService.login(user));
     }
 
     /**
@@ -200,11 +220,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String otp = RandomUtil.randomNumbers(6);
 
         String phoneOrEmail = otpDTO.getPhoneOrEmail();
+        if (phoneOrEmail == null) {
+            throw new OtpMissingParameterException();
+        }
         // 判断是手机号还是邮箱
         if (phoneOrEmail.matches(RegexConstant.CHINA_PHONE_REGEX)) {
             // TODO 发送手机验证码
             LOGGER.info("发送手机验证码到：{}，验证码为：{}", phoneOrEmail, otp);
-        } else if (phoneOrEmail.matches(RegexConstant.EMAIL_REGEX)){
+        } else if (phoneOrEmail.matches(RegexConstant.EMAIL_REGEX)) {
             // TODO 发送邮箱验证码
             LOGGER.info("发送邮箱验证码到：{}，验证码为：{}", phoneOrEmail, otp);
         } else {

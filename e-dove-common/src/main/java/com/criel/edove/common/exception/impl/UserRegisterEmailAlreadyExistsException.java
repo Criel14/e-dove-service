@@ -9,11 +9,11 @@ import com.criel.edove.common.exception.ErrorCode;
 public class UserRegisterEmailAlreadyExistsException extends BaseException {
 
     public UserRegisterEmailAlreadyExistsException() {
-        super(ErrorCode.REGISTER_EMAIL_EXIST);
+        super(ErrorCode.EMAIL_ALREADY_EXISTS);
     }
 
     public UserRegisterEmailAlreadyExistsException(String extraMessage) {
-        super(ErrorCode.REGISTER_EMAIL_EXIST, extraMessage);
+        super(ErrorCode.EMAIL_ALREADY_EXISTS, extraMessage);
     }
 
 }

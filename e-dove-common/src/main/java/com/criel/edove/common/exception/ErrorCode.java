@@ -20,11 +20,13 @@ public enum ErrorCode {
     PASSWORD_ERROR("2006","密码错误"),
     LOGIN_MISSING_PARAMETER("2007","登录参数缺失"),
     REGISTER_MISSING_PARAMETER("2008","注册参数缺失"),
-    REGISTER_PHONE_EXIST("2009","手机号已被注册"),
-    REGISTER_EMAIL_EXIST("2010","邮箱已被注册"),
+    PHONE_ALREADY_EXISTS("2009","手机号已被注册"),
+    EMAIL_ALREADY_EXISTS("2010","邮箱已被注册"),
     REGISTER_PHONE_OTP_ERROR("2011","手机验证码错误"),
     REGISTER_EMAIL_OTP_ERROR("2012","邮箱验证码错误"),
-    OTP_PARAMETER_ERROR("2013","手机号或邮箱格式错误"),;
+    OTP_PARAMETER_ERROR("2013","手机号或邮箱格式错误"),
+    OTP_MISSING_PARAMETER("2014","验证码请求参数缺失"),
+    USERNAME_ALREADY_EXISTS("2015","用户名已被注册"),;
 
     private final String code;
     private final String message;

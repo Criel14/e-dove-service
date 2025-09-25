@@ -7,10 +7,7 @@ import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.service.UserService;
 import com.criel.edove.user.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户信息操作 Controller
@@ -24,6 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    /**
+     * 测试连接
+     */
+    @GetMapping("/ping")
+    public Result<Object> ping() {
+        return Result.success();
+    }
 
     // TODO 要在README里写一下登录注册逻辑的流程
     /**
@@ -48,7 +53,7 @@ public class UserController {
      * 验证码获取接口（手机号 / 邮箱）
      */
     @PostMapping("/otp")
-    public Result<Object> getOtp(OtpDTO otpDTO) {
+    public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
         return userService.getOtp(otpDTO);
     }
 
