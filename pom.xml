@@ -120,7 +120,7 @@
                 <version>1.18.30</version>
             </dependency>
 
-            <!-- Argon2id算法 -->
+            <!-- 密码处理：Argon2id算法 -->
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>

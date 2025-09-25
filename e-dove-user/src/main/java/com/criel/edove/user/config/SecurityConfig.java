@@ -14,6 +14,7 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         // 构造 Argon2PasswordEncoder（使用官方推荐的配置）
-         return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
+
 }
