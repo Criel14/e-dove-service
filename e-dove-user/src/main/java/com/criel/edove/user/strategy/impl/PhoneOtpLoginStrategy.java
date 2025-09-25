@@ -11,6 +11,9 @@ import com.criel.edove.user.entity.Role;
 import com.criel.edove.user.entity.User;
 import com.criel.edove.user.entity.UserRole;
 import com.criel.edove.user.enumeration.RoleEnum;
+import com.criel.edove.user.mapper.RoleMapper;
+import com.criel.edove.user.mapper.UserMapper;
+import com.criel.edove.user.mapper.UserRoleMapper;
 import com.criel.edove.user.service.*;
 import com.criel.edove.user.strategy.LoginStrategy;
 import com.criel.edove.user.vo.LoginVO;
@@ -28,8 +31,13 @@ import org.springframework.stereotype.Component;
 public class PhoneOtpLoginStrategy implements LoginStrategy {
 
     private final RedissonClient redissonClient;
+
+    private final SnowflakeService snowflakeService;
     private final AuthService authService;
-    private final UserService userService;
+
+    private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
+    private final RoleMapper roleMapper;
 
     /**
      * @param loginDTO 调用时保证【手机号】和【验证码】不为空
@@ -40,7 +48,7 @@ public class PhoneOtpLoginStrategy implements LoginStrategy {
         String phone = loginDTO.getPhone();
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
         userWrapper.eq(User::getPhone, phone);
-        User user = userService.getOne(userWrapper);
+        User user = userMapper.selectOne(userWrapper);
 
         // 验证码校验
         String otp = loginDTO.getPhoneOtp();
@@ -54,11 +62,40 @@ public class PhoneOtpLoginStrategy implements LoginStrategy {
         if (user == null) {
             user = new User();
             user.setPhone(phone);
-            user = userService.createUser(user, RoleEnum.USER);
+            user = this.createUser(user, RoleEnum.USER);
         }
 
         // 登录：生成2个token + 获取权限列表
         return Result.success(authService.login(user));
+    }
+
+    /**
+     * 创建新用户，并赋予用户角色
+     * tip：该方法和 UserService 方法一模一样，但是直接调用那个方法会导致循环依赖，只能在这里复制一遍了
+     *
+     * @param user     新用户的基本信息（不含ID，手机号为必须，其他字敦可选）
+     * @param roleEnum 新用户的角色
+     */
+    public User createUser(User user, RoleEnum roleEnum) {
+        // 创建用户
+        long userId = snowflakeService.nextId();
+        user.setUserId(userId);
+        if (StrUtil.isEmpty(user.getUsername())) {
+            user.setUsername("dove" + userId); // 默认用户名
+        }
+        user.setStatus(true); // 初始用户状态为正常
+        userMapper.insert(user);
+
+        // 赋予用户角色
+        LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
+        roleWrapper.eq(Role::getRoleName, roleEnum.getRoleName());
+        Role role = roleMapper.selectOne(roleWrapper);
+        UserRole userRole = new UserRole();
+        userRole.setUserId(userId);
+        userRole.setRoleId(role.getRoleId());
+        userRoleMapper.insert(userRole);
+
+        return user;
     }
 
 }

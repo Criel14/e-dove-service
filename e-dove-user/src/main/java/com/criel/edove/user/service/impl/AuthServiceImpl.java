@@ -14,6 +14,7 @@ import com.criel.edove.common.exception.impl.RefreshTokenException;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.user.entity.*;
+import com.criel.edove.user.mapper.UserMapper;
 import com.criel.edove.user.properties.JwtProperties;
 import com.criel.edove.user.service.*;
 import com.criel.edove.user.vo.LoginVO;
@@ -40,9 +41,12 @@ import java.util.Map;
 public class AuthServiceImpl implements AuthService {
 
     private final JwtProperties jwtProperties;
+
     private final RedissonClient redissonClient;
+
     private final SnowflakeService snowflakeService;
-    private final UserService userService;
+
+    private final UserMapper userMapper;
 
 
     /**
@@ -181,8 +185,8 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = createRefreshToken(userInfoContext);
 
         // 获取用户角色和权限列表
-        List<Role> roles = userService.getRolesByUserId(user.getUserId());
-        List<Permission> permissions = userService.getPermissionsByUserId(user.getUserId());
+        List<Role> roles = userMapper.getRolesByUserId(user.getUserId());
+        List<Permission> permissions = userMapper.getPermissionsByUserId(user.getUserId());
 
         return new LoginVO(accessToken,
                 refreshToken,

@@ -19,8 +19,14 @@ import java.util.List;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
+    /**
+     * 根据用户ID获取用户角色（1个用户可以有多个角色）
+     */
     List<Role> getRolesByUserId(Long userId);
 
+    /**
+     * 根据用户ID获取权限列表
+     */
     List<Permission> getPermissionsByUserId(Long userId);
 
 }

@@ -6,6 +6,7 @@ import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.user.constant.LoginStrategyConstant;
 import com.criel.edove.user.dto.LoginDTO;
 import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.entity.Permission;
@@ -13,12 +14,15 @@ import com.criel.edove.user.entity.Role;
 import com.criel.edove.user.entity.User;
 import com.criel.edove.user.entity.UserRole;
 import com.criel.edove.user.enumeration.RoleEnum;
+import com.criel.edove.user.mapper.RoleMapper;
 import com.criel.edove.user.mapper.UserMapper;
+import com.criel.edove.user.mapper.UserRoleMapper;
 import com.criel.edove.user.service.RoleService;
 import com.criel.edove.user.service.UserRoleService;
 import com.criel.edove.user.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.user.strategy.LoginStrategy;
+import com.criel.edove.user.strategy.factory.LoginStrategyFactory;
 import com.criel.edove.user.strategy.impl.EmailPasswordLoginStrategy;
 import com.criel.edove.user.strategy.impl.PhoneOtpLoginStrategy;
 import com.criel.edove.user.strategy.impl.PhonePasswordLoginStrategy;
@@ -45,36 +49,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    // 用户登录策略Map
-    private Map<String, LoginStrategy> loginStrategyMap;
-    private final String PHONE_OTP_LOGIN_STRATEGY = "phone-otp";
-    private final String PHONE_PASSWORD_LOGIN_STRATEGY = "phone-password";
-    private final String EMAIL_PASSWORD_LOGIN_STRATEGY = "email-password";
-
-    private final PhoneOtpLoginStrategy phoneOtpLoginStrategy;
-    private final PhonePasswordLoginStrategy phonePasswordLoginStrategy;
-    private final EmailPasswordLoginStrategy emailPasswordLoginStrategy;
-
     private final SnowflakeService snowflakeService;
-    private final RoleService roleService;
-    private final UserRoleService userRoleService;
 
+    private final RoleMapper roleMapper;
+    private final UserRoleMapper userRoleMapper;
     private final UserMapper userMapper;
 
     private final RedissonClient redissonClient;
     private final PasswordEncoder passwordEncoder;
-
-    /**
-     * 初始化登录策略Map
-     */
-    @PostConstruct
-    public void init() {
-        loginStrategyMap = Map.of(
-                PHONE_OTP_LOGIN_STRATEGY, phoneOtpLoginStrategy,
-                PHONE_PASSWORD_LOGIN_STRATEGY, phonePasswordLoginStrategy,
-                EMAIL_PASSWORD_LOGIN_STRATEGY, emailPasswordLoginStrategy
-        );
-    }
+    private final LoginStrategyFactory loginStrategyFactory;
 
     /**
      * 根据用户ID获取用户角色（1个用户可以有多个角色）
@@ -107,11 +90,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 根据参数的缺失情况选择登录策略
         if (phone != null && phoneOtp != null) {
-            return loginStrategyMap.get(PHONE_OTP_LOGIN_STRATEGY).login(loginDTO);
+            // 手机号 + 验证码
+            return loginStrategyFactory.getStrategy(LoginStrategyConstant.PHONE_OTP_LOGIN_STRATEGY).login(loginDTO);
         } else if (phone != null && password != null) {
-            return loginStrategyMap.get(PHONE_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
+            // 手机号 + 密码
+            return loginStrategyFactory.getStrategy(LoginStrategyConstant.PHONE_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
         } else if (email != null && password != null) {
-            return loginStrategyMap.get(EMAIL_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
+            // 邮箱 + 密码
+            return loginStrategyFactory.getStrategy(LoginStrategyConstant.EMAIL_PASSWORD_LOGIN_STRATEGY).login(loginDTO);
         }
 
         // 都匹配失败说明参数缺失
@@ -196,11 +182,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 赋予用户角色
         LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
         roleWrapper.eq(Role::getRoleName, roleEnum.getRoleName());
-        Role role = roleService.getOne(roleWrapper);
+        Role role = roleMapper.selectOne(roleWrapper);
         UserRole userRole = new UserRole();
         userRole.setUserId(userId);
         userRole.setRoleId(role.getRoleId());
-        userRoleService.save(userRole);
+        userRoleMapper.insert(userRole);
 
         return user;
     }

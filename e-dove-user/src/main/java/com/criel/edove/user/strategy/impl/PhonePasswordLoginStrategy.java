@@ -8,6 +8,7 @@ import com.criel.edove.common.exception.impl.UserNotFoundException;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.user.dto.LoginDTO;
 import com.criel.edove.user.entity.User;
+import com.criel.edove.user.mapper.UserMapper;
 import com.criel.edove.user.service.AuthService;
 import com.criel.edove.user.service.UserService;
 import com.criel.edove.user.strategy.LoginStrategy;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PhonePasswordLoginStrategy implements LoginStrategy {
 
-    private final UserService userService;
+    private final UserMapper userMapper;
     private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
 
@@ -36,7 +37,7 @@ public class PhonePasswordLoginStrategy implements LoginStrategy {
         String phone = loginDTO.getPhone();
         LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
         userWrapper.eq(User::getPhone, phone);
-        User user = userService.getOne(userWrapper);
+        User user = userMapper.selectOne(userWrapper);
         if (user == null) {
             throw new UserNotFoundException();
         }
