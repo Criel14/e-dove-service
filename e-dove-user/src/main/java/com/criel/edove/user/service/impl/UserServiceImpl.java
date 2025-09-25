@@ -1,13 +1,16 @@
 package com.criel.edove.user.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.criel.edove.common.constant.RedisKeyConstant;
+import com.criel.edove.common.constant.RegexConstant;
 import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.user.constant.LoginStrategyConstant;
 import com.criel.edove.user.dto.LoginDTO;
+import com.criel.edove.user.dto.OtpDTO;
 import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.entity.Permission;
 import com.criel.edove.user.entity.Role;
@@ -17,25 +20,20 @@ import com.criel.edove.user.enumeration.RoleEnum;
 import com.criel.edove.user.mapper.RoleMapper;
 import com.criel.edove.user.mapper.UserMapper;
 import com.criel.edove.user.mapper.UserRoleMapper;
-import com.criel.edove.user.service.RoleService;
-import com.criel.edove.user.service.UserRoleService;
 import com.criel.edove.user.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.criel.edove.user.strategy.LoginStrategy;
 import com.criel.edove.user.strategy.factory.LoginStrategyFactory;
-import com.criel.edove.user.strategy.impl.EmailPasswordLoginStrategy;
-import com.criel.edove.user.strategy.impl.PhoneOtpLoginStrategy;
-import com.criel.edove.user.strategy.impl.PhonePasswordLoginStrategy;
 import com.criel.edove.user.vo.LoginVO;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -48,6 +46,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final SnowflakeService snowflakeService;
 
@@ -132,7 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 校验手机验证码
         String phoneOtp = registerDTO.getPhoneOtp();
-        String phoneOtpKey = RedisKeyConstant.USER_LOGIN_OTP + registerDTO.getPhone();
+        String phoneOtpKey = RedisKeyConstant.USER_OTP + registerDTO.getPhone();
         RBucket<String> loginOtp = redissonClient.getBucket(phoneOtpKey);
         if (!loginOtp.isExists() || !StrUtil.equals(phoneOtp, loginOtp.get())) {
             throw new UserRegisterPhoneOtpException();
@@ -141,7 +141,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 校验邮箱验证码
         if (!StrUtil.isEmpty((registerDTO.getEmail())) && !StrUtil.isEmpty(registerDTO.getEmailOtp())) {
             String emailOtp = registerDTO.getEmailOtp();
-            String emailOtpKey = RedisKeyConstant.USER_LOGIN_OTP + registerDTO.getEmail();
+            String emailOtpKey = RedisKeyConstant.USER_OTP + registerDTO.getEmail();
             RBucket<String> loginEmailOtp = redissonClient.getBucket(emailOtpKey);
             if (!loginEmailOtp.isExists() || !StrUtil.equals(emailOtp, loginEmailOtp.get()))
                 throw new UserRegisterEmailOtpException();
@@ -189,5 +189,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userRoleMapper.insert(userRole);
 
         return user;
+    }
+
+    /**
+     * 获取验证码（手机号 / 邮箱）
+     */
+    @Override
+    public Result<Object> getOtp(OtpDTO otpDTO) {
+        // 生成随机6位验证码
+        String otp = RandomUtil.randomNumbers(6);
+
+        String phoneOrEmail = otpDTO.getPhoneOrEmail();
+        // 判断是手机号还是邮箱
+        if (phoneOrEmail.matches(RegexConstant.CHINA_PHONE_REGEX)) {
+            // TODO 发送手机验证码
+            LOGGER.info("发送手机验证码到：{}，验证码为：{}", phoneOrEmail, otp);
+        } else if (phoneOrEmail.matches(RegexConstant.EMAIL_REGEX)){
+            // TODO 发送邮箱验证码
+            LOGGER.info("发送邮箱验证码到：{}，验证码为：{}", phoneOrEmail, otp);
+        } else {
+            throw new OtpParameterException();
+        }
+
+        // 验证码存入redis
+        String optKey = RedisKeyConstant.USER_OTP + phoneOrEmail;
+        RBucket<String> otpBucket = redissonClient.getBucket(optKey);
+        otpBucket.set(otp, Duration.ofMinutes(5));
+
+        return Result.success();
     }
 }

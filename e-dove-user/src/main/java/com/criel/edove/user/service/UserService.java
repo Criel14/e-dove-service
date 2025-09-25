@@ -2,6 +2,7 @@ package com.criel.edove.user.service;
 
 import com.criel.edove.common.result.Result;
 import com.criel.edove.user.dto.LoginDTO;
+import com.criel.edove.user.dto.OtpDTO;
 import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.entity.Permission;
 import com.criel.edove.user.entity.Role;
@@ -32,5 +33,7 @@ public interface UserService extends IService<User> {
     Result<LoginVO> register(RegisterDTO registerDTO);
 
     User createUser(User user, RoleEnum roleEnum);
+
+    Result<Object> getOtp(OtpDTO otpDTO);
 
 }

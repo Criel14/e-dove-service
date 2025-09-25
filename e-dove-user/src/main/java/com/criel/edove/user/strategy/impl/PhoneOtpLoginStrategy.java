@@ -52,7 +52,7 @@ public class PhoneOtpLoginStrategy implements LoginStrategy {
 
         // 验证码校验
         String otp = loginDTO.getPhoneOtp();
-        String otpKey = RedisKeyConstant.USER_LOGIN_OTP + phone;
+        String otpKey = RedisKeyConstant.USER_OTP + phone;
         RBucket<String> loginOtp = redissonClient.getBucket(otpKey);
         if (!loginOtp.isExists() || !StrUtil.equals(otp, loginOtp.get())) {
             throw new UserLoginPhoneOtpException();

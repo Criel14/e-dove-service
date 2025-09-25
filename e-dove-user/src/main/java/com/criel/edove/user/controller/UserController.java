@@ -2,6 +2,7 @@ package com.criel.edove.user.controller;
 
 import com.criel.edove.common.result.Result;
 import com.criel.edove.user.dto.LoginDTO;
+import com.criel.edove.user.dto.OtpDTO;
 import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.service.UserService;
 import com.criel.edove.user.vo.LoginVO;
@@ -24,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // TODO 要在README里写一下登录注册逻辑的流程
     /**
      * 登录接口
      * 若使用【手机号 + 验证码】登录，则会自动注册，但只会保存手机号信息，密码字段未设置（系统中，密码字段为可选）
@@ -42,7 +44,13 @@ public class UserController {
         return userService.register(registerDTO);
     }
 
-    // TODO 验证码获取接口（手机 / 邮箱）
+    /**
+     * 验证码获取接口（手机号 / 邮箱）
+     */
+    @PostMapping("/otp")
+    public Result<Object> getOtp(OtpDTO otpDTO) {
+        return userService.getOtp(otpDTO);
+    }
 
     // TODO 修改用户信息接口
 

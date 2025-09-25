@@ -11,7 +11,7 @@ public class RedisKeyConstant {
     // refresh token黑名单
     public static final String REFRESH_TOKEN_BLACK_LIST = "refresh:token:black:list:";
 
-    // 用户登录验证码
-    public static final String USER_LOGIN_OTP = "user:login:otp:";
+    // 用户登录/注册验证码
+    public static final String USER_OTP = "user:otp:";
 
 }

@@ -23,7 +23,8 @@ public enum ErrorCode {
     REGISTER_PHONE_EXIST("2009","手机号已被注册"),
     REGISTER_EMAIL_EXIST("2010","邮箱已被注册"),
     REGISTER_PHONE_OTP_ERROR("2011","手机验证码错误"),
-    REGISTER_EMAIL_OTP_ERROR("2012","邮箱验证码错误"),;
+    REGISTER_EMAIL_OTP_ERROR("2012","邮箱验证码错误"),
+    OTP_PARAMETER_ERROR("2013","手机号或邮箱格式错误"),;
 
     private final String code;
     private final String message;
