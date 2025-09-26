@@ -4,6 +4,7 @@ import com.criel.edove.user.entity.Permission;
 import com.criel.edove.user.entity.Role;
 import com.criel.edove.user.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.criel.edove.user.vo.UserInfoVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -28,5 +29,10 @@ public interface UserMapper extends BaseMapper<User> {
      * 根据用户ID获取权限列表
      */
     List<Permission> getPermissionsByUserId(Long userId);
+
+    /**
+     * 根据用户ID获取用户信息
+     */
+    UserInfoVO getUserInfoByUserId(Long userId);
 
 }

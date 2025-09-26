@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.constant.RegexConstant;
+import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
@@ -25,6 +26,7 @@ import com.criel.edove.user.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.user.strategy.factory.LoginStrategyFactory;
 import com.criel.edove.user.vo.LoginVO;
+import com.criel.edove.user.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
@@ -240,5 +242,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         otpBucket.set(otp, Duration.ofMinutes(5));
 
         return Result.success();
+    }
+
+    /**
+     * 获取用户信息
+     */
+    @Override
+    public Result<UserInfoVO> getUserInfo() {
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        UserInfoVO userInfoVO = userMapper.getUserInfoByUserId(userId);
+        return Result.success(userInfoVO);
     }
 }

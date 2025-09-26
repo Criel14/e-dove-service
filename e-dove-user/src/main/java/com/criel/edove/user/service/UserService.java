@@ -10,6 +10,7 @@ import com.criel.edove.user.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.criel.edove.user.enumeration.RoleEnum;
 import com.criel.edove.user.vo.LoginVO;
+import com.criel.edove.user.vo.UserInfoVO;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
@@ -36,4 +37,5 @@ public interface UserService extends IService<User> {
 
     Result<Object> getOtp(OtpDTO otpDTO);
 
+    Result<UserInfoVO> getUserInfo();
 }

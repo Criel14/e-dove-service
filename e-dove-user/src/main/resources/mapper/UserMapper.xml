@@ -17,4 +17,12 @@
         WHERE ur.user_id = #{userId}
     </select>
 
+    <select id="getUserInfoByUserId" resultType="com.criel.edove.user.vo.UserInfoVO">
+        SELECT u.user_id, u.username, u.phone, u.email, u.avatar_url, r.role_name, r.role_desc
+        FROM user u
+                 INNER JOIN user_role ur ON u.user_id = ur.user_id
+                 INNER JOIN role r ON ur.role_id = r.role_id
+        WHERE u.user_id = #{userId}
+    </select>
+
 </mapper>

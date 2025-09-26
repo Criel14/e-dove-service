@@ -6,6 +6,7 @@ import com.criel.edove.user.dto.OtpDTO;
 import com.criel.edove.user.dto.RegisterDTO;
 import com.criel.edove.user.service.UserService;
 import com.criel.edove.user.vo.LoginVO;
+import com.criel.edove.user.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,7 +57,17 @@ public class UserController {
         return userService.getOtp(otpDTO);
     }
 
+    /**
+     * 获取用户信息
+     */
+    @GetMapping("/info")
+    public Result<UserInfoVO> getUserInfo() {
+        return userService.getUserInfo();
+    }
+
     // TODO 修改用户信息接口
+
+    // TODO 修改密码接口
 
     // TODO 头像上传接口（可能要写在其他微服务里）
 }
