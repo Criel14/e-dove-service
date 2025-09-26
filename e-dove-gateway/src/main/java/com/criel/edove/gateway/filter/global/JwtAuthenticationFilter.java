@@ -4,6 +4,8 @@ import com.criel.edove.gateway.context.UserInfoContext;
 import com.criel.edove.gateway.properties.EDoveUriProperties;
 import com.criel.edove.gateway.result.Result;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -23,17 +25,24 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final WebClient webClient;
 
     // 接口地址配置
     private final EDoveUriProperties eDoveUriProperties;
 
+    // 过滤的url
+    private static final String[] FILTER_URL = {"/login", "/register", "/refresh", "/otp"};
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 过滤请求：登录、注册、refresh token
         String path = exchange.getRequest().getURI().getPath();
-        if (path.contains("/login") || path.contains("/register") || path.contains("/refresh")) {
-            return chain.filter(exchange);
+        for (String url : FILTER_URL) {
+            if (path.contains(url)) {
+                return chain.filter(exchange);
+            }
         }
 
         // 获取用户的token
@@ -45,13 +54,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
         String token = authHeader.split("\\s+")[1];
 
+        String authUri = eDoveUriProperties.getJwtAuth() + "?accessToken=" + token;
         // 调用接口校验jwt并获取用户信息
         return webClient.get()
-                .uri(uriBuilder ->
-                        uriBuilder.path(eDoveUriProperties.getJwtAuth())
-                                .queryParam("token", token)
-                                .build()
-                )
+                .uri(authUri)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Result<UserInfoContext>>() {
                 })
@@ -77,6 +83,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 })
                 .onErrorResume(e -> {
                     // 调用失败返回500错误
+                    LOGGER.error("调用jwt校验接口失败", e);
                     exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
                     return exchange.getResponse().setComplete();
                 });

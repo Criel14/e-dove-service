@@ -36,7 +36,7 @@ public class GatewayLoggingFilter implements GlobalFilter, Ordered {
         // 获取原始请求URL（用户实际访问的地址）
         String originalUrl = getOriginalRequestUrl(exchange);
 
-        LOGGER.info("客户端请求 → IP: {}, 方法: {}, 地址: {}, User-Agent: {}",
+        LOGGER.info("【网关请求】 → IP: {}, 方法: {}, 地址: {}, User-Agent: {}",
                 clientIp, httpMethod, originalUrl, userAgent);
 
         // 执行过滤链，在响应时打印转发信息
@@ -87,7 +87,7 @@ public class GatewayLoggingFilter implements GlobalFilter, Ordered {
 
             String statusStr = responseStatus != null ? String.valueOf(responseStatus) : "未知";
 
-            LOGGER.info("网关转发 ← 目标服务: {}, 响应状态: {}, 耗时: {}ms",
+            LOGGER.info("【网关转发】 ← 目标服务: {}, 响应状态: {}, 耗时: {}ms",
                     targetUrl, statusStr, duration);
 
         } catch (Exception e) {
