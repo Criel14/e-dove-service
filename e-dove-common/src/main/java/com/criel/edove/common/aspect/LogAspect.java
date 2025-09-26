@@ -63,9 +63,9 @@ public class LogAspect {
 
         // 打印日志
         Signature signature = joinPoint.getSignature();
-        LOGGER.info("类名方法: {} : {}", signature.getDeclaringType(), signature.getName());
+        LOGGER.info("【类名方法】: {} : {}", signature.getDeclaringType(), signature.getName());
         try {
-            LOGGER.info("请求数据 → {}", JSONUtil.toJsonStr(reqData));
+            LOGGER.info("【请求数据】 → {}", JSONUtil.toJsonStr(reqData));
         } catch (Exception e) {
             LOGGER.error("序列化请求日志失败", e);
         }
@@ -93,7 +93,7 @@ public class LogAspect {
         respData.put("响应时间", Duration.between(start, Instant.now()).toMillis() + "ms");
 
         try {
-            LOGGER.info("返回数据 ← {}", JSONUtil.toJsonStr(respData));
+            LOGGER.info("【返回数据】 ← {}", JSONUtil.toJsonStr(respData));
         } catch (Exception e) {
             LOGGER.error("序列化响应日志失败", e);
         }
