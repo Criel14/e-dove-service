@@ -30,7 +30,6 @@ public class UserController {
         return Result.success();
     }
 
-    // TODO 要在README里写一下登录注册逻辑的流程
     /**
      * 登录接口
      * 若使用【手机号 + 验证码】登录，则会自动注册，但只会保存手机号信息，密码字段未设置（系统中，密码字段为可选）

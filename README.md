@@ -60,10 +60,10 @@ wsl --install
 
 参考 [DockerHub 国内加速镜像列表](https://github.com/dongyubin/DockerHub) 配置即可；
 
-**tip**：由于镜像源不稳定且可能被下架，可以不配置镜像源，使用代理：
+**tip**：由于镜像源不稳定且可能被下架，可以不配置镜像源，使用**代理**：
 
 1. 确保linux虚拟机的网络模式是**桥接模式**（wsl默认）
-2. 开启代理，启用服务模式，还需要开启**TUN模式**；
+2. 开启代理，启用**服务模式**，还需要开启**TUN模式**；
 
 
 
@@ -134,7 +134,7 @@ criel@CrielLaptop:~$ ip a
 1: lo: ... # 省略
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
     link/ether 00:15:5d:29:21:16 brd ff:ff:ff:ff:ff:ff
-    inet 172.28.80.78/20 brd 172.28.95.255 scope global eth0  # IP地址为此处的172.28.80.78
+    inet 172.28.80.78/20 brd 172.28.95.255 scope global eth0  # <---- IP地址为此处的172.28.80.78
        valid_lft forever preferred_lft forever
     inet6 fe80::215:5dff:fe29:2116/64 scope link
        valid_lft forever preferred_lft forever
@@ -254,6 +254,119 @@ OAuth 2.0
 - 密码的处理采用：`Argon2id`密码哈希算法（在抗 GPU／ASIC 攻击方面比`bcrypt`更强）
 
 > tip：`Argon /ˈɑːrɡən/ `, `bcrypt /biːˈkrɪpt/`
+
+```mermaid
+sequenceDiagram
+  participant frontend as 前端系统
+  participant backend as 服务系统
+  participant Redis
+  participant MySQL
+
+  %% 登录流程
+  Note over frontend,MySQL: 登录流程
+  frontend ->> backend: 提交 登录请求（手机号/邮箱 + 密码 或 验证码等）
+  backend ->> backend: 校验请求参数合法性
+
+  alt 手机号 + 验证码 登录
+    backend ->> Redis: 拉取该手机号对应的验证码
+    Redis -->> backend: 返回验证码（或无数据）
+    alt 验证码 不存在 / 失效 / 错误
+      backend -->> frontend: 返回 “验证码错误 / 失效” 错误
+    else 验证码 匹配正确
+      backend ->> MySQL: 查询此手机号对应的用户记录
+      MySQL -->> backend: 返回用户记录（可能为空）
+      alt 用户记录为空（用户未注册）
+        backend ->> MySQL: 新建用户记录（手机号为唯一标识）
+        MySQL -->> backend: 返回新用户记录
+        backend ->> MySQL: 为该用户赋予默认角色/权限
+        MySQL -->> backend: 确认角色权限写入
+      end
+      backend ->> backend: 执行登录后续操作（生成 access token / refresh token 等）
+    end
+
+  else 手机号 + 密码 登录
+    backend ->> MySQL: 查询该手机号对应的用户记录
+    MySQL -->> backend: 返回用户记录（可能为空）
+    alt 用户不存在
+      backend -->> frontend: 返回 “用户未注册” 错误
+    else 用户存在
+      backend ->> backend: 校验请求中密码与用户记录中密码是否匹配
+      alt 密码不匹配
+        backend -->> frontend: 返回 “用户名或密码错误” 错误
+      else 密码匹配
+        backend ->> backend: 执行登录后续操作（生成 token 等）
+      end
+    end
+
+  else 邮箱 + 密码 登录
+    backend ->> MySQL: 查询该邮箱对应的用户记录
+    MySQL -->> backend: 返回用户记录（可能为空）
+    alt 用户不存在
+      backend -->> frontend: 返回 “用户未注册” 错误
+    else 用户存在
+      backend ->> backend: 校验密码是否正确
+      alt 密码错误
+        backend -->> frontend: 返回 “用户名或密码错误” 错误
+      else 密码正确
+        backend ->> backend: 执行登录后续操作（生成 token 等）
+      end
+    end
+  end
+
+  alt 登录成功
+    backend ->> MySQL: 查询用户角色 / 权限信息
+    MySQL -->> backend: 返回角色/权限数据
+    backend ->> Redis: 存储 refresh token 标识或会话状态（可过期设置）
+    backend -->> frontend: 返回 登录结果（包含 access token、refresh token、用户信息、权限等）
+  end
+
+  %% 注册流程
+  Note over frontend,MySQL: 注册流程
+  frontend ->> backend: 提交 注册请求（手机号 / 邮箱 / 用户名 / 密码 / 验证码等）
+  backend ->> backend: 校验请求参数合法性
+
+  backend ->> MySQL: 检查手机号是否已被注册
+  MySQL -->> backend: 返回结果
+  alt 手机号已被使用
+    backend -->> frontend: 返回 “手机号已注册” 错误
+  else 手机号可用
+    backend ->> MySQL: 检查邮箱是否已被注册
+    MySQL -->> backend: 返回结果
+    alt 邮箱已被使用
+      backend -->> frontend: 返回 “邮箱已注册” 错误
+    else 邮箱可用
+      backend ->> MySQL: 检查用户名是否已被占用
+      MySQL -->> backend: 返回结果
+      alt 用户名已被占用
+        backend -->> frontend: 返回 “用户名已存在” 错误
+      else 用户名可用
+        backend ->> Redis: 验证手机验证码合法性（与缓存中数据比对）
+        Redis -->> backend: 返回验证码状态
+        alt 验证码错误 / 失效
+          backend -->> frontend: 返回 “验证码错误 / 失效” 错误
+        else 验证码校验通过
+          backend ->> Redis: 验证邮箱验证码合法性
+          Redis -->> backend: 返回邮箱验证码状态
+          alt 验证码错误 / 失效
+            backend -->> frontend: 返回 “邮箱验证码错误 / 失效” 错误
+          else 邮箱验证码也通过
+            backend ->> backend: 对用户密码进行加密 / 安全处理
+            backend ->> MySQL: 插入新用户记录（手机号 / 邮箱 / 用户名 / 密码等）
+            MySQL -->> backend: 返回插入成功 / 用户记录
+            backend ->> MySQL: 为用户赋予默认角色 / 权限
+            MySQL -->> backend: 确认角色/权限写入
+            backend ->> backend: （可选）注册后自动登录 → 生成 token 等
+            backend ->> MySQL: 查询用户角色 / 权限信息
+            MySQL -->> backend: 返回角色 / 权限
+            backend ->> Redis: 存储 refresh token 标识或会话状态
+            backend -->> frontend: 返回 注册成功 + 登录结果
+          end
+        end
+      end
+    end
+  end
+
+```
 
 
 
