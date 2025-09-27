@@ -28,7 +28,6 @@ public class AuthController {
 
     /**
      * 校验 access token，成功则返回用户信息；
-     * 网关调用
      */
     @GetMapping("/validate")
     public Result<UserInfoContext> validateAccessToken(@RequestParam String accessToken) {
