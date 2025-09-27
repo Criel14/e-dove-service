@@ -1,5 +1,5 @@
 server:
-  port: 8110
+  port: 8100
 
 spring:
   cloud:
@@ -16,6 +16,11 @@ spring:
 
       # 路由配置
       routes:
+        # auth 模块
+        - id: e-dove-auth
+          uri: lb://e-dove-auth
+          predicates:
+            - Path=/auth/**
         # user模块
         - id: e-dove-user
           uri: lb://e-dove-user
@@ -25,4 +30,4 @@ spring:
 edove:
   uri:
     # 验证jwt接口
-    jwt-auth: lb://e-dove-user/user/auth/validate
+    jwt-auth: lb://e-dove-auth/auth/validate

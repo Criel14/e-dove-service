@@ -1,11 +1,8 @@
 package com.criel.edove.user.controller;
 
 import com.criel.edove.common.result.Result;
-import com.criel.edove.user.dto.LoginDTO;
-import com.criel.edove.user.dto.OtpDTO;
-import com.criel.edove.user.dto.RegisterDTO;
-import com.criel.edove.user.service.UserService;
-import com.criel.edove.user.vo.LoginVO;
+import com.criel.edove.user.dto.UserInfoDTO;
+import com.criel.edove.user.service.UserInfoService;
 import com.criel.edove.user.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
+    private final UserInfoService userInfoService;
 
     /**
      * 测试连接
@@ -32,37 +29,21 @@ public class UserController {
     }
 
     /**
-     * 登录接口
-     * 若使用【手机号 + 验证码】登录，则会自动注册，但只会保存手机号信息，密码字段未设置（系统中，密码字段为可选）
+     * 创建新用户信息
+     * 需要先在e-dove-auth创建用户认证信息，所以参数中的userId不可为null
      */
-    @PostMapping("/login")
-    public Result<LoginVO> login(@RequestBody LoginDTO loginDTO) {
-        return userService.login(loginDTO);
-    }
-
-    /**
-     * 注册接口
-     * @return 注册完自动完成登录
-     */
-    @PostMapping("/register")
-    public Result<LoginVO> register(@RequestBody RegisterDTO registerDTO) {
-        return userService.register(registerDTO);
-    }
-
-    /**
-     * 验证码获取接口（手机号 / 邮箱）
-     */
-    @PostMapping("/otp")
-    public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
-        return userService.getOtp(otpDTO);
+    @PostMapping("/create")
+    public Result<UserInfoVO> createUserInfo(@RequestBody UserInfoDTO userInfoDTO) {
+        return Result.success(userInfoService.createUserInfo(userInfoDTO));
     }
 
     /**
      * 获取用户信息
+     * TODO 肯需要修改
      */
     @GetMapping("/info")
     public Result<UserInfoVO> getUserInfo() {
-        return userService.getUserInfo();
+        return Result.success(userInfoService.getUserInfo());
     }
 
     // TODO 修改用户信息接口

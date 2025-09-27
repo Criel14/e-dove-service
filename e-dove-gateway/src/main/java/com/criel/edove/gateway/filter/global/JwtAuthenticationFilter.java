@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private final EDoveUriProperties eDoveUriProperties;
 
     // 过滤的url
-    private static final String[] FILTER_URL = {"/login", "/register", "/refresh", "/otp"};
+    private static final String[] FILTER_URL = {"/sign-in", "/register", "/refresh", "/otp"};
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

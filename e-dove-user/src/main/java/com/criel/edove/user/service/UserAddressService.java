@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author Criel
- * @since 2025-09-23
+ * @since 2025-09-27
  */
 public interface UserAddressService extends IService<UserAddress> {
 

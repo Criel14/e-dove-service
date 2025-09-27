@@ -18,9 +18,11 @@
     <packaging>pom</packaging>
     <modules>
         <module>e-dove-common</module>
+        <module>e-dove-feign</module>
         <module>e-dove-user</module>
         <module>e-dove-gateway</module>
         <module>e-dove-generator</module>
+        <module>e-dove-auth</module>
     </modules>
 
     <developers>
@@ -40,6 +42,13 @@
             <dependency>
                 <groupId>com.scnu.criel</groupId>
                 <artifactId>e-dove-common</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+            <!-- 远程调用模块 -->
+            <dependency>
+                <groupId>com.scnu.criel</groupId>
+                <artifactId>e-dove-feign</artifactId>
                 <version>1.0.0</version>
             </dependency>
 

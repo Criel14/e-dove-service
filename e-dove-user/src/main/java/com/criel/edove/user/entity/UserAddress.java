@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -15,10 +17,11 @@ import lombok.Setter;
  * </p>
  *
  * @author Criel
- * @since 2025-09-23
+ * @since 2025-09-27
  */
 @Getter
 @Setter
+@ToString
 @TableName("user_address")
 public class UserAddress implements Serializable {
 

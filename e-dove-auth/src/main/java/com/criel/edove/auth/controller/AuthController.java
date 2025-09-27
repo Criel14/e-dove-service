@@ -1,0 +1,74 @@
+package com.criel.edove.auth.controller;
+
+import com.criel.edove.auth.dto.SignInDTO;
+import com.criel.edove.auth.dto.OtpDTO;
+import com.criel.edove.auth.dto.RegisterDTO;
+import com.criel.edove.auth.service.TokenService;
+import com.criel.edove.auth.vo.SignInVO;
+import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.result.Result;
+import com.criel.edove.auth.service.AuthService;
+import com.criel.edove.auth.vo.TokenRefreshVO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 权限认证 Controller
+ *
+ * @author Criel
+ * @since 2025-09-22
+ */
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+
+    private final AuthService authService;
+    private final TokenService tokenService;
+
+    /**
+     * 校验 access token，成功则返回用户信息；
+     * 网关调用
+     */
+    @GetMapping("/validate")
+    public Result<UserInfoContext> validateAccessToken(@RequestParam String accessToken) {
+        return Result.success(tokenService.validateAccessToken(accessToken));
+    }
+
+    /**
+     * 刷新 refresh token，成功则返回新的 access token 和 refresh token；
+     * 前端接收到401后会尝试调用这里
+     */
+    @PostMapping("/refresh")
+    public Result<TokenRefreshVO> refresh(@RequestParam String refreshToken) {
+        return Result.success(tokenService.refresh(refreshToken));
+    }
+
+    /**
+     * 验证码获取接口（手机号 / 邮箱）
+     */
+    @PostMapping("/otp")
+    public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
+        authService.getOtp(otpDTO);
+        return Result.success();
+    }
+
+    /**
+     * 登录接口
+     * 若使用【手机号 + 验证码】登录，则会自动注册，但只会保存手机号信息，密码字段未设置（系统中，密码字段为可选）
+     */
+    @PostMapping("/sign-in")
+    public Result<SignInVO> login(@RequestBody SignInDTO signInDTO) {
+        return Result.success(authService.signIn(signInDTO));
+    }
+
+    /**
+     * 注册接口
+     *
+     * @return 注册完自动完成登录
+     */
+    @PostMapping("/register")
+    public Result<SignInVO> register(@RequestBody RegisterDTO registerDTO) {
+        return Result.success(authService.register(registerDTO));
+    }
+}

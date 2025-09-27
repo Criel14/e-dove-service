@@ -26,7 +26,8 @@ public enum ErrorCode {
     REGISTER_EMAIL_OTP_ERROR("2012","邮箱验证码错误"),
     OTP_PARAMETER_ERROR("2013","手机号或邮箱格式错误"),
     OTP_MISSING_PARAMETER("2014","验证码请求参数缺失"),
-    USERNAME_ALREADY_EXISTS("2015","用户名已被注册"),;
+    USERNAME_ALREADY_EXISTS("2015","用户名已被注册"),
+    USERINFO_MISSING_USER_ID("2016","用户信息缺失用户ID"),;
 
     private final String code;
     private final String message;

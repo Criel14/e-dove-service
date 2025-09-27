@@ -1,0 +1,39 @@
+server:
+  port: 8110
+
+
+spring:
+  profiles:
+    active: dev
+
+  # redis 配置
+  data:
+    redis:
+      host: ${E_DOVE_DOCKER_IP_ADDR}
+      port: 6379
+      password: eDoveRedis1014
+
+  # mysql 配置
+  datasource:
+    url: jdbc:mysql://${E_DOVE_DOCKER_IP_ADDR}:3306/e_dove_auth?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: e_dove_auth_admin
+    password: eDoveMysql1014
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+# 自定义配置
+edove:
+  # jwt配置
+  jwt:
+    # access token
+    access-key: "Q3JpZWxFRG92ZUp3dEFjY2Vzc1Rva2VuS2V5MTIzNDU="
+    access-ttl: 3600000 # 1小时
+
+    # refresh token
+    refresh-key: "Q3JpZWxFRG92ZUp3dFJlZnJlc2hUb2tlbktleTEyMzQ="
+    refresh-ttl: 604800000 # 7天
+
+  # 雪花算法配置
+  snowflake:
+    data-center-id: 1 # 数据中心ID
+    worker-id: 1 # 机器ID

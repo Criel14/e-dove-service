@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: e-dove-auth
+
+  cloud:
+    # nacos 配置
+    nacos:
+      discovery:
+        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: ${E_DOVE_NACOS_NAMESPACE}
+      config:
+        server-addr: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: ${E_DOVE_DOCKER_IP_ADDR}
+        file-extension: properties
