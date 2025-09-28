@@ -1,0 +1,109 @@
+server:
+  port: 7091
+
+spring:
+  application:
+    name: seata-server
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: ${log.home:${user.home}/logs/seata}
+  extend:
+    logstash-appender:
+      destination: 127.0.0.1:4560
+    kafka-appender:
+      bootstrap-servers: 127.0.0.1:9092
+      topic: logback_to_logstash
+  level:
+    org.apache.seata: DEBUG
+    com.alibaba.nacos: DEBUG
+
+console:
+  user:
+    username: seata
+    password: seata
+
+# seata服务端指定事务组
+service:
+  vgroupMapping:
+    edove-group: default
+
+seata:
+  security:
+    secretKey: SeataSecretKey0123456789
+    tokenValidityInMilliseconds: 1800000
+    ignore:
+      urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.jpeg,/**/*.ico,/api/v1/auth/login,/metadata/v1/**
+  config:
+    type: nacos
+    nacos:
+      server-addr: nacos:8848
+      namespace: e-dove-1014
+      group: SEATA_GROUP
+      context-path: /nacos
+      username: nacos
+      password: nacos
+      data-id: seataServer.properties
+  registry:
+    type: nacos
+    preferred-networks: 30.240.*
+    nacos:
+      application: seata-server
+      server-addr: nacos:8848
+      group: SEATA_GROUP
+      namespace: e-dove-1014
+      cluster: default
+      context-path: /nacos
+      username: nacos
+      password: nacos
+  store:
+    # support: file 、 db 、 redis 、 raft
+    mode: db
+      # session:
+    # mode: file
+    # lock:
+    # mode: file
+    db:
+      datasource: druid
+      db-type: mysql
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://mysql:3306/e_dove_seata?rewriteBatchedStatements=true
+      user: e_dove_seata_admin
+      password: eDoveMysql1014
+      min-conn: 10
+      max-conn: 100
+      global-table: global_table
+      branch-table: branch_table
+      lock-table: lock_table
+      distributed-lock-table: distributed_lock
+      query-limit: 1000
+      max-wait: 5000
+      lockTable: lock_table
+      branchTable: branch_table
+      globalTable: global_table
+      distributedLockTable: distributed_lock
+  server:
+    service-port: 8091
+    max-commit-retry-timeout: -1
+    max-rollback-retry-timeout: -1
+    rollback-retry-timeout-unlock-enable: false
+    enable-check-auth: false # 关闭认证
+    enable-parallel-request-handle: true
+    enable-parallel-handle-branch: false
+    retry-dead-threshold: 130000
+    xaer-nota-retry-timeout: 60000
+    enableParallelRequestHandle: true
+    applicationDataLimitCheck: true
+    applicationDataLimit: 64000
+    recovery:
+      committing-retry-period: 1000
+      async-committing-retry-period: 1000
+      rollbacking-retry-period: 1000
+      timeout-retry-period: 1000
+    undo:
+      log-save-days: 7
+      log-delete-period: 86400000
+    session:
+      branch-async-queue-size: 5000 #branch async remove queue size
+      enable-branch-async-remove: false #enable to asynchronous remove branchSession

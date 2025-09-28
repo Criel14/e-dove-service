@@ -28,6 +28,7 @@ import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
+import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class AuthServiceImpl implements AuthService {
      * 3. 邮箱 + 密码
      */
     @Override
+    @GlobalTransactional
     public SignInVO signIn(SignInDTO signInDTO) {
         // 根据参数的缺失情况选择登录策略
         String signInStrategy = checkSignInStrategy(signInDTO);
@@ -81,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         if (checkedUserAuth.getUserId() == null) {
             this.createUserAuthAndGrantRole(checkedUserAuth, RoleEnum.USER);
         }
-        // 创建用户信息 TODO 需要分布式事务
+        // 创建用户信息
         UserInfoDTO userInfoDTO = new UserInfoDTO();
         userInfoDTO.setUserId(checkedUserAuth.getUserId());
         userInfoDTO.setPhone(checkedUserAuth.getPhone());
@@ -114,6 +116,7 @@ public class AuthServiceImpl implements AuthService {
      * 注册：手机号为必填项，其他的为选填
      */
     @Override
+    @GlobalTransactional
     public SignInVO register(RegisterDTO registerDTO) {
         // 验证参数是否缺失
         if (registerDTO.getPhone() == null || registerDTO.getPhoneOtp() == null) {
@@ -139,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
         // 默认是【普通用户】
         this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER);
 
-        // 创建新用户信息（远程调用）TODO 需要分布式事务
+        // 创建新用户信息（远程调用）
         UserInfoDTO userInfoDTO = new UserInfoDTO();
         BeanUtils.copyProperties(registerDTO, userInfoDTO);
         userInfoDTO.setUserId(userAuth.getUserId());

@@ -50,6 +50,7 @@ public class AuthController {
     public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
         authService.getOtp(otpDTO);
         return Result.success();
+        // TODO 还需要删除验证码
     }
 
     /**

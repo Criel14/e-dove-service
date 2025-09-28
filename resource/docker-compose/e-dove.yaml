@@ -1,5 +1,5 @@
-# 启动命令: docker compose -f e-dove.yaml -p e-dove up -d
-# 关闭命令: docker compose -f e-dove.yaml -p e-dove down
+# 启动命令: docker compose -f e-dove.yaml -p up -d
+# 关闭命令: docker compose -f e-dove.yaml -p down
 
 networks:
   e-dove-network: # 声明自定义网络
@@ -16,10 +16,11 @@ volumes:
 services:
   nacos:
     container_name: e-dove-nacos-standalone
-    image: nacos/nacos-server:v3.0.3
+    image: nacos/nacos-server:v2.4.2.1
     environment:
       - PREFER_HOST_MODE=hostname # 优先使用主机名
       - MODE=standalone # 单机模式
+      - NACOS_AUTH_ENABLE=true # 禁用认证
       - NACOS_AUTH_IDENTITY_KEY=serverIdentity # 身份验证密钥名称
       - NACOS_AUTH_IDENTITY_VALUE=security # 身份验证密钥值
       - NACOS_AUTH_TOKEN=Q3JpZWxDaGVuR3JhZHVhdGlvblByb2plY3RFRG92ZTE= # API令牌（自定义32位Base64编码，这里加密前是"CrielChenGraduationProjectEDove1"）
@@ -27,9 +28,8 @@ services:
       - ./e-dove/nacos-standalone-logs/:/home/nacos/logs # 挂载日志
       - e-dove-nacos-data:/home/nacos/data # 持久化数据目录
     ports:
-      - "8080:8080" # 控台（给人用）
-      - "8848:8848" # 核心服务（给微服务用）
-      - "9848:9848" # 内部通信（系统用）
+      - "8848:8848"  # 控制台和API统一端口
+      - "9848:9848"  # gRPC通信
     networks:
       - e-dove-network # 自定义网络
     restart: unless-stopped # 自动重启
@@ -55,10 +55,28 @@ services:
     ports:
       - "6379:6379" # 主机端口:容器端口
     volumes:
-      - ./e-dove/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 挂载配置文件（需要配置文件）
+      - ./e-dove/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 挂载配置文件
       - ./e-dove/redis/logs:/logs # 挂载日志目录
       - e-dove-redis-data:/data # 挂载数据
     command: redis-server /usr/local/etc/redis/redis.conf # 指定配置文件启动
     networks:
       - e-dove-network # 自定义网络
+    restart: unless-stopped
+  seata-server:
+    image: apache/seata-server:2.1.0
+    container_name: e-dove-seata-server
+    hostname: seata-server
+    ports:
+      - "8091:8091"  # 控制台端口
+      - "7091:7091"  # 用于Seata Dashboard
+    environment:
+      - SEATA_IP=172.28.80.78  # 指定Seata Server的IP，用于服务注册
+    volumes:
+      - ./e-dove/seata/conf/application.yml:/seata-server/resources/application.yml # 挂载配置文件
+      - ./e-dove/seata/jdbc/mysql-connector-j-8.4.0.jar:/seata-server/libs/mysql-connector-j-8.4.0.jar  # 挂载jdbc驱动
+    networks:
+      - e-dove-network
+    depends_on:
+      - mysql  # 确保MySQL先启动
+      - nacos  # 确保Nacos先启动
     restart: unless-stopped

@@ -7,4 +7,7 @@ spring:
     nacos:
       discovery:
         server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_NACOS_NAMESPACE}
+        namespace: e-dove-1014
+        group: EDOVE_GROUP
+        username: nacos
+        password: nacos

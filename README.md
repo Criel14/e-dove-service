@@ -67,7 +67,7 @@ wsl --install
 
 
 
-## 启动所有组件
+## 启动组件
 
 将`e-dove.yaml`文件放入linux的`home`目录；
 
@@ -85,13 +85,25 @@ docker compose -f e-dove.yaml -p e-dove down
 
 
 
-## 添加配置文件
+## 配置组件
 
-### 添加redis配置
+### 创建nacos命名空间
 
-redis的配置已准备在项目中：`./resource/redis/redis.conf`；
+组件启动后，在本机访问 `linux地址:8848/nacos` 进入nacos控台，首次进入需要设置**初始密码**，设置为`nacos`；
 
-将`redis.conf`文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+> 即用户名`nacos`，密码`nacos`；如果不这样设置，需要不少地方的配置；
+
+在"命名空间"栏创建命名空间，命名空间ID设置为`e-dove-1014`;
+
+![](./resource/images/nacos命名空间.png)
+
+
+
+### Redis配置
+
+redis的**配置**已准备在项目中：`./resource/redis/redis.conf`；
+
+将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
 
 ```
 sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
@@ -99,9 +111,42 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 
 
 
-## 初始化MySQL
+### Seata配置
 
-1. 使用 docker compose 中的 root 用户登录MySQL；
+seata相关的**配置**已准备在项目中：`./resource/seata/applicayion.yml`
+
+添加前，需要修改配置中的内容：
+
+```yml
+services:
+  seata-server:
+	...
+    environment:
+      - SEATA_IP=172.28.80.78  # 改成linux的ip地址，可用`ip a`命令查看
+    ...
+```
+
+将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+
+```
+sudo mv application.yml ./e-dove/seata/conf/
+```
+
+除此之外，seata镜像本身不包含**jdbc**，需要自己准备，已准备在项目中：`./resource/seata/mysql-connector-j-8.4.0.jar`
+
+将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+
+```
+sudo mv mysql-connector-j-8.4.0.jar ./e-dove/seata/jdbc/
+```
+
+
+
+### 初始化MySQL
+
+docker compose 启动完成后：
+
+1. 使用 `e-dove.yaml` 中的 `root` 用户登录MySQL；
 2. 执行 `./resource/mysql` 目录下的所有sql语句；
 
 
@@ -109,6 +154,8 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 ## 环境变量
 
 项目中一些地方需要使用环境变量做配置，需要配置**项目运行的系统**的环境变量（可以是windows，也可以是打包后运行在的linux或docker）
+
+> 用引用环境变量的方式，就不用改那么多地方了；但是有些地方还是必须要修改，比如seata的配置等，没有办法；
 
 ### docker所在地址
 
@@ -146,31 +193,6 @@ criel@CrielLaptop:~$ ip a
 ```
 E_DOVE_DOCKER_IP_ADDR = docker所在的主机的地址 （如果部署在本机，则可以配置成127.0.0.1）
 ```
-
-### nacos命名空间
-
-使用：
-
-```yaml
-spring:
-  cloud:
-    nacos:
-      discovery:
-        namespace: ${E_DOVE_NACOS_NAMESPACE}
-```
-
-组件启动后，在本机访问 `linux地址:8080` 进入nacos控台，首次进入需要设置**初始密码**；
-
-在"命名空间"栏创建命名空间，建议**不设置命名空间ID**，将自动生成；
-
-![](./resource/images/nacos命名空间.png)
-
-将生成后的命名空间ID保存在环境变量中：
-
-```
-E_DOVE_NACOS_NAMESPACE = Nacos自动生成的命名空间ID
-```
-
 
 
 

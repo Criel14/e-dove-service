@@ -7,8 +7,54 @@ spring:
     nacos:
       discovery:
         server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_NACOS_NAMESPACE}
+        namespace: e-dove-1014
+        group: EDOVE_GROUP
+        username: nacos
+        password: nacos
       config:
         server-addr: ${E_DOVE_DOCKER_IP_ADDR}
-        namespace: ${E_DOVE_DOCKER_IP_ADDR}
+        namespace: e-dove-1014
         file-extension: properties
+        group: EDOVE_GROUP
+        username: nacos
+        password: nacos
+
+seata:
+  # 客户端指定使用的事务服务组名称（需与vgroup-mapping中的key一致）
+  tx-service-group: edove-group
+  client:
+    rm:
+      lock:
+        # 全局锁重试次数（获取全局锁失败后的最大重试次数）
+        retry-times: '50'
+        # 全局锁重试间隔时间（单位：毫秒）
+        retry-interval: '100'
+  # 启用Seata分布式事务
+  enabled: 'true'
+  # Seata模式
+  data-source-proxy-mode: AT
+  service:
+    # 事务组与集群的映射配置：将事务组edove-group映射到名为default的Seata集群
+    vgroup-mapping:
+      edove-group: default
+    # Seata服务端集群地址列表
+    grouplist:
+      default: ${E_DOVE_DOCKER_IP_ADDR}:8091
+  registry:
+    type: nacos
+    nacos:
+      server-addr: ${E_DOVE_DOCKER_IP_ADDR}:8848
+      application: seata-server
+      namespace: e-dove-1014
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
+  config:
+    type: nacos
+    nacos:
+      server-addr: ${E_DOVE_DOCKER_IP_ADDR}:8848
+      namespace: e-dove-1014
+      data-id: seataServer.properties
+      group: SEATA_GROUP
+      username: nacos
+      password: nacos
