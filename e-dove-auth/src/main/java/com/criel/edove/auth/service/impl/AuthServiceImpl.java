@@ -82,12 +82,12 @@ public class AuthServiceImpl implements AuthService {
         // 创建用户认证
         if (checkedUserAuth.getUserId() == null) {
             this.createUserAuthAndGrantRole(checkedUserAuth, RoleEnum.USER);
+            // 创建用户信息
+            UserInfoDTO userInfoDTO = new UserInfoDTO();
+            userInfoDTO.setUserId(checkedUserAuth.getUserId());
+            userInfoDTO.setPhone(checkedUserAuth.getPhone());
+            userFeignClient.createUserInfo(userInfoDTO);
         }
-        // 创建用户信息
-        UserInfoDTO userInfoDTO = new UserInfoDTO();
-        userInfoDTO.setUserId(checkedUserAuth.getUserId());
-        userInfoDTO.setPhone(checkedUserAuth.getPhone());
-        userFeignClient.createUserInfo(userInfoDTO);
 
         // 生成2个token
         UserInfoContext userInfoContext = new UserInfoContext(
@@ -144,9 +144,10 @@ public class AuthServiceImpl implements AuthService {
 
         // 创建新用户信息（远程调用）
         UserInfoDTO userInfoDTO = new UserInfoDTO();
-        BeanUtils.copyProperties(registerDTO, userInfoDTO);
-        userInfoDTO.setUserId(userAuth.getUserId());
-        userInfoDTO.setUsername(userAuth.getUsername());
+        BeanUtils.copyProperties(userAuth, userInfoDTO);
+        if (StrUtil.isNotEmpty(registerDTO.getAvatarUrl())) {
+            userInfoDTO.setAvatarUrl(registerDTO.getAvatarUrl());
+        }
         userFeignClient.createUserInfo(userInfoDTO);
 
         // 注册完自动完成登录
@@ -261,8 +262,11 @@ public class AuthServiceImpl implements AuthService {
     private void createUserAuthAndGrantRole(UserAuth userAuth, RoleEnum roleEnum) {
         // 新用户ID
         Long userId = snowflakeService.nextId();
-        userAuth.setUsername("edove" + userId);
         userAuth.setUserId(userId);
+        // 默认用户名
+        if (StrUtil.isEmpty(userAuth.getUsername())) {
+            userAuth.setUsername("edove" + userId);
+        }
         userAuthMapper.insert(userAuth);
 
         // 授权

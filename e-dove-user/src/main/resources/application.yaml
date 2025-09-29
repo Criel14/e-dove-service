@@ -20,6 +20,10 @@ spring:
     password: eDoveMysql1014
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+# 日志级别
+logging:
+  level:
+    com.criel.edove.user.mapper: trace
 
 # 自定义配置
 edove:

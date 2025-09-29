@@ -45,7 +45,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         userInfo.setUserId(userInfoDTO.getUserId());
         // 默认用户名
         if (StrUtil.isEmpty(userInfoDTO.getUsername())) {
-            userInfo.setUsername("dove" + userInfoDTO.getUserId());
+            userInfo.setUsername("edove" + userInfoDTO.getUserId());
+        } else {
+            userInfo.setUsername(userInfoDTO.getUsername());
         }
         if (StrUtil.isNotEmpty(userInfoDTO.getPhone())) {
             userInfo.setPhone(userInfoDTO.getPhone());
