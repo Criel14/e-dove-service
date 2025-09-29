@@ -41,3 +41,7 @@ edove:
   snowflake:
     data-center-id: 1 # 数据中心ID
     worker-id: 1 # 机器ID
+
+  # 验证码配置
+  otp:
+    ttl: 2 # 验证码有效时间，单位：分钟

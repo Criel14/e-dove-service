@@ -13,6 +13,7 @@ import com.criel.edove.auth.entity.UserRole;
 import com.criel.edove.auth.mapper.RoleMapper;
 import com.criel.edove.auth.mapper.UserAuthMapper;
 import com.criel.edove.auth.mapper.UserRoleMapper;
+import com.criel.edove.auth.properties.OtpProperties;
 import com.criel.edove.auth.service.TokenService;
 import com.criel.edove.auth.strategy.factory.LoginStrategyFactory;
 import com.criel.edove.common.constant.LoginStrategyConstant;
@@ -56,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final LoginStrategyFactory loginStrategyFactory;
     private final UserFeignClient userFeignClient;
+    private final OtpProperties otpProperties;
 
     private final UserAuthMapper userAuthMapper;
     private final RoleMapper roleMapper;
@@ -216,6 +218,14 @@ public class AuthServiceImpl implements AuthService {
         if (phoneOrEmail == null) {
             throw new OtpMissingParameterException();
         }
+
+        // 判断验证码是否还存在于redis中，存在则提示请求频率过快
+        String optKey = RedisKeyConstant.USER_OTP + phoneOrEmail;
+        RBucket<String> otpBucket = redissonClient.getBucket(optKey);
+        if (otpBucket.isExists()) {
+            throw new OtpRequestTooFrequentlyException();
+        }
+
         // 判断是手机号还是邮箱
         if (phoneOrEmail.matches(RegexConstant.CHINA_PHONE_REGEX)) {
             // TODO 发送手机验证码
@@ -228,9 +238,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 验证码存入redis
-        String optKey = RedisKeyConstant.USER_OTP + phoneOrEmail;
-        RBucket<String> otpBucket = redissonClient.getBucket(optKey);
-        otpBucket.set(otp, Duration.ofMinutes(5));
+
+        otpBucket.set(otp, Duration.ofMinutes(otpProperties.getTtl()));
     }
 
     /**

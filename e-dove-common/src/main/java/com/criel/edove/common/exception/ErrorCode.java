@@ -27,7 +27,8 @@ public enum ErrorCode {
     OTP_PARAMETER_ERROR("2013","手机号或邮箱格式错误"),
     OTP_MISSING_PARAMETER("2014","验证码请求参数缺失"),
     USERNAME_ALREADY_EXISTS("2015","用户名已被注册"),
-    USERINFO_MISSING_USER_ID("2016","用户信息缺失用户ID"),;
+    USERINFO_MISSING_USER_ID("2016","用户信息缺失用户ID"),
+    OTP_REQUEST_TOO_FREQUENTLY("2017","验证码请求频率过快"),;
 
     private final String code;
     private final String message;
