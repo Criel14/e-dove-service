@@ -6,13 +6,13 @@ import com.criel.edove.common.exception.ErrorCode;
 /**
  * 用户注册时：参数缺失
  */
-public class UserRegisterMissingParameterException extends BaseException {
+public class RegisterMissingParameterException extends BaseException {
 
-    public UserRegisterMissingParameterException() {
+    public RegisterMissingParameterException() {
         super(ErrorCode.REGISTER_MISSING_PARAMETER);
     }
 
-    public UserRegisterMissingParameterException(String extraMessage) {
+    public RegisterMissingParameterException(String extraMessage) {
         super(ErrorCode.REGISTER_MISSING_PARAMETER, extraMessage);
     }
 

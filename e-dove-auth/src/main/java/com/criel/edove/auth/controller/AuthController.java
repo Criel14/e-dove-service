@@ -3,6 +3,7 @@ package com.criel.edove.auth.controller;
 import com.criel.edove.auth.dto.SignInDTO;
 import com.criel.edove.auth.dto.OtpDTO;
 import com.criel.edove.auth.dto.RegisterDTO;
+import com.criel.edove.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.auth.service.TokenService;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.context.UserInfoContext;
@@ -50,7 +51,6 @@ public class AuthController {
     public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
         authService.getOtp(otpDTO);
         return Result.success();
-        // TODO 还需要删除验证码
     }
 
     /**
@@ -71,4 +71,17 @@ public class AuthController {
     public Result<SignInVO> register(@RequestBody RegisterDTO registerDTO) {
         return Result.success(authService.register(registerDTO));
     }
+
+    /**
+     * 更新用户认证信息接口：仅支持修改：用户名 和 邮箱
+     * 仅远程调用：需要确保在e-dove-user中已经验证邮箱的验证码，验证用户名是否能在
+     */
+    @PostMapping("/update")
+    public Result<Object> update(@RequestBody UpdateUserAuthDTO updateUserAuthDTO) {
+        authService.updateUserAuth(updateUserAuthDTO);
+        return Result.success();
+    }
+
+    // TODO 修改密码接口
+
 }

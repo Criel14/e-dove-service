@@ -1,0 +1,19 @@
+package com.criel.edove.common.exception.impl;
+
+import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.ErrorCode;
+
+/**
+ * 更新用户信息时：邮箱已存在异常
+ */
+public class UpdateInfoEmailAlreadyExistsException extends BaseException {
+
+    public UpdateInfoEmailAlreadyExistsException() {
+        super(ErrorCode.UPDATE_INFO_EMAIL_ALREADY_EXISTS);
+    }
+
+    public UpdateInfoEmailAlreadyExistsException(String extraMessage) {
+        super(ErrorCode.UPDATE_INFO_EMAIL_ALREADY_EXISTS, extraMessage);
+    }
+
+}

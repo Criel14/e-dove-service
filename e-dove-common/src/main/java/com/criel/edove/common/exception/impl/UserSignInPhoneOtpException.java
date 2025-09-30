@@ -9,11 +9,11 @@ import com.criel.edove.common.exception.ErrorCode;
 public class UserSignInPhoneOtpException extends BaseException {
 
     public UserSignInPhoneOtpException() {
-        super(ErrorCode.LOGIN_PHONE_OTP_ERROR);
+        super(ErrorCode.SIGN_IN_PHONE_OTP_ERROR);
     }
 
     public UserSignInPhoneOtpException(String extraMessage) {
-        super(ErrorCode.LOGIN_PHONE_OTP_ERROR, extraMessage);
+        super(ErrorCode.SIGN_IN_PHONE_OTP_ERROR, extraMessage);
     }
 
 }

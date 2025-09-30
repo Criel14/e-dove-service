@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.criel.edove.auth.dto.OtpDTO;
 import com.criel.edove.auth.dto.RegisterDTO;
 import com.criel.edove.auth.dto.SignInDTO;
+import com.criel.edove.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.auth.entity.Permission;
 import com.criel.edove.auth.entity.Role;
 import com.criel.edove.auth.entity.UserAuth;
@@ -20,6 +21,7 @@ import com.criel.edove.common.constant.LoginStrategyConstant;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.constant.RegexConstant;
 import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.RoleEnum;
 import com.criel.edove.common.exception.BaseException;
 import com.criel.edove.common.exception.impl.*;
@@ -122,15 +124,15 @@ public class AuthServiceImpl implements AuthService {
     public SignInVO register(RegisterDTO registerDTO) {
         // 验证参数是否缺失
         if (registerDTO.getPhone() == null || registerDTO.getPhoneOtp() == null) {
-            throw new UserRegisterMissingParameterException();
+            throw new RegisterMissingParameterException();
         }
 
         // 验证手机号/邮箱/用户是否存在
         checkUserExists(registerDTO);
 
         // 验证码校验
-        checkOtp(registerDTO.getPhone(), registerDTO.getPhoneOtp(), new UserRegisterPhoneOtpException());
-        checkOtp(registerDTO.getEmail(), registerDTO.getEmailOtp(), new UserRegisterEmailOtpException());
+        checkOtp(registerDTO.getPhone(), registerDTO.getPhoneOtp(), new RegisterPhoneOtpException());
+        checkOtp(registerDTO.getEmail(), registerDTO.getEmailOtp(), new RegisterEmailOtpException());
 
         // 处理密码
         String hash = passwordEncoder.encode(registerDTO.getPassword());
@@ -179,15 +181,15 @@ public class AuthServiceImpl implements AuthService {
         if (!existingUsers.isEmpty()) {
             for (UserAuth user : existingUsers) {
                 if (registerDTO.getPhone().equals(user.getPhone())) {
-                    throw new UserRegisterPhoneAlreadyExistsException();
+                    throw new RegisterPhoneAlreadyExistsException();
                 }
                 if (!StrUtil.isEmpty(registerDTO.getEmail()) &&
                         registerDTO.getEmail().equals(user.getEmail())) {
-                    throw new UserRegisterEmailAlreadyExistsException();
+                    throw new RegisterEmailAlreadyExistsException();
                 }
                 if (!StrUtil.isEmpty(registerDTO.getUsername()) &&
                         registerDTO.getUsername().equals(user.getUsername())) {
-                    throw new UsernameAlreadyExistsException();
+                    throw new RegisterUsernameAlreadyExistsException();
                 }
             }
         }
@@ -240,6 +242,23 @@ public class AuthServiceImpl implements AuthService {
         // 验证码存入redis
 
         otpBucket.set(otp, Duration.ofMinutes(otpProperties.getTtl()));
+    }
+
+    /**
+     * 更新用户认证信息接口：仅支持修改：用户名 和 邮箱
+     * （已提前：验证用户名是否存在，验证邮箱验证码）
+     */
+    @Override
+    public void updateUserAuth(UpdateUserAuthDTO updateUserAuthDTO) {
+        UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
+        UserAuth userAuth = userAuthMapper.selectById(userInfoContext.getUserId());
+        if (StrUtil.isNotEmpty(updateUserAuthDTO.getUsername())) {
+            userAuth.setUsername(updateUserAuthDTO.getUsername());
+        }
+        if (StrUtil.isNotEmpty(updateUserAuthDTO.getEmail())) {
+            userAuth.setEmail(updateUserAuthDTO.getEmail());
+        }
+        userAuthMapper.updateById(userAuth);
     }
 
     /**

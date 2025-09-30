@@ -3,6 +3,7 @@ package com.criel.edove.auth.service;
 import com.criel.edove.auth.dto.OtpDTO;
 import com.criel.edove.auth.dto.RegisterDTO;
 import com.criel.edove.auth.dto.SignInDTO;
+import com.criel.edove.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.auth.vo.SignInVO;
 
 /**
@@ -19,4 +20,5 @@ public interface AuthService {
 
     void getOtp(OtpDTO otpDTO);
 
+    void updateUserAuth(UpdateUserAuthDTO updateUserAuthDTO);
 }

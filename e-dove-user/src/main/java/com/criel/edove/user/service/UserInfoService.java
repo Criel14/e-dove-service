@@ -1,6 +1,7 @@
 package com.criel.edove.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.criel.edove.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.user.dto.UserInfoDTO;
 import com.criel.edove.user.entity.UserInfo;
 import com.criel.edove.user.vo.UserInfoVO;
@@ -18,4 +19,6 @@ public interface UserInfoService extends IService<UserInfo> {
     UserInfoVO createUserInfo(UserInfoDTO userInfoDTO);
 
     UserInfoVO getUserInfo();
+
+    UserInfoVO updateUserInfo(UpdateUserInfoDTO updateUserInfoDTO);
 }

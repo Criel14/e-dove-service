@@ -24,6 +24,12 @@
             <artifactId>e-dove-common</artifactId>
         </dependency>
 
+        <!-- 远程调用模块 -->
+        <dependency>
+            <groupId>com.scnu.criel</groupId>
+            <artifactId>e-dove-feign</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

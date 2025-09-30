@@ -9,11 +9,11 @@ import com.criel.edove.common.exception.ErrorCode;
 public class UserSignInMissingParameterException extends BaseException {
 
     public UserSignInMissingParameterException() {
-        super(ErrorCode.LOGIN_MISSING_PARAMETER);
+        super(ErrorCode.SIGN_IN_MISSING_PARAMETER);
     }
 
     public UserSignInMissingParameterException(String extraMessage) {
-        super(ErrorCode.LOGIN_MISSING_PARAMETER, extraMessage);
+        super(ErrorCode.SIGN_IN_MISSING_PARAMETER, extraMessage);
     }
 
 }
