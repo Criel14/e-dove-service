@@ -3,10 +3,16 @@ package com.criel.edove.user.controller;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.user.dto.UserInfoDTO;
+import com.criel.edove.user.service.BarcodeService;
 import com.criel.edove.user.service.UserInfoService;
+import com.criel.edove.user.vo.IdentityBarcodeVO;
 import com.criel.edove.user.vo.UserInfoVO;
+import com.criel.edove.user.vo.VerifyBarcodeVO;
+import com.google.zxing.WriterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 /**
  * 用户信息操作 Controller
@@ -20,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserInfoService userInfoService;
+    private final BarcodeService barcodeService;
 
     /**
      * 测试连接
@@ -48,11 +55,31 @@ public class UserController {
 
     /**
      * 修改用户信息
+     *
      * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像
      */
     @PostMapping("/update")
     public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO) {
-        return  Result.success(userInfoService.updateUserInfo(updateUserInfoDTO));
+        return Result.success(userInfoService.updateUserInfo(updateUserInfoDTO));
+    }
+
+    /**
+     * 生成身份码条形码接口
+     *
+     * @return base64编码的条形码图片
+     */
+    @GetMapping("/barcode/create")
+    public Result<IdentityBarcodeVO> generateBarcode() throws IOException, WriterException {
+        return Result.success(barcodeService.generateUserBarcodeBase64());
+    }
+
+    /**
+     * 验证身份码条形码接口
+     * 仅远程调用：出库时使用
+     */
+    @GetMapping("/barcode/verify")
+    public Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code) {
+        return Result.success(barcodeService.verifyIdentityBarcode(code));
     }
 
 

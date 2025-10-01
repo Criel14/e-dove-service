@@ -38,7 +38,9 @@ public enum ErrorCode {
     UPDATE_INFO_EMAIL_ALREADY_EXISTS("3003","邮箱已被注册"),
     UPDATE_INFO_USERNAME_ALREADY_EXISTS("3004","用户名已被注册"),
     UPDATE_INFO_EMAIL_OTP_ERROR("3005","邮箱验证码错误"),
-    UPDATE_INFO_EMAIL_PARAMETER_ERROR("3006","邮箱格式错误"),;
+    UPDATE_INFO_EMAIL_PARAMETER_ERROR("3006","邮箱格式错误"),
+    HMAC_ERROR("3007","HMAC-SHA256计算异常"),
+    IDENTITY_CODE_VERIFY_ERROR("3008","身份码验证失败"),;
 
     private final String code;
     private final String message;

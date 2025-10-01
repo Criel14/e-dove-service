@@ -31,3 +31,12 @@ edove:
   snowflake:
     data-center-id: 2 # 数据中心ID
     worker-id: 2 # 机器ID
+
+  # 身份码条形码配置
+  identity-barcode:
+    width: 500
+    height: 150
+    ttl: 5 # 单位：分钟
+    key: eDoveBarcodeKey1014
+    algorithm: HmacSHA256 # 签名算法
+    signLength: 6 # 签名截取长度
