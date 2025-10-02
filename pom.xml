@@ -83,9 +83,16 @@
                 <artifactId>mysql-connector-j</artifactId>
                 <version>8.4.0</version>
             </dependency>
+            <!-- mybatis-plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>3.5.14</version>
+            </dependency>
+            <!-- mybatis-plus 分页插件-->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>3.5.14</version>
             </dependency>
 
