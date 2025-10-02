@@ -4,6 +4,7 @@ import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -18,5 +19,11 @@ public interface UserFeignClient {
      */
     @PostMapping("/user/create")
     Result<UserInfoVO> createUserInfo(@RequestBody UserInfoDTO userInfoDTO);
+
+    /**
+     * 获取用户信息：需要保证请求头有数据
+     */
+    @GetMapping("/info")
+    Result<UserInfoVO> getUserInfo();
 
 }

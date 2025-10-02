@@ -7,6 +7,8 @@ import lombok.Getter;
  * 1xxx：通用异常
  * 2xxx：auth服务异常
  * 3xxx：user服务异常
+ * 4xxx: store服务异常
+ * 5xxx: parcel服务异常
  */
 @Getter
 public enum ErrorCode {
@@ -40,7 +42,10 @@ public enum ErrorCode {
     UPDATE_INFO_EMAIL_OTP_ERROR("3005","邮箱验证码错误"),
     UPDATE_INFO_EMAIL_PARAMETER_ERROR("3006","邮箱格式错误"),
     HMAC_ERROR("3007","HMAC-SHA256计算异常"),
-    IDENTITY_CODE_VERIFY_ERROR("3008","身份码验证失败"),;
+    IDENTITY_CODE_VERIFY_ERROR("3008","身份码验证失败"),
+
+    // store服务异常
+    USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店");
 
     private final String code;
     private final String message;

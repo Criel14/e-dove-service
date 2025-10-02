@@ -1,0 +1,26 @@
+package com.criel.edove.store.dto;
+
+import lombok.*;
+
+/**
+ * 创建/修改门店信息接口请求参数
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class StoreDTO {
+
+    // 修改时id不为null
+    private Long id;
+
+    private String storeName;
+
+    private String addrProvince;
+
+    private String addrCity;
+
+    private String addrDistrict;
+
+    private String addrDetail;
+
+}

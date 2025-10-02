@@ -1,7 +1,9 @@
 package com.criel.edove.store.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.criel.edove.store.entity.Store;
+import com.criel.edove.store.vo.StoreVO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -14,5 +16,7 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface StoreMapper extends BaseMapper<Store> {
+
+    IPage<StoreVO> selectPageByStoreName(IPage<?> page, String storeName);
 
 }

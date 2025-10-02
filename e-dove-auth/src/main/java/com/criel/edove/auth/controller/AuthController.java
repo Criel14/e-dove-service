@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Criel
  * @since 2025-09-22
  */
+// TODO 用 AOP + 自定义注解 实现接口粒度的权限认证
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")

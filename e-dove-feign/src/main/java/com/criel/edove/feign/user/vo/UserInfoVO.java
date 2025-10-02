@@ -16,6 +16,9 @@ public class UserInfoVO implements Serializable {
 
     private Long userId;
 
+    // 所属门店ID（工作人员才有值）
+    private Long storeId;
+
     private String username;
 
     private String phone;

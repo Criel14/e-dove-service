@@ -2,4 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.criel.edove.store.mapper.StoreMapper">
 
+    <select id="selectPageByStoreName"
+            resultType="com.criel.edove.store.vo.StoreVO">
+        SELECT
+        s.id,
+        s.manager_user_id,
+        s.manager_phone,
+        s.store_name,
+        s.addr_province,
+        s.addr_city,
+        s.addr_district,
+        s.addr_detail,
+        s.status
+        FROM store s
+        <where>
+            <if test="storeName != null and storeName != ''">
+                AND s.store_name LIKE CONCAT('%', #{storeName}, '%')
+            </if>
+        </where>
+        ORDER BY s.id DESC
+    </select>
+
 </mapper>
