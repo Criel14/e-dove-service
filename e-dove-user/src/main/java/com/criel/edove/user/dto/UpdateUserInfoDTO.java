@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
- * 修改用户信息接口响应数据
+ * 修改用户信息接口请求参数
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateUserInfoDTO {
+public class UpdateUserInfoDTO implements Serializable {
 
     private String username;
 

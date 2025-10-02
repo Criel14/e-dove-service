@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 注册接口的请求数据
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterDTO {
+public class RegisterDTO implements Serializable {
 
     private String username;
 
