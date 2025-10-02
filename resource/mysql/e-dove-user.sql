@@ -35,6 +35,7 @@ DROP TABLE IF EXISTS `user_info`;
 CREATE TABLE `user_info`
 (
     `user_id`     BIGINT       NOT NULL COMMENT '用户唯一标识ID',
+    `store_id`    BIGINT       NULL COMMENT '所属门店ID（工作人员才有值）',
     `username`    VARCHAR(50)  NOT NULL COMMENT '用户名',
     `phone`       VARCHAR(20)  NOT NULL COMMENT '手机号码',
     `email`       VARCHAR(100) NULL COMMENT '电子邮箱',
@@ -44,7 +45,8 @@ CREATE TABLE `user_info`
     PRIMARY KEY (`user_id`),
     UNIQUE KEY `uk_username` (`username`),
     UNIQUE KEY `uk_phone` (`phone`),
-    UNIQUE KEY `uk_email` (`email`)
+    UNIQUE KEY `uk_email` (`email`),
+    INDEX `idx_store_id` (`store_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='存储系统所有用户的基本信息，包括用户、驿站工作人员、系统管理员等';
 

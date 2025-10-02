@@ -34,6 +34,12 @@ public class UserInfo implements Serializable {
     private Long userId;
 
     /**
+     * 所属门店ID（工作人员才有值）
+     */
+    @TableField("store_id")
+    private Long storeId;
+
+    /**
      * 用户名
      */
     @TableField("username")

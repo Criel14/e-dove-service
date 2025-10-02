@@ -75,7 +75,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             userInfo.setAvatarUrl(userInfoDTO.getAvatarUrl());
         }
         userInfoMapper.insert(userInfo);
-        return new UserInfoVO(userInfo.getUserId(),
+        return new UserInfoVO(
+                userInfo.getUserId(),
+                userInfo.getStoreId(),
                 userInfo.getUsername(),
                 userInfo.getPhone(),
                 userInfo.getEmail(),
@@ -94,6 +96,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         UserInfo userInfo = userInfoMapper.selectOne(userInfoWrapper);
         return new UserInfoVO(
                 userInfo.getUserId(),
+                userInfo.getStoreId(),
                 userInfo.getUsername(),
                 userInfo.getPhone(),
                 userInfo.getEmail(),
@@ -145,6 +148,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
         return new UserInfoVO(
                 userInfo.getUserId(),
+                userInfo.getStoreId(),
                 userInfo.getUsername(),
                 userInfo.getPhone(),
                 userInfo.getEmail(),
