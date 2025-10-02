@@ -23,6 +23,8 @@
         <module>e-dove-gateway</module>
         <module>e-dove-generator</module>
         <module>e-dove-auth</module>
+        <module>e-dove-store</module>
+        <module>e-dove-parcel</module>
     </modules>
 
     <developers>

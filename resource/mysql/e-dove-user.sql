@@ -39,8 +39,8 @@ CREATE TABLE `user_info`
     `phone`       VARCHAR(20)  NOT NULL COMMENT '手机号码',
     `email`       VARCHAR(100) NULL COMMENT '电子邮箱',
     `avatar_url`  VARCHAR(255) NULL COMMENT '头像图片URL地址',
-    `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    `create_time` DATETIME     NOT NULL COMMENT '创建时间',
+    `update_time` DATETIME     NOT NULL COMMENT '最后更新时间',
     PRIMARY KEY (`user_id`),
     UNIQUE KEY `uk_username` (`username`),
     UNIQUE KEY `uk_phone` (`phone`),
@@ -63,10 +63,10 @@ CREATE TABLE `user_address`
     `detail_address` VARCHAR(255) NOT NULL COMMENT '详细地址',
     `postal_code`    VARCHAR(10)  NULL COMMENT '邮政编码（可选）',
     `is_default`     TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否默认地址：0-否，1-是',
-    `create_time`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time`    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    `create_time`    DATETIME     NOT NULL COMMENT '创建时间',
+    `update_time`    DATETIME     NOT NULL COMMENT '最后更新时间',
     PRIMARY KEY (`address_id`),
-    KEY `idx_user_id` (`user_id`)
+    INDEX `idx_user_id` (`user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='存储用户的收货地址信息，支持设置默认地址';
 

@@ -15,25 +15,8 @@ public class MybatisPlusGenerator {
         String root = "root";
         String password = "eDoveMysql1014";
 
-        // 数据库连接配置
-        String userUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_user?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
-        String authUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_auth?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
-
-        // 包路径
-        String userPath = "/e-dove-user";
-        String authPath = "/e-dove-auth";
-
-        // 包名
-        String userPackageName = "com.criel.edove.user";
-        String authPackageName = "com.criel.edove.auth";
-
-        // 表名
-        String[] userTables = {"user", "user_address"};
-        String[] authTables = {"user_auth", "role", "user_role", "permission", "role_permission"};
-
-        // 当前配置
-        CurrentConfig config = new CurrentConfig(userUrl, userPath, userPackageName, userTables);
-        // CurrentConfig config = new CurrentConfig(authUrl, authPath, authPackageName, authTables);
+        // 获取配置
+        CurrentConfig config = getConfig();
 
         // 生成代码
         FastAutoGenerator.create(config.url, root, password)
@@ -68,6 +51,43 @@ public class MybatisPlusGenerator {
                             .controllerBuilder().disable();
                 })
                 .execute(); // 执行生成
+    }
+
+    /**
+     * 获取当前配置
+     */
+    private static CurrentConfig getConfig() {
+        // 数据库连接配置
+        String userUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_user?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
+        String authUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_auth?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
+        String storeUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_store?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
+        String parcelUrl = "jdbc:mysql://172.28.80.78:3306/e_dove_parcel?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai";
+
+        // 包路径
+        String userPath = "/e-dove-user";
+        String authPath = "/e-dove-auth";
+        String storePath = "/e-dove-store";
+        String parcelPath = "/e-dove-parcel";
+
+        // 包名
+        String userPackageName = "com.criel.edove.user";
+        String authPackageName = "com.criel.edove.auth";
+        String storePackageName = "com.criel.edove.store";
+        String parcelPackageName = "com.criel.edove.parcel";
+
+        // 表名
+        String[] userTables = {"user", "user_address"};
+        String[] authTables = {"user_auth", "role", "user_role", "permission", "role_permission"};
+        String[] storeTables = {"store", "shelf", "shelf_layer"};
+        String[] parcelTables = {"parcel"};
+
+        // 当前配置
+        // CurrentConfig config = new CurrentConfig(userUrl, userPath, userPackageName, userTables);
+        // CurrentConfig config = new CurrentConfig(authUrl, authPath, authPackageName, authTables);
+        // CurrentConfig config = new CurrentConfig(storeUrl, storePath, storePackageName, storeTables);
+        CurrentConfig config = new CurrentConfig(parcelUrl, parcelPath, parcelPackageName, parcelTables);
+
+        return config;
     }
 
     /**

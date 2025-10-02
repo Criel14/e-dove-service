@@ -1,0 +1,33 @@
+server:
+  port: 8140
+
+
+spring:
+  profiles:
+    active: dev
+
+  # redis 配置
+  data:
+    redis:
+      host: ${E_DOVE_DOCKER_IP_ADDR}
+      port: 6379
+      password: eDoveRedis1014
+
+  # mysql 配置
+  datasource:
+    url: jdbc:mysql://${E_DOVE_DOCKER_IP_ADDR}:3306/e_dove_parcel?characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    username: e_dove_parcel_admin
+    password: eDoveMysql1014
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 日志级别
+logging:
+  level:
+    com.criel.edove.user.mapper: trace
+
+# 自定义配置
+edove:
+  # 雪花算法配置
+  snowflake:
+    data-center-id: 4 # 数据中心ID
+    worker-id: 4 # 机器ID
