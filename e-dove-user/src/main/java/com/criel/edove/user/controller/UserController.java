@@ -29,14 +29,6 @@ public class UserController {
     private final BarcodeService barcodeService;
 
     /**
-     * 测试连接
-     */
-    @GetMapping("/ping")
-    public Result<Object> ping() {
-        return Result.success();
-    }
-
-    /**
      * 创建新用户信息
      * 仅远程调用：需要先在e-dove-auth创建用户认证信息，所以参数中的userId不可为null
      */
