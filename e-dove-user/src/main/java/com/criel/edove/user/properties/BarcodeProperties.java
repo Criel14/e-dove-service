@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 身份码条形码配置类
+ * 身份码配置类
  */
 @Data
 @Configuration
@@ -21,13 +21,6 @@ public class BarcodeProperties {
     // 身份码过期时间（单位：分钟）
     private int ttl;
 
-    // hmac-sha256密钥
+    // 密钥
     private String key;
-
-    // hmac算法：配置为：HmacSHA256
-    private String algorithm;
-
-    // 签名截取的字节数
-    private int signLength;
-
 }

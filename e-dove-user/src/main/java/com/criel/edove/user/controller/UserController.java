@@ -68,7 +68,7 @@ public class UserController {
      *
      * @return base64编码的条形码图片
      */
-    @GetMapping("/barcode/create")
+    @GetMapping("/barcode-create")
     public Result<IdentityBarcodeVO> generateBarcode() throws IOException, WriterException {
         return Result.success(barcodeService.generateUserBarcodeBase64());
     }
@@ -77,7 +77,7 @@ public class UserController {
      * 验证身份码条形码接口
      * 仅远程调用：出库时使用
      */
-    @GetMapping("/barcode/verify")
+    @GetMapping("/barcode-verify")
     public Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code) {
         return Result.success(barcodeService.verifyIdentityBarcode(code));
     }

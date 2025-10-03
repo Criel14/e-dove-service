@@ -46,7 +46,7 @@ CREATE TABLE parcel
     weight                  DECIMAL(10, 3) COMMENT '包裹重量（单位：kg）',
 
     store_id                BIGINT       NOT NULL COMMENT '送至门店 ID',
-    pick_code               VARCHAR(20) COMMENT '6 位取件码（已入库后生成，包含货架／层信息）',
+    pick_code               VARCHAR(20) COMMENT '3段式取件码（已入库后生成，包含货架／层信息）',
     status                  INT DEFAULT 0 COMMENT '包裹状态（整型）：0=新包裹、1=已入库、2=已取出、3=滞留、4=退回',
     in_time                 DATETIME COMMENT '包裹入库时间',
     out_time                DATETIME COMMENT '包裹取件／出库时间',

@@ -1,0 +1,19 @@
+package com.criel.edove.common.exception.impl;
+
+import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.ErrorCode;
+
+/**
+ * 身份码校验异常：身份码为空
+ */
+public class IdentityCodeVerifyEmptyException extends BaseException {
+
+    public IdentityCodeVerifyEmptyException() {
+        super(ErrorCode.IDENTITY_CODE_VERIFY_EMPTY_ERROR);
+    }
+
+    public IdentityCodeVerifyEmptyException(String extraMessage) {
+        super(ErrorCode.IDENTITY_CODE_VERIFY_EMPTY_ERROR, extraMessage);
+    }
+
+}
