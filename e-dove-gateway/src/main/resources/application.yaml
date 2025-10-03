@@ -21,11 +21,21 @@ spring:
           uri: lb://e-dove-auth
           predicates:
             - Path=/auth/**
-        # user模块
+        # user 模块
         - id: e-dove-user
           uri: lb://e-dove-user
           predicates:
             - Path=/user/**
+        # store 模块
+        - id: e-dove-store
+          uri: lb://e-dove-store
+          predicates:
+            - Path=/store/**
+        # parcel 模块
+        - id: e-dove-parcel
+          uri: lb://e-dove-parcel
+          predicates:
+            - Path=/parcel/**
 
 edove:
   uri:
