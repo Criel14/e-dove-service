@@ -2,7 +2,7 @@ package com.criel.edove.common.handler;
 
 import cn.hutool.core.util.StrUtil;
 import com.criel.edove.common.exception.BaseException;
-import com.criel.edove.common.exception.ErrorCode;
+import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.result.Result;
 import org.apache.seata.core.context.RootContext;
 import org.slf4j.Logger;

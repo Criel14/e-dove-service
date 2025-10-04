@@ -1,7 +1,7 @@
 package com.criel.edove.common.exception.impl;
 
 import com.criel.edove.common.exception.BaseException;
-import com.criel.edove.common.exception.ErrorCode;
+import com.criel.edove.common.enumeration.ErrorCode;
 
 /**
  * 用户使用密码登录，但用户未设置密码

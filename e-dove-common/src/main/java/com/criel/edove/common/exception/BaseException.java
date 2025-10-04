@@ -1,5 +1,6 @@
 package com.criel.edove.common.exception;
 
+import com.criel.edove.common.enumeration.ErrorCode;
 import lombok.Getter;
 
 /**

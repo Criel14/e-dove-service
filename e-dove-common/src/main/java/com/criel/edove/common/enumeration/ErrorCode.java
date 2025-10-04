@@ -1,4 +1,4 @@
-package com.criel.edove.common.exception;
+package com.criel.edove.common.enumeration;
 
 import lombok.Getter;
 
@@ -46,7 +46,9 @@ public enum ErrorCode {
     IDENTITY_CODE_VERIFY_EXPIRED_ERROR("3009","身份码已过期"),
 
     // store服务异常
-    USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店");
+    USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店"),
+    STORE_NOT_FOUND_ERROR("4002", "门店不存在"),
+    USER_STORE_BOUND_ERROR("4003", "用户绑定门店失败"),;
 
     private final String code;
     private final String message;

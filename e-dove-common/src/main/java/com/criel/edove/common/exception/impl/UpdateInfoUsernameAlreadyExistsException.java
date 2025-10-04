@@ -1,7 +1,7 @@
 package com.criel.edove.common.exception.impl;
 
 import com.criel.edove.common.exception.BaseException;
-import com.criel.edove.common.exception.ErrorCode;
+import com.criel.edove.common.enumeration.ErrorCode;
 
 /**
  * 更新用户信息时：用户名已存在异常
