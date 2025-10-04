@@ -1,6 +1,5 @@
 package com.criel.edove.store.dto;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.*;
 
 /**

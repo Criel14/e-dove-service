@@ -24,7 +24,7 @@ public interface UserFeignClient {
     /**
      * 获取用户信息：需要保证请求头有数据
      */
-    @GetMapping("/info")
+    @GetMapping("/user/info")
     Result<UserInfoVO> getUserInfo();
 
     /**
@@ -32,7 +32,7 @@ public interface UserFeignClient {
      *
      * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
      */
-    @PostMapping("/update")
+    @PostMapping("/user/update")
     Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO);
 
 }
