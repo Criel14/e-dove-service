@@ -251,7 +251,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void updateUserAuth(UpdateUserAuthDTO updateUserAuthDTO) {
         UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
-        UserAuth userAuth = userAuthMapper.selectById(userInfoContext.getUserId());
+        UserAuth userAuth = new UserAuth();
+        userAuth.setUserId(userInfoContext.getUserId());
         if (StrUtil.isNotEmpty(updateUserAuthDTO.getUsername())) {
             userAuth.setUsername(updateUserAuthDTO.getUsername());
         }

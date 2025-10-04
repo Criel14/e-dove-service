@@ -107,22 +107,19 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     /**
      * 修改用户信息
      *
-     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像
+     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像、所属门店
      */
     @Override
     @GlobalTransactional
     public UserInfoVO updateUserInfo(UpdateUserInfoDTO updateUserInfoDTO) {
         UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
         Long userId = userInfoContext.getUserId();
-        // 查找原本的用户信息
-        UserInfo userInfo = userInfoMapper.selectById(userId);
 
         // 检查用户信息是否已存在
         checkUserInfoExist(updateUserInfoDTO, userId);
 
         // 检查邮箱验证码
-        if (StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())
-                && !StrUtil.equals(updateUserInfoDTO.getEmail(), userInfo.getEmail())) {
+        if (StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())) {
             String otpKey = RedisKeyConstant.USER_OTP + updateUserInfoDTO.getEmail();
             RBucket<String> otpBucket = redissonClient.getBucket(otpKey);
             if (!otpBucket.isExists() || !StrUtil.equals(updateUserInfoDTO.getEmailOtp(), otpBucket.get())) {
@@ -131,20 +128,33 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         }
 
         // 更新用户信息
+        UserInfo updateUserInfo = new UserInfo();
+        updateUserInfo.setUserId(userId);
+        // 更新用户名
         if (StrUtil.isNotEmpty(updateUserInfoDTO.getUsername())) {
-            userInfo.setUsername(updateUserInfoDTO.getUsername());
+            updateUserInfo.setUsername(updateUserInfoDTO.getUsername());
         }
+        // 更新邮箱
         if (StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())) {
-            userInfo.setEmail(updateUserInfoDTO.getEmail());
+            updateUserInfo.setEmail(updateUserInfoDTO.getEmail());
         }
+        // 更新头像
         if (StrUtil.isNotEmpty(updateUserInfoDTO.getAvatarUrl())) {
-            userInfo.setAvatarUrl(updateUserInfoDTO.getAvatarUrl());
+            updateUserInfo.setAvatarUrl(updateUserInfoDTO.getAvatarUrl());
         }
-        userInfoMapper.updateById(userInfo);
+        // 更新所属门店
+        if (updateUserInfoDTO.getStoreId() != null) {
+            updateUserInfo.setStoreId(updateUserInfoDTO.getStoreId());
+        }
+        userInfoMapper.updateById(updateUserInfo);
 
-        // 更新用户认证信息
-        UpdateUserAuthDTO updateUserAuthDTO = new UpdateUserAuthDTO(userInfo.getUsername(), userInfo.getEmail());
-        authFeignClient.update(updateUserAuthDTO);
+        // 查询更新后的数据
+        UserInfo userInfo = userInfoMapper.selectById(userId);
+        // 更新用户认证信息（需要更新再远程调用）
+        if (StrUtil.isNotEmpty(updateUserInfoDTO.getUsername()) || StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())) {
+            UpdateUserAuthDTO updateUserAuthDTO = new UpdateUserAuthDTO(userInfo.getUsername(), userInfo.getEmail());
+            authFeignClient.update(updateUserAuthDTO);
+        }
 
         return new UserInfoVO(
                 userInfo.getUserId(),
@@ -157,8 +167,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     }
 
     /**
-     * 统一检查用户信息是否已存在，且不是当前用户
-     * 检查字段：用户名 和 邮箱
+     * 更新用户信息时时：检查用户信息【用户名、邮箱】是否已存在，且不是当前用户
      */
     private void checkUserInfoExist(UpdateUserInfoDTO updateUserInfoDTO, Long userId) {
         LambdaQueryWrapper<UserInfo> userInfoWrapper = new LambdaQueryWrapper<>();

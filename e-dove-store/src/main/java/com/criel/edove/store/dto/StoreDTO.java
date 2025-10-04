@@ -1,5 +1,6 @@
 package com.criel.edove.store.dto;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.*;
 
 /**
@@ -14,6 +15,10 @@ public class StoreDTO {
     private Long id;
 
     private String storeName;
+
+    private Long managerUserId;
+
+    private String managerPhone;
 
     private String addrProvince;
 

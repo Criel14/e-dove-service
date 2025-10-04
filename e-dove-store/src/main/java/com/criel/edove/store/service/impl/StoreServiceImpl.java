@@ -1,24 +1,31 @@
 package com.criel.edove.store.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.context.UserInfoContextHolder;
+import com.criel.edove.common.enumeration.StoreStatusEnum;
+import com.criel.edove.common.exception.impl.StoreNotFoundException;
+import com.criel.edove.common.exception.impl.UserStoreBoundException;
 import com.criel.edove.common.exception.impl.UserStoreNotBoundException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.user.client.UserFeignClient;
+import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
+import com.criel.edove.store.dto.StoreBindDTO;
+import com.criel.edove.store.dto.StoreDTO;
 import com.criel.edove.store.entity.Store;
 import com.criel.edove.store.mapper.StoreMapper;
 import com.criel.edove.store.service.StoreService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.store.vo.StoreVO;
 import lombok.RequiredArgsConstructor;
+import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * 门店信息服务
@@ -32,6 +39,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
 
     private final UserFeignClient userFeignClient;
     private final StoreMapper storeMapper;
+    private final SnowflakeService snowflakeService;
 
     /**
      * 分页查询所有门店信息
@@ -63,6 +71,69 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         BeanUtils.copyProperties(store, storeVO);
 
         return storeVO;
+    }
+
+    /**
+     * （店长）创建门店
+     * 如果店长信息为空，则设置店长信息为当前用户；
+     * 同时需要绑定用户与门店（远程调用）
+     */
+    @Override
+    @GlobalTransactional
+    public StoreVO createStore(StoreDTO storeDTO) {
+        Store store = new Store();
+        // 门店ID
+        long storeId = snowflakeService.nextId();
+        store.setId(storeId);
+        // 拷贝其他字段
+        BeanUtils.copyProperties(storeDTO, store);
+        // 设置店长信息
+        if (storeDTO.getManagerUserId() == null && StrUtil.isEmpty(storeDTO.getManagerPhone())) {
+            UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
+            store.setManagerUserId(userInfoContext.getUserId());
+            store.setManagerPhone(userInfoContext.getPhone());
+        }
+        // 初始化门店状态：营业
+        store.setStatus(StoreStatusEnum.OPEN.getCode());
+        // 插入门店信息
+        storeMapper.insert(store);
+
+        // 绑定用户与门店
+        try {
+            UpdateUserInfoDTO updateUserInfoDTO = new UpdateUserInfoDTO();
+            updateUserInfoDTO.setStoreId(storeId);
+            userFeignClient.updateUserInfo(updateUserInfoDTO);
+        } catch (Exception e) {
+            throw new UserStoreBoundException();
+        }
+
+        // 返回门店信息
+        StoreVO storeVO = new StoreVO();
+        BeanUtils.copyProperties(store, storeVO);
+        return storeVO;
+    }
+
+    /**
+     * （店长/店员）绑定当前用户与门店
+     */
+    @Override
+    @GlobalTransactional
+    public void bindStore(StoreBindDTO storeBindDTO) {
+        // 判断门店是否存在
+        Long storeId = storeBindDTO.getStoreId();
+        Store store = storeMapper.selectById(storeId);
+        if (store == null) {
+            throw new StoreNotFoundException();
+        }
+
+        // 绑定用户与门店
+        try {
+            UpdateUserInfoDTO updateUserInfoDTO = new UpdateUserInfoDTO();
+            updateUserInfoDTO.setStoreId(storeId);
+            userFeignClient.updateUserInfo(updateUserInfoDTO);
+        } catch (Exception e) {
+            throw new UserStoreBoundException();
+        }
     }
 
 }

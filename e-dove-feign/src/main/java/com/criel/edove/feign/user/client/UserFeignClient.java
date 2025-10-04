@@ -1,6 +1,7 @@
 package com.criel.edove.feign.user.client;
 
 import com.criel.edove.common.result.Result;
+import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -25,5 +26,13 @@ public interface UserFeignClient {
      */
     @GetMapping("/info")
     Result<UserInfoVO> getUserInfo();
+
+    /**
+     * 修改用户信息
+     *
+     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
+     */
+    @PostMapping("/update")
+    Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO);
 
 }

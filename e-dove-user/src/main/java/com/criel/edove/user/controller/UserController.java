@@ -48,7 +48,7 @@ public class UserController {
     /**
      * 修改用户信息
      *
-     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像
+     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
      */
     @PostMapping("/update")
     public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO) {

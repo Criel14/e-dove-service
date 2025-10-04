@@ -2,13 +2,12 @@ package com.criel.edove.store.controller;
 
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.store.dto.StoreDTO;
+import com.criel.edove.store.dto.StoreBindDTO;
 import com.criel.edove.store.service.StoreService;
 import com.criel.edove.store.vo.StoreVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 门店 Controller
@@ -43,13 +42,27 @@ public class StoreController {
         return Result.success(storeService.getStoreInfoByUser());
     }
 
-    // TODO （店长）新建门店
+    /**
+     * （店长）新建门店
+     */
+    @PostMapping("/create")
+    public Result<StoreVO> createStore(@RequestBody StoreDTO storeDTO) {
+        return Result.success(storeService.createStore(storeDTO));
+    }
+
+    /**
+     * （店长/店员）绑定门店
+     */
+    @PostMapping("/bind")
+    public Result<Object> bindStore(@RequestBody StoreBindDTO storeBindDTO) {
+        storeService.bindStore(storeBindDTO);
+        return Result.success();
+    }
+
 
     // TODO （店长）注销门店
 
     // TODO （店长）修改门店信息
-
-    // TODO （店长/店员）绑定门店
 
     // TODO （店长）解绑门店
 
