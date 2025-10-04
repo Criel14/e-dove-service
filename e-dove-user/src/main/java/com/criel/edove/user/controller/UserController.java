@@ -1,6 +1,8 @@
 package com.criel.edove.user.controller;
 
+import com.criel.edove.common.dto.PingDTO;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.common.vo.PingVO;
 import com.criel.edove.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.user.dto.UserInfoDTO;
 import com.criel.edove.user.service.BarcodeService;
@@ -27,6 +29,14 @@ public class UserController {
 
     private final UserInfoService userInfoService;
     private final BarcodeService barcodeService;
+
+    /**
+     * 连接测试
+     */
+    @GetMapping("/ping")
+    public Result<PingVO> ping(@RequestParam PingDTO pingDTO) {
+        return Result.success(new PingVO(pingDTO.getMessage()));
+    }
 
     /**
      * 创建新用户信息

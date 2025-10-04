@@ -1,7 +1,9 @@
 package com.criel.edove.feign.auth.client;
 
 import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.dto.PingDTO;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.common.vo.PingVO;
 import com.criel.edove.feign.auth.dto.UpdateUserAuthDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @FeignClient("e-dove-auth")
 public interface AuthFeignClient {
+
+    /**
+     * 连接测试
+     */
+    @GetMapping("/auth/ping")
+    Result<PingVO> ping(@RequestParam PingDTO pingDTO);
 
     /**
      * 校验 access token，成功则返回用户信息；

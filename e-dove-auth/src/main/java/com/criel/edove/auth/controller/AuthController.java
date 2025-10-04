@@ -7,9 +7,11 @@ import com.criel.edove.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.auth.service.TokenService;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.dto.PingDTO;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.auth.service.AuthService;
 import com.criel.edove.auth.vo.TokenRefreshVO;
+import com.criel.edove.common.vo.PingVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,14 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenService tokenService;
+
+    /**
+     * 连接测试
+     */
+    @GetMapping("/ping")
+    public Result<PingVO> ping(@RequestParam PingDTO pingDTO) {
+        return Result.success(new PingVO(pingDTO.getMessage()));
+    }
 
     /**
      * 校验 access token，成功则返回用户信息；

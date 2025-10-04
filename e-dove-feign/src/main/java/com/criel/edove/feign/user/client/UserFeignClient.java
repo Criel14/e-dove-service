@@ -1,6 +1,8 @@
 package com.criel.edove.feign.user.client;
 
+import com.criel.edove.common.dto.PingDTO;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.common.vo.PingVO;
 import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
@@ -8,12 +10,19 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * e-dove-user模块的远程调用
  */
 @FeignClient("e-dove-user")
 public interface UserFeignClient {
+
+    /**
+     * 连接测试
+     */
+    @GetMapping("/user/ping")
+    Result<PingVO> ping(@RequestParam PingDTO pingDTO);
 
     /**
      * 创建新用户信息
