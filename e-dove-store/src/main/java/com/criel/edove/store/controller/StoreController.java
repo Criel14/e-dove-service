@@ -59,11 +59,12 @@ public class StoreController {
         return Result.success();
     }
 
-
-    // TODO （店长）注销门店
-
     // TODO （店长）修改门店信息
 
-    // TODO （店长）解绑门店
+    // TODO （店长/店员）解绑门店
+
+    // TODO （店长/店员）更新门店状态：营业 / 休息
+
+    // TODO （店长）注销门店
 
 }

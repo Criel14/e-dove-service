@@ -30,9 +30,10 @@ public enum ErrorCode {
     REGISTER_USERNAME_ALREADY_EXISTS("2011","用户名已被注册"),
     REGISTER_PHONE_OTP_ERROR("2012","手机验证码错误"),
     REGISTER_EMAIL_OTP_ERROR("2013","邮箱验证码错误"),
-    OTP_PARAMETER_ERROR("2014","手机号或邮箱格式错误"),
-    OTP_MISSING_PARAMETER("2015","验证码请求参数缺失"),
-    OTP_REQUEST_TOO_FREQUENTLY("2016","验证码请求频率过快"),
+    REGISTER_LOCK_ERROR("2014","请求过于频繁，请稍后再试"),
+    OTP_PARAMETER_ERROR("2015","手机号或邮箱格式错误"),
+    OTP_MISSING_PARAMETER("2016","验证码请求参数缺失"),
+    OTP_REQUEST_TOO_FREQUENTLY("2017","验证码请求频率过快"),
 
     // user服务异常
     USERINFO_MISSING_USER_ID("3001","用户信息缺失用户ID"),

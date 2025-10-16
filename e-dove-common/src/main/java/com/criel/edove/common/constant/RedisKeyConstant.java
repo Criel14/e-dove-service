@@ -14,4 +14,7 @@ public class RedisKeyConstant {
     // 用户登录/注册验证码
     public static final String USER_OTP = "user:otp:";
 
+    // 用户注册分布式锁
+    public static final String USER_REGISTER_LOCK = "user:register:lock:";
+
 }

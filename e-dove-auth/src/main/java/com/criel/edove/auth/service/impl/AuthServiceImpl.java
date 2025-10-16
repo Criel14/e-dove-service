@@ -33,6 +33,7 @@ import com.criel.edove.feign.user.dto.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.redisson.api.RBucket;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户身份验证
@@ -82,15 +84,35 @@ public class AuthServiceImpl implements AuthService {
         String signInStrategy = checkSignInStrategy(signInDTO);
         UserAuth checkedUserAuth = loginStrategyFactory.getStrategy(signInStrategy).preSignIn(signInDTO);
 
-        // 如果用户ID为null，则需要创建用户
-        // 创建用户认证
+        // 如果用户ID为null，则需要创建用户（仅手机号 + 验证码策略，其他策略若用户不存在，会直接抛异常）
         if (checkedUserAuth.getUserId() == null) {
-            this.createUserAuthAndGrantRole(checkedUserAuth, RoleEnum.USER);
-            // 创建用户信息
-            UserInfoDTO userInfoDTO = new UserInfoDTO();
-            userInfoDTO.setUserId(checkedUserAuth.getUserId());
-            userInfoDTO.setPhone(checkedUserAuth.getPhone());
-            userFeignClient.createUserInfo(userInfoDTO);
+            // 分布式锁防止并发注册
+            String registerLockKey = RedisKeyConstant.USER_REGISTER_LOCK + checkedUserAuth.getPhone();
+            RLock rLock = redissonClient.getLock(registerLockKey);
+            boolean locked = false;
+
+            try {
+                locked = rLock.tryLock(otpProperties.getTtl(), TimeUnit.MINUTES);
+                if (!locked) {
+                    throw new RegisterLockException();
+                }
+
+                // 创建用户认证
+                this.createUserAuthAndGrantRole(checkedUserAuth, RoleEnum.USER);
+                // 创建用户信息
+                UserInfoDTO userInfoDTO = new UserInfoDTO();
+                userInfoDTO.setUserId(checkedUserAuth.getUserId());
+                userInfoDTO.setPhone(checkedUserAuth.getPhone());
+                userFeignClient.createUserInfo(userInfoDTO);
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                // 释放锁
+                if (locked && rLock.isHeldByCurrentThread()) {
+                    rLock.unlock();
+                }
+            }
         }
 
         // 生成2个token
@@ -137,22 +159,40 @@ public class AuthServiceImpl implements AuthService {
         // 处理密码
         String hash = passwordEncoder.encode(registerDTO.getPassword());
 
-        // 创建用户认证信息并指定角色
-        UserAuth userAuth = new UserAuth();
-        BeanUtils.copyProperties(registerDTO, userAuth); // 拷贝相同字段
-        userAuth.setStatus(true);
-        userAuth.setPassword(hash);
-        userAuth.setStatus(true); // 设置默认用户状态
-        // 默认是【普通用户】
-        this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER);
+        // 分布式锁防止并发注册
+        String registerLockKey = RedisKeyConstant.USER_REGISTER_LOCK + registerDTO.getPhone();
+        RLock rLock = redissonClient.getLock(registerLockKey);
+        boolean locked = false;
+        try {
+            locked = rLock.tryLock(otpProperties.getTtl(), TimeUnit.MINUTES);
+            if (!locked) {
+                throw new RegisterLockException();
+            }
 
-        // 创建新用户信息（远程调用）
-        UserInfoDTO userInfoDTO = new UserInfoDTO();
-        BeanUtils.copyProperties(userAuth, userInfoDTO);
-        if (StrUtil.isNotEmpty(registerDTO.getAvatarUrl())) {
-            userInfoDTO.setAvatarUrl(registerDTO.getAvatarUrl());
+            // 创建用户认证信息并指定角色
+            UserAuth userAuth = new UserAuth();
+            BeanUtils.copyProperties(registerDTO, userAuth); // 拷贝相同字段
+            userAuth.setStatus(true);
+            userAuth.setPassword(hash);
+            userAuth.setStatus(true); // 设置默认用户状态
+            this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER); // 默认是【普通用户】
+
+            // 创建新用户信息（远程调用）
+            UserInfoDTO userInfoDTO = new UserInfoDTO();
+            BeanUtils.copyProperties(userAuth, userInfoDTO);
+            if (StrUtil.isNotEmpty(registerDTO.getAvatarUrl())) {
+                userInfoDTO.setAvatarUrl(registerDTO.getAvatarUrl());
+            }
+            userFeignClient.createUserInfo(userInfoDTO);
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 释放锁
+            if (locked && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
         }
-        userFeignClient.createUserInfo(userInfoDTO);
 
         // 注册完自动完成登录
         return this.signIn(new SignInDTO(
@@ -240,7 +280,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 验证码存入redis
-
         otpBucket.set(otp, Duration.ofMinutes(otpProperties.getTtl()));
     }
 
@@ -303,6 +342,7 @@ public class AuthServiceImpl implements AuthService {
         LambdaQueryWrapper<Role> roleWrapper = new LambdaQueryWrapper<>();
         roleWrapper.eq(Role::getRoleName, roleEnum.getRoleName());
         Role role = roleMapper.selectOne(roleWrapper);
+
         // 创建用户角色关联
         UserRole userRole = new UserRole();
         userRole.setUserId(userId);
