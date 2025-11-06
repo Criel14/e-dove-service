@@ -25,4 +25,6 @@ public interface StoreService extends IService<Store> {
 
     StoreVO updateStore(StoreDTO storeDTO);
 
+    void deleteStore(Long storeId);
+
 }

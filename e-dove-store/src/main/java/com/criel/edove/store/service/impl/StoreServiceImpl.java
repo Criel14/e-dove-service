@@ -138,6 +138,17 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     }
 
     /**
+     * 删除门店
+     */
+    @Override
+    public void deleteStore(Long storeId) {
+        if (storeId == null) {
+            throw new StoreNotFoundException();
+        }
+        storeMapper.deleteById(storeId);
+    }
+
+    /**
      * （店长/店员）绑定当前用户与门店
      */
     @Override

@@ -66,7 +66,14 @@ public class StoreController {
         return Result.success(storeService.updateStore(storeDTO));
     }
 
-    // TODO （店长）注销门店
+    /**
+     * （店长）注销门店
+     */
+    @DeleteMapping("/delete")
+    public Result<Object> deleteStore(@RequestParam Long storeId) {
+        storeService.deleteStore(storeId);
+        return Result.success();
+    }
 
     /**
      * （店长/店员）绑定门店
