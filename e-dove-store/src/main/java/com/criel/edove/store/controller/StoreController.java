@@ -79,12 +79,18 @@ public class StoreController {
      * （店长/店员）绑定门店
      */
     @PostMapping("/bind")
-    public Result<Object> bindStore(@RequestBody StoreBindDTO storeBindDTO) {
-        storeService.bindStore(storeBindDTO);
+    public Result<Object> bindStore(@RequestParam Long storeId) {
+        storeService.bindStore(storeId);
         return Result.success();
     }
 
-
-    // TODO （店长/店员）解绑门店
+    /**
+     * （店长/店员）解绑门店
+     */
+    @PostMapping("/unbind")
+    public Result<Object> unbindStore(@RequestParam Long storeId) {
+        storeService.unbindStore(storeId);
+        return Result.success();
+    }
 
 }

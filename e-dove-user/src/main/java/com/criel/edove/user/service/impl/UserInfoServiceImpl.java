@@ -3,6 +3,7 @@ package com.criel.edove.user.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
@@ -142,10 +143,6 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         if (StrUtil.isNotEmpty(updateUserInfoDTO.getAvatarUrl())) {
             updateUserInfo.setAvatarUrl(updateUserInfoDTO.getAvatarUrl());
         }
-        // 更新所属门店
-        if (updateUserInfoDTO.getStoreId() != null) {
-            updateUserInfo.setStoreId(updateUserInfoDTO.getStoreId());
-        }
         userInfoMapper.updateById(updateUserInfo);
 
         // 查询更新后的数据
@@ -164,6 +161,17 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 userInfo.getEmail(),
                 userInfo.getAvatarUrl()
         );
+    }
+
+    /**
+     * 修改用户所属门店：绑定 / 解绑
+     */
+    @Override
+    public void updateStoreBind(Long storeId) {
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        LambdaUpdateWrapper<UserInfo> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(UserInfo::getUserId, userId).set(UserInfo::getStoreId, storeId);
+        userInfoMapper.update(null, wrapper);
     }
 
     /**

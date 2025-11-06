@@ -58,11 +58,21 @@ public class UserController {
     /**
      * 修改用户信息
      *
-     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
+     * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像
      */
     @PutMapping("/update")
     public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO) {
         return Result.success(userInfoService.updateUserInfo(updateUserInfoDTO));
+    }
+
+    /**
+     * 修改用户所属门店专用接口：绑定 / 解绑
+     * tip：远程调用前需要检查门店是否存在，且解绑时已判断用户是否绑定该门店
+     */
+    @PutMapping("/update-store")
+    public Result<Object> updateStoreBind(@RequestParam Long storeId) {
+        userInfoService.updateStoreBind(storeId);
+        return Result.success();
     }
 
     /**

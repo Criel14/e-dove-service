@@ -1,6 +1,7 @@
 package com.criel.edove.store.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.context.UserInfoContext;
@@ -8,6 +9,7 @@ import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.StoreStatusEnum;
 import com.criel.edove.common.exception.impl.StoreNotFoundException;
 import com.criel.edove.common.exception.impl.UserStoreBoundException;
+import com.criel.edove.common.exception.impl.UserStoreBoundNotMatchedException;
 import com.criel.edove.common.exception.impl.UserStoreNotBoundException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
@@ -26,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * 门店信息服务
@@ -100,9 +104,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
 
         // 绑定用户与门店
         try {
-            UpdateUserInfoDTO updateUserInfoDTO = new UpdateUserInfoDTO();
-            updateUserInfoDTO.setStoreId(storeId);
-            userFeignClient.updateUserInfo(updateUserInfoDTO);
+            userFeignClient.updateStoreBind(storeId);
         } catch (Exception e) {
             throw new UserStoreBoundException();
         }
@@ -153,9 +155,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      */
     @Override
     @GlobalTransactional
-    public void bindStore(StoreBindDTO storeBindDTO) {
+    public void bindStore(Long storeId) {
         // 判断门店是否存在
-        Long storeId = storeBindDTO.getStoreId();
         Store store = storeMapper.selectById(storeId);
         if (store == null) {
             throw new StoreNotFoundException();
@@ -163,12 +164,38 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
 
         // 绑定用户与门店
         try {
-            UpdateUserInfoDTO updateUserInfoDTO = new UpdateUserInfoDTO();
-            updateUserInfoDTO.setStoreId(storeId);
-            userFeignClient.updateUserInfo(updateUserInfoDTO);
+            userFeignClient.updateStoreBind(storeId);
         } catch (Exception e) {
             throw new UserStoreBoundException();
         }
+    }
+
+    /**
+     * （店长/店员）解绑当前用户与门店
+     */
+    @Override
+    @GlobalTransactional
+    public void unbindStore(Long storeId) {
+        // 判断门店是否存在
+        Store store = storeMapper.selectById(storeId);
+        if (store == null) {
+            throw new StoreNotFoundException();
+        }
+
+        // （远程调用）检查用户是否绑定该门店
+        Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo();
+        UserInfoVO userInfoVO = userInfoResult.getData();
+        if (!Objects.equals(storeId, userInfoVO.getStoreId())) {
+            throw new UserStoreBoundNotMatchedException();
+        }
+
+        // 解绑用户与门店
+        try {
+            userFeignClient.updateStoreBind(null);
+        } catch (Exception e) {
+            throw new UserStoreBoundException();
+        }
+
     }
 
 }

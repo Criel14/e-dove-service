@@ -7,10 +7,7 @@ import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * e-dove-user模块的远程调用
@@ -43,5 +40,12 @@ public interface UserFeignClient {
      */
     @PostMapping("/user/update")
     Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO);
+
+    /**
+     * 修改用户所属门店专用接口：绑定 / 解绑
+     * tip：远程调用前需要检查门店是否存在，且解绑时已判断用户是否绑定该门店
+     */
+    @PutMapping("/user/update-store")
+    Result<Object> updateStoreBind(@RequestParam Long storeId);
 
 }
