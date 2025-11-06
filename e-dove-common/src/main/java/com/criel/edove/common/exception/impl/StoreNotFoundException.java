@@ -4,7 +4,7 @@ import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.exception.BaseException;
 
 /**
- * 绑定门店时，无法通过storeId找到门店
+ * 无法通过storeId找到门店 / 门店不存在
  */
 public class StoreNotFoundException extends BaseException {
 

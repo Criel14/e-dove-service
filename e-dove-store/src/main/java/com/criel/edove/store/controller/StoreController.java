@@ -51,6 +51,24 @@ public class StoreController {
     }
 
     /**
+     * （店长）修改门店信息：除了门店状态外的其他字段
+     */
+    @PatchMapping("/update/info")
+    public Result<StoreVO> updateStoreInfo(@RequestBody StoreDTO storeDTO) {
+        return Result.success(storeService.updateStore(storeDTO));
+    }
+
+    /**
+     * （店长/店员）更新门店状态：营业 / 休息
+     */
+    @PatchMapping("/update/status")
+    public Result<StoreVO> updateStoreStatus(@RequestBody StoreDTO storeDTO) {
+        return Result.success(storeService.updateStore(storeDTO));
+    }
+
+    // TODO （店长）注销门店
+
+    /**
      * （店长/店员）绑定门店
      */
     @PostMapping("/bind")
@@ -59,12 +77,7 @@ public class StoreController {
         return Result.success();
     }
 
-    // TODO （店长）修改门店信息
 
     // TODO （店长/店员）解绑门店
-
-    // TODO （店长/店员）更新门店状态：营业 / 休息
-
-    // TODO （店长）注销门店
 
 }

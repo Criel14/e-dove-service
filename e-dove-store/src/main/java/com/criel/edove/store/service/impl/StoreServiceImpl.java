@@ -114,6 +114,30 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     }
 
     /**
+     * （店长）修改门店信息 / 修改门店营业状态
+     * tip：2个接口用同一个方法
+     */
+    @Override
+    public StoreVO updateStore(StoreDTO storeDTO) {
+        // 检查门店ID
+        Long storeId = storeDTO.getId();
+        if (storeId == null) {
+            throw new StoreNotFoundException();
+        }
+
+        // 更新数据
+        Store updateStore = new Store();
+        BeanUtils.copyProperties(storeDTO, updateStore);
+        storeMapper.updateById(updateStore);
+
+        // 返回门店信息
+        Store store = storeMapper.selectById(storeDTO.getId());
+        StoreVO storeVO = new StoreVO();
+        BeanUtils.copyProperties(store, storeVO);
+        return storeVO;
+    }
+
+    /**
      * （店长/店员）绑定当前用户与门店
      */
     @Override

@@ -27,4 +27,7 @@ public class StoreDTO {
 
     private String addrDetail;
 
+    // 修改门店营业状态时不为null
+    private Integer status;
+
 }

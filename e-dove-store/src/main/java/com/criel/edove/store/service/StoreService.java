@@ -22,4 +22,7 @@ public interface StoreService extends IService<Store> {
     StoreVO createStore(StoreDTO storeDTO);
 
     void bindStore(StoreBindDTO storeBindDTO);
+
+    StoreVO updateStore(StoreDTO storeDTO);
+
 }
