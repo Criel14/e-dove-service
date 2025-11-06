@@ -60,7 +60,7 @@ public class UserController {
      *
      * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
      */
-    @PostMapping("/update")
+    @PutMapping("/update")
     public Result<UserInfoVO> updateUserInfo(@RequestBody UpdateUserInfoDTO updateUserInfoDTO) {
         return Result.success(userInfoService.updateUserInfo(updateUserInfoDTO));
     }

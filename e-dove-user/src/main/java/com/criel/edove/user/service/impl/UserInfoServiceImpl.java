@@ -119,7 +119,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         checkUserInfoExist(updateUserInfoDTO, userId);
 
         // 检查邮箱验证码
-        if (StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())) {
+        if (StrUtil.isNotEmpty(updateUserInfoDTO.getEmailOtp())) {
             String otpKey = RedisKeyConstant.USER_OTP + updateUserInfoDTO.getEmail();
             RBucket<String> otpBucket = redissonClient.getBucket(otpKey);
             if (!otpBucket.isExists() || !StrUtil.equals(updateUserInfoDTO.getEmailOtp(), otpBucket.get())) {
