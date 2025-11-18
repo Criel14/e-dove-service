@@ -78,7 +78,7 @@ public class UserController {
      * tip：远程调用前需要检查门店是否存在，且解绑时已判断用户是否绑定该门店
      */
     @PutMapping("/update-store")
-    public Result<Object> updateStoreBind(@RequestParam Long storeId) {
+    public Result<Void> updateStoreBind(@RequestParam Long storeId) {
         userInfoService.updateStoreBind(storeId);
         return Result.success();
     }

@@ -26,7 +26,7 @@ public class ShelfController {
      * 并根据层数自动创建货架层，最大编号上限默认为999
      */
     @PostMapping("/create")
-    public Result<Object> createShelf(ShelfDTO shelfDTO) {
+    public Result<Void> createShelf(ShelfDTO shelfDTO) {
         shelfService.createShelf(shelfDTO);
         return Result.success();
     }

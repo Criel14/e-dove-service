@@ -17,10 +17,8 @@ public class Result<T> implements Serializable {
     // 返回数据
     private T data;
 
-    public static <T> Result<T> success() {
-        Result<T> result = new Result<T>();
-        result.status = true;
-        return result;
+    public static Result<Void> success() {
+        return success(null);
     }
 
     public static <T> Result<T> success(T data) {

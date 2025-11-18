@@ -70,7 +70,7 @@ public class StoreController {
      * （店长）注销门店
      */
     @DeleteMapping("/delete")
-    public Result<Object> deleteStore(@RequestParam Long storeId) {
+    public Result<Void> deleteStore(@RequestParam Long storeId) {
         storeService.deleteStore(storeId);
         return Result.success();
     }
@@ -79,7 +79,7 @@ public class StoreController {
      * （店长/店员）绑定门店
      */
     @PostMapping("/bind")
-    public Result<Object> bindStore(@RequestParam Long storeId) {
+    public Result<Void> bindStore(@RequestParam Long storeId) {
         storeService.bindStore(storeId);
         return Result.success();
     }
@@ -88,7 +88,7 @@ public class StoreController {
      * （店长/店员）解绑门店
      */
     @PostMapping("/unbind")
-    public Result<Object> unbindStore(@RequestParam Long storeId) {
+    public Result<Void> unbindStore(@RequestParam Long storeId) {
         storeService.unbindStore(storeId);
         return Result.success();
     }

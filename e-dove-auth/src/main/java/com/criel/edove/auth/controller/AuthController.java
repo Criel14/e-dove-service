@@ -59,7 +59,7 @@ public class AuthController {
      * 验证码获取接口（手机号 / 邮箱）
      */
     @PostMapping("/otp")
-    public Result<Object> getOtp(@RequestBody OtpDTO otpDTO) {
+    public Result<Void> getOtp(@RequestBody OtpDTO otpDTO) {
         authService.getOtp(otpDTO);
         return Result.success();
     }
@@ -88,7 +88,7 @@ public class AuthController {
      * 仅远程调用：需要确保在e-dove-user中已经验证邮箱的验证码，验证用户名是否能在
      */
     @PutMapping("/update")
-    public Result<Object> update(@RequestBody UpdateUserAuthDTO updateUserAuthDTO) {
+    public Result<Void> update(@RequestBody UpdateUserAuthDTO updateUserAuthDTO) {
         authService.updateUserAuth(updateUserAuthDTO);
         return Result.success();
     }
