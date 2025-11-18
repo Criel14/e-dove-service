@@ -56,6 +56,14 @@ public class UserController {
     }
 
     /**
+     * 查询用户所属门店id
+     */
+    @GetMapping("/store-id")
+    public Result<Long> getUserStoreId() {
+        return Result.success(userInfoService.getUserStoreId());
+    }
+
+    /**
      * 修改用户信息
      *
      * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像

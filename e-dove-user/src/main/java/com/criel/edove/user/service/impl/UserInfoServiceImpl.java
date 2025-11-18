@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -103,6 +104,37 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 userInfo.getEmail(),
                 userInfo.getAvatarUrl()
         );
+    }
+
+    /**
+     * 查询用户所属门店Id
+     */
+    @Override
+    public Long getUserStoreId() {
+        // 先查redis
+        UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
+        Long userId = userInfoContext.getUserId();
+        String key = RedisKeyConstant.USER_STORE_ID + userId;
+        RBucket<Long> userStoreIdBucket = redissonClient.getBucket(key);
+
+        if (userStoreIdBucket.isExists()) {
+            return userStoreIdBucket.get();
+        } else {
+            // redis中不存在则查数据库
+            LambdaQueryWrapper<UserInfo> userInfoWrapper = new LambdaQueryWrapper<>();
+            userInfoWrapper.eq(UserInfo::getUserId, userId);
+            UserInfo userInfo = userInfoMapper.selectOne(userInfoWrapper);
+
+            if (userInfo != null) {
+                // 存入redis，过期时间为5min
+                long userStoreIdTtl = 5;
+                userStoreIdBucket.set(userInfo.getStoreId(), Duration.ofMinutes(userStoreIdTtl));
+                return userInfo.getStoreId();
+            } else {
+                // 如果用户没有所属门店，则返回null即可
+                return null;
+            }
+        }
     }
 
     /**

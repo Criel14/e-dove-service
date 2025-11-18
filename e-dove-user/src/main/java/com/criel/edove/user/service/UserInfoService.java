@@ -23,4 +23,6 @@ public interface UserInfoService extends IService<UserInfo> {
     UserInfoVO updateUserInfo(UpdateUserInfoDTO updateUserInfoDTO);
 
     void updateStoreBind(Long storeId);
+
+    Long getUserStoreId();
 }

@@ -34,6 +34,12 @@ public interface UserFeignClient {
     Result<UserInfoVO> getUserInfo();
 
     /**
+     * 查询用户所属门店id：需要保证请求头有数据
+     */
+    @GetMapping("/user/store-id")
+    Result<Long> getUserStoreId();
+
+    /**
      * 修改用户信息
      *
      * @param updateUserInfoDTO 只允许修改：用户名、邮箱、头像，所属门店
