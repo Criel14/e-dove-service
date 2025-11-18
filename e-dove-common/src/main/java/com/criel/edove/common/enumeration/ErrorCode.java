@@ -50,7 +50,9 @@ public enum ErrorCode {
     USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店"),
     STORE_NOT_FOUND_ERROR("4002", "门店不存在"),
     USER_STORE_BOUND_ERROR("4003", "用户绑定门店失败"),
-    USER_STORE_BOUND_NOT_MATCHED("4004", "用户未绑定该门店"),;
+    USER_STORE_BOUND_NOT_MATCHED("4004", "用户未绑定该门店"),
+    SHELF_NO_ALREADY_EXISTS("4005", "货架编号重复"),
+    SHELF_CREATE_LOCK_ERROR("4006", "系统繁忙，请重试"),;
 
     private final String code;
     private final String message;

@@ -17,4 +17,10 @@ public class RedisKeyConstant {
     // 用户注册分布式锁
     public static final String USER_REGISTER_LOCK = "user:register:lock:";
 
+    // 用户所属门店id
+    public static final String USER_STORE_ID = "user:store:id:";
+
+    // 新增货架分布式锁
+    public static final String SHELF_CREATE_LOCK = "shelf:create:lock:";
+
 }

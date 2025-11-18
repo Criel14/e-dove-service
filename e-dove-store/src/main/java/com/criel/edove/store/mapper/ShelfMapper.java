@@ -15,4 +15,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface ShelfMapper extends BaseMapper<Shelf> {
 
+    Integer selectMaxShelfNo(Long storeId);
+
 }

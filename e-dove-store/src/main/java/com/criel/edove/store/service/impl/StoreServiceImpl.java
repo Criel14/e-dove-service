@@ -57,6 +57,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
 
     /**
      * 查询用户所属门店信息，若未绑定门店，则抛出“未绑定门店异常”
+     * TODO 修改成查询用户所属门店ID信息
      */
     @Override
     public StoreVO getStoreInfoByUser() {
