@@ -46,16 +46,22 @@ public class ShelfLayer implements Serializable {
     private Integer layerNo;
 
     /**
-     * 当天最大序号，用于取件码序列（每日重置）
+     * 当天最大序号，用于取件码序列（每日重置），取值范围[0, 999]
      */
     @TableField("today_max_seq")
     private Integer todayMaxSeq;
 
     /**
-     * 最大编号上限 / 最多可存放包裹数量
+     * 最多可存放包裹数量，取值范围[0, 999]
      */
     @TableField("max_capacity")
     private Integer maxCapacity;
+
+    /**
+     * 当前存放包裹数量，取值范围[0, max_capacity]
+     */
+    @TableField("current_count")
+    private Integer currentCount;
 
     /**
      * 记录创建时间

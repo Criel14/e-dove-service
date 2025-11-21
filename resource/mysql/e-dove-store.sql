@@ -80,8 +80,9 @@ CREATE TABLE shelf_layer
     id            BIGINT   NOT NULL COMMENT '雪花算法生成的层唯一 ID',
     shelf_id      BIGINT   NOT NULL COMMENT '所属货架 ID',
     layer_no      INT      NOT NULL COMMENT '层号编号（从 1 开始）',
-    today_max_seq INT DEFAULT 0 COMMENT '当天最大序号，用于取件码序列（每日重置）',
-    max_capacity  INT      NOT NULL COMMENT '最大编号上限 / 最多可存放包裹数量',
+    today_max_seq INT DEFAULT 0 COMMENT '当天最大序号，用于取件码序列（每日重置），取值范围[0, 999]',
+    max_capacity  INT      NOT NULL COMMENT '最多可存放包裹数量，取值范围[0, 999]',
+    current_count INT DEFAULT 0 COMMENT '当前存放包裹数量，取值范围[0, max_capacity]',
     create_time   DATETIME NOT NULL COMMENT '记录创建时间',
     update_time   DATETIME NOT NULL COMMENT '记录最后更新时间',
 
