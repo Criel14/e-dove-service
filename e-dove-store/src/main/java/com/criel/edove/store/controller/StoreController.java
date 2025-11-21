@@ -37,7 +37,7 @@ public class StoreController {
      * （店长/店员）查询所属门店信息
      * 若未绑定门店，则抛出“未绑定门店异常”，之后用户可以查询门店，并在门店列表中绑定门店
      */
-    @GetMapping("/my/info")
+    @GetMapping("/my")
     public Result<StoreVO> getStoreInfoByUser() {
         return Result.success(storeService.getStoreInfoByUser());
     }
@@ -53,7 +53,7 @@ public class StoreController {
     /**
      * （店长）修改门店信息：除了门店状态外的其他字段
      */
-    @PatchMapping("/update/info")
+    @PatchMapping("/update")
     public Result<StoreVO> updateStoreInfo(@RequestBody StoreDTO storeDTO) {
         return Result.success(storeService.updateStore(storeDTO));
     }
@@ -61,7 +61,7 @@ public class StoreController {
     /**
      * （店长/店员）更新门店状态：营业 / 休息
      */
-    @PatchMapping("/update/status")
+    @PatchMapping("/status")
     public Result<StoreVO> updateStoreStatus(@RequestBody StoreDTO storeDTO) {
         return Result.success(storeService.updateStore(storeDTO));
     }

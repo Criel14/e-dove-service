@@ -57,21 +57,18 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
 
     /**
      * 查询用户所属门店信息，若未绑定门店，则抛出“未绑定门店异常”
-     * TODO 修改成查询用户所属门店ID信息
      */
     @Override
     public StoreVO getStoreInfoByUser() {
-        // （远程调用）获取用户信息
-        Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo();
-        UserInfoVO userInfoVO = userInfoResult.getData();
-
-        // 检查用户是否绑定门店
-        if (userInfoVO.getStoreId() == null) {
+        // 远程调用获取用户所属门店ID
+        Result<Long> result = userFeignClient.getUserStoreId();
+        if (result.getData() == null) {
             throw new UserStoreNotBoundException();
         }
+        Long storeId = result.getData();
 
         // 查询门店信息
-        Store store = storeMapper.selectById(userInfoVO.getStoreId());
+        Store store = storeMapper.selectById(storeId);
         StoreVO storeVO = new StoreVO();
         BeanUtils.copyProperties(store, storeVO);
 
