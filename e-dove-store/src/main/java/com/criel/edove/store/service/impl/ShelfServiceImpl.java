@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.enumeration.ShelfStatusEnum;
-import com.criel.edove.common.exception.impl.ShelfCreateLockException;
-import com.criel.edove.common.exception.impl.ShelfNoAlreadyExistsException;
-import com.criel.edove.common.exception.impl.UserStoreNotBoundException;
+import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
@@ -29,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,10 +75,15 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
             insertShelf(shelfDTO, shelfId, storeId, shelfNo);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        } finally {
+            // 释放锁
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
         }
 
         // 创建货架层ShelfLayer
-        insertShelfLayer(shelfDTO.getLayerCount(), shelfId);
+        insertShelfLayer(shelfDTO.getLayerCount(), shelfId, 0);
     }
 
     /**
@@ -94,6 +98,88 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         Page<ShelfAndLayerVO> page = new Page<>(pageNum, pageSize);
         IPage<ShelfAndLayerVO> iPage = shelfMapper.selectShelfAndLayerByStoreId(page, storeId);
         return new PageResult<>(iPage.getRecords(), iPage.getTotal());
+    }
+
+    /**
+     * 更新货架，包括停用启用、层数变动
+     */
+    @Override
+    @Transactional
+    public void updateShelf(ShelfDTO shelfDTO) {
+        Long shelfId = shelfDTO.getId();
+        // 获取用户所属门店
+        Long storeId = getUserStoreId();
+
+        // 分布式锁（粒度是货架）
+        // TODO 包裹出入库时需要加上这个分布式锁，才能修改货架层中包裹的数量
+        String lockKey = RedisKeyConstant.SHELF_UPDATE_LOCK + shelfId;
+        RLock rLock = redissonClient.getLock(lockKey);
+        boolean locked = false;
+        try {
+            locked = rLock.tryLock(5, TimeUnit.SECONDS);
+            if (!locked) {
+                throw new ShelfLayerCountLockException();
+            }
+
+            // 查询原始货架数据
+            Shelf shelf = shelfMapper.selectById(shelfId);
+
+            // 验证货架所属门店
+            if (!Objects.equals(shelf.getStoreId(), storeId)) {
+                throw new ShelfNotBelongToStoreException();
+            }
+
+            // 验证【货架编号】是否符合条件
+            if (!Objects.equals(shelf.getShelfNo(), shelfDTO.getShelfNo())) {
+                // 检查传入的货架编号是否存在
+                boolean exists = existsShelfNo(shelfDTO.getShelfNo(), storeId);
+                if (exists) {
+                    throw new ShelfNoAlreadyExistsException();
+                }
+            }
+
+            // 更新【货架层数】
+            int currentLayerCount = shelf.getLayerCount();
+            int newLayerCount = shelfDTO.getLayerCount();
+            if (newLayerCount > currentLayerCount) { // 若增加货架层，则直接插入新的层
+                insertShelfLayer(newLayerCount - currentLayerCount, shelfId, currentLayerCount);
+
+            } else if (newLayerCount < currentLayerCount) { // 若减少货架层，需要判断多余的货架层上是否有包裹
+                // 查询原始货架层数据
+                LambdaQueryWrapper<ShelfLayer> shelfLayerWrapper = new LambdaQueryWrapper<>();
+                shelfLayerWrapper.eq(ShelfLayer::getShelfId, shelfId);
+                List<ShelfLayer> shelfLayers = shelfLayerMapper.selectList(shelfLayerWrapper);
+                // 筛选出多余的货架层
+                List<ShelfLayer> redundantLayers = shelfLayers.stream()
+                        .filter(shelfLayer -> shelfLayer.getLayerNo() > newLayerCount)
+                        .toList();
+
+                // 遍历检查多余的货架层上是否有包裹
+                redundantLayers.forEach(shelfLayer -> {
+                    if (shelfLayer.getCurrentCount() > 0) {
+                        throw new ShelfLayerHasParcelsException();
+                    }
+                });
+
+                // 删除多余的货架层
+                List<Long> ids = redundantLayers.stream()
+                        .map(ShelfLayer::getId)
+                        .toList();
+                shelfLayerMapper.deleteByIds(ids);
+            }
+
+            // 更新货架Shelf数据
+            BeanUtils.copyProperties(shelfDTO, shelf);
+            shelfMapper.updateById(shelf);
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 释放锁
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
     }
 
     /**
@@ -116,10 +202,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     private int getShelfNo(Integer shelfNo, Long storeId) {
         if (shelfNo != null) {
             // 检查传入的货架编号是否存在
-            LambdaQueryWrapper<Shelf> shelfWrapper = new LambdaQueryWrapper<>();
-            shelfWrapper.eq(Shelf::getShelfNo, shelfNo);
-            shelfWrapper.eq(Shelf::getStoreId, storeId);
-            boolean exists = shelfMapper.exists(shelfWrapper);
+            boolean exists = existsShelfNo(shelfNo, storeId);
             if (exists) {
                 throw new ShelfNoAlreadyExistsException();
             }
@@ -131,6 +214,16 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
             // 自动生成货架编号：最大货架编号 + 1
             return maxShelfNo == null ? 1 : maxShelfNo + 1;
         }
+    }
+
+    /**
+     * 查询门店storeId里，是否存在传入的货架编号shelfNo
+     */
+    private boolean existsShelfNo(Integer shelfNo, Long storeId) {
+        LambdaQueryWrapper<Shelf> shelfWrapper = new LambdaQueryWrapper<>();
+        shelfWrapper.eq(Shelf::getShelfNo, shelfNo);
+        shelfWrapper.eq(Shelf::getStoreId, storeId);
+        return shelfMapper.exists(shelfWrapper);
     }
 
     /**
@@ -148,13 +241,16 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
 
     /**
      * 新建货架层，批量插入数据库
+     *
+     * @param layerCount    需要插入的货架层数
+     * @param curMaxLayerNo 当前最大货架层编号，从 curMaxLayerNo + 1 开始插入数据
      */
-    private void insertShelfLayer(int layerCount, long shelfId) {
+    private void insertShelfLayer(int layerCount, long shelfId, int curMaxLayerNo) {
         final int todayMaxSeq = 0;
         final int maxCapacity = 999;
         // 批量插入
         List<ShelfLayer> shelfLayers = new ArrayList<>();
-        for (int layerNo = 1; layerNo <= layerCount; layerNo++) {
+        for (int layerNo = curMaxLayerNo + 1; layerNo <= layerCount; layerNo++) {
             ShelfLayer shelfLayer = new ShelfLayer();
             shelfLayer.setShelfId(shelfId); // 所属货架ID
             shelfLayer.setTodayMaxSeq(todayMaxSeq); // 当前最大序号

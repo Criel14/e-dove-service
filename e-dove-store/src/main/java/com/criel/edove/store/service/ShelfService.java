@@ -17,4 +17,6 @@ public interface ShelfService extends IService<Shelf> {
     void createShelf(ShelfDTO shelfDTO);
 
     PageResult<ShelfAndLayerVO> queryShelfAndLayer(int pageNum, int pageSize);
+
+    void updateShelf(ShelfDTO shelfDTO);
 }

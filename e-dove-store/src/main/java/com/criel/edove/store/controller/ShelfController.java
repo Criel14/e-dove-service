@@ -31,7 +31,6 @@ public class ShelfController {
         return Result.success();
     }
 
-
     /**
      * （店长 / 店员）分页查询货架 + 货架层
      */
@@ -43,8 +42,16 @@ public class ShelfController {
         return Result.success(shelfService.queryShelfAndLayer(pageNum, pageSize));
     }
 
-    // TODO （店长 / 店员）修改货架 / 货架层
+    /**
+     * （店长 / 店员）修改货架
+     * tip: 货架不能删除，只能启用和停用，停用后，不会再有新的包裹分配到该货架
+     */
+    @PutMapping("/update/shelf")
+    public Result<Void> updateShelf(@RequestBody ShelfDTO shelfDTO) {
+        shelfService.updateShelf(shelfDTO);
+        return Result.success();
+    }
 
-    // TODO （店长 / 店员）删除货架 / 货架层（只能停用，不能删除数据？）
+    // TODO （店长 / 店员）修改货架层
 
 }
