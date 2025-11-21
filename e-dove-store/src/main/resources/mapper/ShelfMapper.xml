@@ -7,4 +7,50 @@
         FROM shelf
         WHERE store_id = #{storeId}
     </select>
+
+    <!-- 货架 + 层一并映射 -->
+    <resultMap id="ShelfAndLayerResultMap" type="com.criel.edove.store.vo.ShelfAndLayerVO">
+        <!-- 货架主表字段 -->
+        <id property="id" column="s_id"/>
+        <result property="storeId" column="s_store_id"/>
+        <result property="shelfNo" column="s_shelf_no"/>
+        <result property="layerCount" column="s_layer_count"/>
+        <result property="maxWidth" column="s_max_width"/>
+        <result property="maxHeight" column="s_max_height"/>
+        <result property="maxLength" column="s_max_length"/>
+        <result property="maxWeight" column="s_max_weight"/>
+        <result property="status" column="s_status"/>
+
+        <!-- 一对多 collection 映射层 -->
+        <collection property="shelfLayers" ofType="com.criel.edove.store.vo.ShelfLayerVO">
+            <id property="id" column="l_id"/>
+            <result property="layerNo" column="l_layer_no"/>
+            <result property="todayMaxSeq" column="l_today_max_seq"/>
+            <result property="maxCapacity" column="l_max_capacity"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectShelfAndLayerByStoreId" resultMap="ShelfAndLayerResultMap">
+        SELECT s.id            AS s_id,
+               s.store_id      AS s_store_id,
+               s.shelf_no      AS s_shelf_no,
+               s.layer_count   AS s_layer_count,
+               s.max_width     AS s_max_width,
+               s.max_height    AS s_max_height,
+               s.max_length    AS s_max_length,
+               s.max_weight    AS s_max_weight,
+               s.status        AS s_status,
+
+               l.id            AS l_id,
+               l.shelf_id      AS l_shelf_id,
+               l.layer_no      AS l_layer_no,
+               l.today_max_seq AS l_today_max_seq,
+               l.max_capacity  AS l_max_capacity
+        FROM shelf s
+                 JOIN shelf_layer l
+                      ON s.id = l.shelf_id
+        WHERE s.store_id = #{storeId}
+        ORDER BY s.id, l.layer_no
+    </select>
+
 </mapper>

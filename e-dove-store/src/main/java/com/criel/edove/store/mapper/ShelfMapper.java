@@ -1,8 +1,12 @@
 package com.criel.edove.store.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.criel.edove.store.entity.Shelf;
+import com.criel.edove.store.vo.ShelfAndLayerVO;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,5 +20,7 @@ import org.apache.ibatis.annotations.Mapper;
 public interface ShelfMapper extends BaseMapper<Shelf> {
 
     Integer selectMaxShelfNo(Long storeId);
+
+    IPage<ShelfAndLayerVO> selectShelfAndLayerByStoreId(IPage<?> page, Long storeId);
 
 }

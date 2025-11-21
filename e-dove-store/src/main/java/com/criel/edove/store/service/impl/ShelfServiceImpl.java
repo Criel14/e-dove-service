@@ -1,11 +1,14 @@
 package com.criel.edove.store.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.enumeration.ShelfStatusEnum;
 import com.criel.edove.common.exception.impl.ShelfCreateLockException;
 import com.criel.edove.common.exception.impl.ShelfNoAlreadyExistsException;
 import com.criel.edove.common.exception.impl.UserStoreNotBoundException;
+import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.user.client.UserFeignClient;
@@ -16,6 +19,7 @@ import com.criel.edove.store.mapper.ShelfLayerMapper;
 import com.criel.edove.store.mapper.ShelfMapper;
 import com.criel.edove.store.service.ShelfService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.criel.edove.store.vo.ShelfAndLayerVO;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -52,11 +56,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     @Transactional
     public void createShelf(ShelfDTO shelfDTO) {
         // 获取用户所属门店
-        Result<Long> result = userFeignClient.getUserStoreId();
-        if (result.getData() == null) {
-            throw new UserStoreNotBoundException();
-        }
-        Long storeId = result.getData();
+        Long storeId = getUserStoreId();
 
         // 生成新的货架id
         long shelfId = snowflakeService.nextId();
@@ -83,36 +83,28 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     }
 
     /**
-     * 新建货架层，批量插入数据库
+     * 分页查询货架 + 货架层
      */
-    private void insertShelfLayer(int layerCount, long shelfId) {
-        final int todayMaxSeq = 0;
-        final int maxCapacity = 999;
-        // 批量插入
-        List<ShelfLayer> shelfLayers = new ArrayList<>();
-        for (int layerNo = 1; layerNo <= layerCount; layerNo++) {
-            ShelfLayer shelfLayer = new ShelfLayer();
-            shelfLayer.setShelfId(shelfId); // 所属货架ID
-            shelfLayer.setTodayMaxSeq(todayMaxSeq); // 当前最大序号
-            shelfLayer.setMaxCapacity(maxCapacity); // 最大编号上限
-            shelfLayer.setId(snowflakeService.nextId()); // 货架层ID
-            shelfLayer.setLayerNo(layerNo); // 货架层编号
-            shelfLayers.add(shelfLayer);
-        }
-        shelfLayerMapper.insert(shelfLayers);
+    @Override
+    public PageResult<ShelfAndLayerVO> queryShelfAndLayer(int pageNum, int pageSize) {
+        // 获取用户所属门店
+        Long storeId = getUserStoreId();
+
+        // 分页查询
+        Page<ShelfAndLayerVO> page = new Page<>(pageNum, pageSize);
+        IPage<ShelfAndLayerVO> iPage = shelfMapper.selectShelfAndLayerByStoreId(page, storeId);
+        return new PageResult<>(iPage.getRecords(), iPage.getTotal());
     }
 
     /**
-     * 新建货架，插入数据库
+     * 获取用户所属门店：远程调用user服务
      */
-    private void insertShelf(ShelfDTO shelfDTO, long shelfId, Long storeId, int shelfNo) {
-        Shelf shelf = new Shelf();
-        BeanUtils.copyProperties(shelfDTO, shelf);
-        shelf.setId(shelfId); // 货架ID
-        shelf.setStoreId(storeId); // 所属门店ID
-        shelf.setShelfNo(shelfNo); // 门店内部货架编号
-        shelf.setStatus(ShelfStatusEnum.ENABLE.getCode()); // 默认状态
-        shelfMapper.insert(shelf);
+    private Long getUserStoreId() {
+        Result<Long> result = userFeignClient.getUserStoreId();
+        if (result.getData() == null) {
+            throw new UserStoreNotBoundException();
+        }
+        return result.getData();
     }
 
     /**
@@ -139,6 +131,39 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
             // 自动生成货架编号：最大货架编号 + 1
             return maxShelfNo == null ? 1 : maxShelfNo + 1;
         }
+    }
+
+    /**
+     * 新建货架，插入数据库
+     */
+    private void insertShelf(ShelfDTO shelfDTO, long shelfId, Long storeId, int shelfNo) {
+        Shelf shelf = new Shelf();
+        BeanUtils.copyProperties(shelfDTO, shelf);
+        shelf.setId(shelfId); // 货架ID
+        shelf.setStoreId(storeId); // 所属门店ID
+        shelf.setShelfNo(shelfNo); // 门店内部货架编号
+        shelf.setStatus(ShelfStatusEnum.ENABLE.getCode()); // 默认状态
+        shelfMapper.insert(shelf);
+    }
+
+    /**
+     * 新建货架层，批量插入数据库
+     */
+    private void insertShelfLayer(int layerCount, long shelfId) {
+        final int todayMaxSeq = 0;
+        final int maxCapacity = 999;
+        // 批量插入
+        List<ShelfLayer> shelfLayers = new ArrayList<>();
+        for (int layerNo = 1; layerNo <= layerCount; layerNo++) {
+            ShelfLayer shelfLayer = new ShelfLayer();
+            shelfLayer.setShelfId(shelfId); // 所属货架ID
+            shelfLayer.setTodayMaxSeq(todayMaxSeq); // 当前最大序号
+            shelfLayer.setMaxCapacity(maxCapacity); // 最大编号上限
+            shelfLayer.setId(snowflakeService.nextId()); // 货架层ID
+            shelfLayer.setLayerNo(layerNo); // 货架层编号
+            shelfLayers.add(shelfLayer);
+        }
+        shelfLayerMapper.insert(shelfLayers);
     }
 
 }
