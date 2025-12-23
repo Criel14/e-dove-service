@@ -1,10 +1,13 @@
 package com.criel.edove.user.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContextHolder;
+import com.criel.edove.common.exception.impl.IdentityCodeLockException;
 import com.criel.edove.common.exception.impl.IdentityCodeVerifyEmptyException;
 import com.criel.edove.common.exception.impl.IdentityCodeVerifyErrorException;
 import com.criel.edove.common.exception.impl.IdentityCodeVerifyExpiredException;
+import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.common.util.Base36Util;
 import com.criel.edove.common.util.SipHashUtil;
 import com.criel.edove.user.properties.BarcodeProperties;
@@ -19,6 +22,9 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBucket;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,9 +33,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.EnumMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 条形码服务
@@ -40,6 +48,11 @@ public class BarcodeServiceImpl implements BarcodeService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(BarcodeServiceImpl.class);
 
+    private final RedissonClient redissonClient;
+    private final SnowflakeService snowflakeService;
+
+    // 身份码前缀：ESU(Express Station User)
+    private static final String codePrefix = "ESU";
     // 条形码编码参数
     EnumMap<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
 
@@ -60,6 +73,18 @@ public class BarcodeServiceImpl implements BarcodeService {
     public IdentityBarcodeVO generateUserBarcodeBase64() throws IOException, WriterException {
         // 当前用户手机号
         String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        // String code = getCodeV1(phone);
+        String code = getCodeV2(phone);
+
+        // 生成base64编码的条形码图片
+        return new IdentityBarcodeVO(generateBarcodeBase64(code));
+    }
+
+    /**
+     * 生成身份码信息V1版本：手机号 + 时间戳 + 签名
+     * @param phone 用户手机号
+     */
+    private String getCodeV1(String phone) {
         // 当前时间：精确到分钟
         long timestampMinute = System.currentTimeMillis() / 60000;
 
@@ -78,9 +103,71 @@ public class BarcodeServiceImpl implements BarcodeService {
 
         // 转为大写，符合Code128
         base36 = base36.toUpperCase();
+        return base36;
+    }
 
-        // 生成base64编码的条形码图片
-        return new IdentityBarcodeVO(generateBarcodeBase64(base36));
+    /**
+     * 生成身份码信息V2版本：雪花ID + 校验位 + redis
+     * @param phone 用户手机号
+     */
+    private String getCodeV2(String phone) {
+        // 分布式锁
+        String lockKey = RedisKeyConstant.USER_IDENTITY_CODE_LOCK + phone;
+        RLock rLock = redissonClient.getLock(lockKey);
+        boolean locked = false;
+        try {
+            locked = rLock.tryLock(10, TimeUnit.SECONDS);
+            if (!locked) {
+                throw new IdentityCodeLockException();
+            }
+
+            // 先检查之前的身份码有没有过期
+            String phoneToCodeKey = RedisKeyConstant.USER_IDENTITY_CODE_FLAG + phone;
+            RBucket<String> flagBucket = redissonClient.getBucket(phoneToCodeKey);
+            String originalCode = flagBucket.get();
+            if (StrUtil.isNotEmpty(originalCode)) {
+                // 不需要续期
+                return originalCode;
+            }
+
+            // 如果过期了/不存在，则生成新的身份码
+            long id = snowflakeService.nextId();
+            char checkDigit = getCheckDigit(id);
+            String newCode =  codePrefix + id + checkDigit;
+
+            long ttl = 5;
+            // 将【身份码 → 手机号】存入redis，5分钟的过期时间，驿站机器可以由此获取手机号信息
+            String codeToPhoneKey = RedisKeyConstant.USER_IDENTITY_CODE_PREFIX + newCode;
+            RBucket<String> codeBucket = redissonClient.getBucket(codeToPhoneKey);
+            codeBucket.set(phone, Duration.ofMinutes(ttl));
+            // 将【手机号 → 身份码】存入redis，5分钟过期时间，生成时可由此减少重复生成
+            flagBucket.set(newCode, Duration.ofMinutes(ttl));
+
+            return newCode;
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
+    }
+
+    /**
+     * 计算条形码的最后1位校验位：每一位相加 mod 36
+     */
+    private char getCheckDigit(long id) {
+        long sum = 0;
+        while (id > 0) {
+            sum += id % 10;
+            id /= 10;
+        }
+        long res = sum % 36;
+        if (res < 10) {
+            return (char)('0' + res);
+        }
+        return (char)('A' - 10 + res);
     }
 
     /**
@@ -93,6 +180,16 @@ public class BarcodeServiceImpl implements BarcodeService {
         if (StrUtil.isEmpty(code)) {
             throw new IdentityCodeVerifyEmptyException();
         }
+        String phone = verifyCodeV1(code);
+
+        // 验证成功返回手机号
+        return new VerifyBarcodeVO(phone);
+    }
+
+    /**
+     * 验证身份码信息V1版本：手机号 + 时间戳 + 签名
+     */
+    private String verifyCodeV1(String code) {
         byte[] data = Base36Util.base36ToBytes(code.toLowerCase());
 
         // 截取出签名部分和明文部分
@@ -120,9 +217,34 @@ public class BarcodeServiceImpl implements BarcodeService {
         if (!Arrays.equals(sipHash, sipHashBytes)) {
             throw new IdentityCodeVerifyErrorException();
         }
+        return phone;
+    }
 
-        // 验证成功返回手机号
-        return new VerifyBarcodeVO(phone);
+    /**
+     * 验证身份码信息V2版本
+     */
+    private String verifyCodeV2(String code) {
+        // 验证前缀
+        if (!code.startsWith(codePrefix)) {
+            throw new IdentityCodeVerifyErrorException();
+        }
+
+        // 验证校验位
+        String id = code.substring(3, code.length() - 1);
+        char checkDigit = code.charAt(code.length() - 1);
+        if (checkDigit != getCheckDigit(Long.parseLong(id))) {
+            throw new IdentityCodeVerifyErrorException();
+        }
+
+        // 从redis中获取用户的手机号
+        String codeToPhoneKey = RedisKeyConstant.USER_IDENTITY_CODE_PREFIX + code;
+        RBucket<String> codeBucket = redissonClient.getBucket(codeToPhoneKey);
+        String phone = codeBucket.get();
+        if (StrUtil.isEmpty(phone)) {
+            throw new IdentityCodeVerifyErrorException();
+        }
+
+        return phone;
     }
 
     /**

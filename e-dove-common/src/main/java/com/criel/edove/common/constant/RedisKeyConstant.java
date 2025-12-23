@@ -5,25 +5,34 @@ package com.criel.edove.common.constant;
  */
 public class RedisKeyConstant {
 
-    // 用户的refresh token + 用户id
+    // 用户身份码：+ 最终身份码(即前缀 + 雪花ID + 校验位)
+    public static final String USER_IDENTITY_CODE_PREFIX = "user:identity:code:";
+
+    // 用户身份码存在标志：+ 手机号
+    public static final String USER_IDENTITY_CODE_FLAG = "user:identity:code:flag:";
+
+    // 用户身份码分布式锁：+ 手机号
+    public static final String USER_IDENTITY_CODE_LOCK = "user:identity:code:lock:";
+
+    // 用户的refresh token： + 用户id
     public static final String REFRESH_TOKEN_PREFIX = "refresh:token:";
 
-    // refresh token黑名单 + jti
+    // refresh token黑名单： + jti
     public static final String REFRESH_TOKEN_BLACK_LIST = "refresh:token:black:list:";
 
-    // 用户登录/注册验证码 + 手机号或邮箱
+    // 用户登录/注册验证码： + 手机号或邮箱
     public static final String USER_OTP = "user:otp:";
 
-    // 用户注册分布式锁 + 手机号
+    // 用户注册分布式锁： + 手机号
     public static final String USER_REGISTER_LOCK = "user:register:lock:";
 
-    // 用户所属门店id + 用户id
+    // 用户所属门店id： + 用户id
     public static final String USER_STORE_ID = "user:store:id:";
 
-    // 新增货架分布式锁 + 门店id
+    // 新增货架分布式锁： + 门店id
     public static final String SHELF_CREATE_LOCK = "shelf:create:lock:";
 
-    // 货架数据修改操作分布式锁 + 货架id
+    // 货架数据修改操作分布式锁： + 货架id
     public static final String SHELF_UPDATE_LOCK = "shelf:update:lock:";
 
 }

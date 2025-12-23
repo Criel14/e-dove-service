@@ -85,6 +85,7 @@ public class UserController {
 
     /**
      * 生成身份码条形码接口
+     * TODO 新版本未测试
      *
      * @return base64编码的条形码图片
      */
@@ -96,6 +97,7 @@ public class UserController {
     /**
      * 验证身份码条形码接口
      * 仅远程调用：出库时使用
+     * TODO 新版本未测试
      */
     @GetMapping("/barcode-verify")
     public Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code) {

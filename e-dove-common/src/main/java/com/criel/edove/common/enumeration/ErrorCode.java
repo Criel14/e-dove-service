@@ -46,6 +46,7 @@ public enum ErrorCode {
     IDENTITY_CODE_VERIFY_EMPTY_ERROR("3008","身份码为空"),
     IDENTITY_CODE_VERIFY_EXPIRED_ERROR("3009","身份码已过期"),
     IDENTITY_CODE_VERIFY_ERROR("3010","身份码有误"),
+    IDENTITY_CODE_LOCK_ERROR("3011", "操作过于频繁"),
 
     // store服务异常
     USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店"),
@@ -53,10 +54,10 @@ public enum ErrorCode {
     USER_STORE_BOUND_ERROR("4003", "用户绑定门店失败"),
     USER_STORE_BOUND_NOT_MATCHED("4004", "用户未绑定该门店"),
     SHELF_NO_ALREADY_EXISTS("4005", "货架编号重复"),
-    SHELF_CREATE_LOCK_ERROR("4006", "系统繁忙，请重试"),
+    SHELF_CREATE_LOCK_ERROR("4006", "操作过于频繁"),
     SHELF_LAYER_HAS_PARCELS("4007", "货架层上仍有包裹"),
     SHELF_NOT_BELONG_TO_STORE("4008", "货架不属于当前门店"),
-    SHELF_LAYER_COUNT_LOCK_ERROR("4009", "系统繁忙，请重试"),;
+    SHELF_LAYER_COUNT_LOCK_ERROR("4009", "操作过于频繁"),;
 
     private final String code;
     private final String message;
