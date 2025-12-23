@@ -45,6 +45,7 @@ public enum ErrorCode {
     HMAC_ERROR("3007","HMAC-SHA256计算异常"),
     IDENTITY_CODE_VERIFY_EMPTY_ERROR("3008","身份码为空"),
     IDENTITY_CODE_VERIFY_EXPIRED_ERROR("3009","身份码已过期"),
+    IDENTITY_CODE_VERIFY_ERROR("3010","身份码有误"),
 
     // store服务异常
     USER_STORE_NOT_BOUND_ERROR("4001", "用户未绑定门店"),

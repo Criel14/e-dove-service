@@ -3,6 +3,7 @@ package com.criel.edove.user.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.exception.impl.IdentityCodeVerifyEmptyException;
+import com.criel.edove.common.exception.impl.IdentityCodeVerifyErrorException;
 import com.criel.edove.common.exception.impl.IdentityCodeVerifyExpiredException;
 import com.criel.edove.common.util.Base36Util;
 import com.criel.edove.common.util.SipHashUtil;
@@ -117,7 +118,7 @@ public class BarcodeServiceImpl implements BarcodeService {
         String plainText = phone + time;
         byte[] sipHash = SipHashUtil.sipHash24(barcodeProperties.getKey().getBytes(), plainText.getBytes());
         if (!Arrays.equals(sipHash, sipHashBytes)) {
-            throw new IdentityCodeVerifyEmptyException();
+            throw new IdentityCodeVerifyErrorException();
         }
 
         // 验证成功返回手机号
