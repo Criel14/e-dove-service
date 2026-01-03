@@ -31,6 +31,7 @@ FLUSH PRIVILEGES;
 USE e_dove_parcel;
 
 -- 包裹表（parcel）
+DROP TABLE IF EXISTS parcel;
 CREATE TABLE parcel
 (
     id                      BIGINT       NOT NULL COMMENT '雪花算法生成的包裹唯一 ID',
@@ -60,6 +61,7 @@ CREATE TABLE parcel
     PRIMARY KEY (id),
     UNIQUE KEY uk_tracking_number_phone (tracking_number, recipient_phone), -- 唯一索引：运单号 + 手机号，方便出库时快速查找
     INDEX idx_recipient_phone (recipient_phone),
+    INDEX idx_tracking_number (tracking_number),
     INDEX idx_store_id (store_id),
     INDEX idx_status (status)
 ) ENGINE = InnoDB

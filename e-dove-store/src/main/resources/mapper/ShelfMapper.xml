@@ -62,4 +62,20 @@
         ORDER BY s.id, l.layer_no
     </select>
 
+    <select id="selectOneBestFit" resultType="com.criel.edove.store.entity.ShelfLayer">
+        SELECT sl.*
+        FROM shelf_layer sl
+                 JOIN shelf s
+                      ON sl.shelf_id = s.id
+        WHERE s.store_id = #{storeId}
+          AND s.status = 1
+          AND s.max_weight >= #{weight}
+          AND s.max_height >= #{height}
+          AND s.max_width >= #{width}
+          AND s.max_length >= #{length}
+          AND sl.current_count &lt; sl.max_capacity
+        ORDER BY sl.today_max_seq
+        LIMIT 1
+    </select>
+
 </mapper>

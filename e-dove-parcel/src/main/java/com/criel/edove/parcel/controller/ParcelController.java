@@ -1,6 +1,7 @@
 package com.criel.edove.parcel.controller;
 
 import com.criel.edove.common.result.Result;
+import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
 import com.criel.edove.parcel.service.ParcelService;
 import com.criel.edove.parcel.vo.CheckOutVO;
@@ -33,7 +34,8 @@ public class ParcelController {
      * 入库
      */
     @PostMapping("/in")
-    public Result<Void> checkIn() {
-
+    public Result<Void> checkIn(@RequestBody CheckInDTO checkInDTO) {
+        parcelService.checkIn(checkInDTO);
+        return Result.success();
     }
 }

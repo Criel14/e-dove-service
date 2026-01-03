@@ -60,10 +60,13 @@ public enum ErrorCode {
     SHELF_LAYER_COUNT_LOCK_ERROR("4009", "操作过于频繁"),
     SHELF_LAYER_COUNT_REDUCE_ERROR("4010", "货架层包裹数量扣减失败"),
     SHELF_NOT_FOUND("4011", "货架不存在"),
+    NO_AVAILABLE_SHELF_LAYER("4012", "没有可用的货架层"),
+
 
     // parcel服务异常
-    PARCEL_NOT_FOUND("5001", "包裹信息有误，请联系工作人员"),
-    PARCEL_NOT_IN_STORAGE("5002", "包裹状态有误，请联系工作人员"),;
+    PARCEL_NOT_FOUND("5001", "包裹信息不存在"),
+    PARCEL_NOT_IN_STORAGE("5002", "包裹未入库"),
+    PARCEL_STORE_MISMATCHED("5003", "包裹不属于当前门店"),;
 
     private final String code;
     private final String message;

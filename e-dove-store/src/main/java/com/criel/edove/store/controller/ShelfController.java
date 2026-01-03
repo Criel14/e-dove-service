@@ -3,8 +3,10 @@ package com.criel.edove.store.controller;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
+import com.criel.edove.store.dto.ParcelCheckInDTO;
 import com.criel.edove.store.dto.ShelfDTO;
 import com.criel.edove.store.service.ShelfService;
+import com.criel.edove.store.vo.ParcelCheckInVO;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -62,6 +64,15 @@ public class ShelfController {
     public Result<Void> layerReduceCount(@RequestBody LayerReduceCountDTO layerReduceCountDTO) {
         shelfService.layerReduceCount(layerReduceCountDTO);
         return Result.success();
+    }
+
+    /**
+     * （仅远程调用）为包裹选择合适的货架层，并生成取件码
+     * @return 取件码
+     */
+    @PostMapping("/choose")
+    public Result<ParcelCheckInVO> parcelCheckIn(@RequestBody ParcelCheckInDTO parcelCheckInDTO) {
+        return Result.success(shelfService.parcelCheckIn(parcelCheckInDTO));
     }
 
 }

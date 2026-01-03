@@ -13,6 +13,7 @@ import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
+import com.criel.edove.store.dto.ParcelCheckInDTO;
 import com.criel.edove.store.dto.ShelfDTO;
 import com.criel.edove.store.entity.Shelf;
 import com.criel.edove.store.entity.ShelfLayer;
@@ -20,6 +21,7 @@ import com.criel.edove.store.mapper.ShelfLayerMapper;
 import com.criel.edove.store.mapper.ShelfMapper;
 import com.criel.edove.store.service.ShelfService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.criel.edove.store.vo.ParcelCheckInVO;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
@@ -28,6 +30,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -229,6 +232,71 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
             }
         }
 
+    }
+
+    /**
+     * 为包裹选择合适的货架层，并生成取件码
+     *
+     * @param parcelCheckInDTO 包裹信息
+     * @return 取件码
+     */
+    @Override
+    public ParcelCheckInVO parcelCheckIn(ParcelCheckInDTO parcelCheckInDTO) {
+        // 取件码
+        StringBuilder pickCodeBuilder = new StringBuilder();
+
+        // 查找到门店所有符合大小/重量条件的货架，找到有空位的第一个的货架层
+        ShelfLayer shelfLayer = shelfMapper.selectOneBestFit(
+                parcelCheckInDTO.getStoreId(),
+                parcelCheckInDTO.getWeight(),
+                parcelCheckInDTO.getHeight(),
+                parcelCheckInDTO.getWidth(),
+                parcelCheckInDTO.getLength()
+        );
+
+        // 找不到合适的就抛异常
+        // TODO 思考下后面业务上怎么处理
+        if (shelfLayer == null) {
+            throw new BizException(ErrorCode.NO_AVAILABLE_SHELF_LAYER);
+        }
+
+        // 需要重新查找到货架的编号
+        Shelf shelf = shelfMapper.selectById(shelfLayer.getShelfId());
+
+        // 分布式锁（粒度是货架）
+        String lockKey = RedisKeyConstant.SHELF_UPDATE_LOCK + shelf.getId();
+        RLock rLock = redissonClient.getLock(lockKey);
+        boolean locked = false;
+        try {
+            locked = rLock.tryLock(5, TimeUnit.SECONDS);
+            if (!locked) {
+                throw new BizException(ErrorCode.SHELF_LAYER_COUNT_LOCK_ERROR);
+            }
+
+            // 更新货架层的【当前包裹数】和【当天最大取件码序号】
+            shelfLayer.setCurrentCount(shelfLayer.getCurrentCount() + 1);
+            shelfLayer.setTodayMaxSeq(shelfLayer.getTodayMaxSeq() + 1);
+            shelfLayerMapper.updateById(shelfLayer);
+
+            // 生成取件码
+            int week = LocalDate.now().getDayOfWeek().getValue();
+            pickCodeBuilder.append(shelf.getShelfNo())
+                    .append("-")
+                    .append(shelfLayer.getLayerNo())
+                    .append("-")
+                    .append(week)
+                    .append(String.format("%03d", shelfLayer.getTodayMaxSeq()));
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 释放锁
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
+
+        return new ParcelCheckInVO(pickCodeBuilder.toString());
     }
 
     /**

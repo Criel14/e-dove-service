@@ -1,14 +1,19 @@
 package com.criel.edove.parcel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.criel.edove.common.context.UserInfoContext;
+import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ParcelStatusEnum;
 import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
+import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
+import com.criel.edove.feign.store.vo.ParcelCheckInVO;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
+import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
@@ -17,6 +22,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.parcel.vo.CheckOutVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -63,6 +69,68 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         parcelWrapper.eq(Parcel::getRecipientPhone, phone);
         Long count = parcelMapper.selectCount(parcelWrapper);
         return new CheckOutVO(count);
+    }
+
+    /**
+     * 入库：管理员将包裹入库到本门店
+     */
+    @Override
+    @GlobalTransactional
+    public void checkIn(CheckInDTO checkInDTO) {
+        // 查询当前用户所属门店
+        Long storeId = getUserStoreId();
+
+        // 查找包裹，并判断包裹是否属于当前的门店
+        LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        parcelWrapper.eq(Parcel::getTrackingNumber, checkInDTO.getTrackingNumber());
+        Parcel parcel = parcelMapper.selectOne(parcelWrapper);
+        if (parcel == null) {
+            throw new BizException(ErrorCode.PARCEL_NOT_FOUND);
+        }
+        if (!Objects.equals(parcel.getStoreId(), storeId)) {
+            throw new BizException(ErrorCode.PARCEL_STORE_MISMATCHED);
+        }
+
+        // 远程调用：选择合适的货架层，并生成取件码
+        String pickCode = getPickCode(parcel);
+
+        // 更新包裹表的status和in_time和pick_code
+        parcel.setStatus(ParcelStatusEnum.IN_STORAGE.getCode());
+        parcel.setInTime(LocalDateTime.now());
+        parcel.setPickCode(pickCode);
+        parcelMapper.updateById(parcel);
+    }
+
+    /**
+     * 远程调用：选择合适的货架层，并生成取件码
+     * @param parcel 要入库的包裹信息
+     * @return 取件码
+     */
+    private String getPickCode(Parcel parcel) {
+        ParcelCheckInDTO parcelCheckInDTO = new ParcelCheckInDTO();
+        BeanUtils.copyProperties(parcel, parcelCheckInDTO);
+        Result<ParcelCheckInVO> result = storeFeignClient.parcelCheckIn(parcelCheckInDTO);
+        if (!result.getStatus()) {
+            throw new BizException(result.getCode(), result.getMessage());
+        }
+        ParcelCheckInVO parcelCheckInVO = result.getData();
+        if (parcelCheckInVO == null) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR);
+        }
+        return parcelCheckInVO.getPickCode();
+    }
+
+    /**
+     * 查询用户所属门店
+     * @return 用户所属的门店ID
+     */
+    private Long getUserStoreId() {
+        // 查询当前用户所属门店
+        Result<Long> result = userFeignClient.getUserStoreId();
+        if (!result.getStatus()) {
+            throw new BizException(result.getCode(), result.getMessage());
+        }
+        return result.getData();
     }
 
     /**
