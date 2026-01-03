@@ -1,6 +1,7 @@
 package com.criel.edove.store.service;
 
 import com.criel.edove.common.result.PageResult;
+import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ShelfDTO;
 import com.criel.edove.store.entity.Shelf;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -19,4 +20,6 @@ public interface ShelfService extends IService<Shelf> {
     PageResult<ShelfAndLayerVO> queryShelfAndLayer(int pageNum, int pageSize);
 
     void updateShelf(ShelfDTO shelfDTO);
+
+    void layerReduceCount(LayerReduceCountDTO layerReduceCountDTO);
 }

@@ -1,7 +1,7 @@
 package com.criel.edove.common.handler;
 
 import cn.hutool.core.util.StrUtil;
-import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.result.Result;
 import org.apache.seata.core.context.RootContext;
@@ -30,15 +30,15 @@ public class GlobalExceptionHandler {
         }
 
         LOGGER.error("系统异常：{}", e.getMessage());
-        return Result.error(ErrorCode.SYSTEM_ERROR.getMessage());
+        return Result.error(ErrorCode.SYSTEM_ERROR.getCode(), ErrorCode.SYSTEM_ERROR.getMessage());
     }
 
     /**
      * 拦截业务异常，将异常信息包装后返回
      */
-    @ExceptionHandler(BaseException.class)
-    public Result<Object> exceptionHandler(BaseException e) {
-        LOGGER.error("业务异常：{}", e.getMessage());
-        return Result.error(e.getMessage());
+    @ExceptionHandler(BizException.class)
+    public Result<Object> exceptionHandler(BizException e) {
+        LOGGER.error("业务异常：{}-{}", e.getCode(), e.getMessage());
+        return Result.error(e.getCode(), e.getMessage());
     }
 }

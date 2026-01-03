@@ -4,12 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
+import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ShelfStatusEnum;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.user.client.UserFeignClient;
+import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ShelfDTO;
 import com.criel.edove.store.entity.Shelf;
 import com.criel.edove.store.entity.ShelfLayer;
@@ -180,6 +183,52 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
                 rLock.unlock();
             }
         }
+    }
+
+    /**
+     * 扣减包裹所在货架层的当前包裹数
+     */
+    @Override
+    public void layerReduceCount(LayerReduceCountDTO layerReduceCountDTO) {
+        Long storeId = layerReduceCountDTO.getStoreId();
+        Integer shelfNo = layerReduceCountDTO.getShelfNo();
+        Integer layerNo = layerReduceCountDTO.getLayerNo();
+
+        // 查到货架ID来使用分布式锁
+        LambdaQueryWrapper<Shelf> shelfWrapper = new LambdaQueryWrapper<>();
+        shelfWrapper.eq(Shelf::getStoreId, storeId);
+        shelfWrapper.eq(Shelf::getShelfNo, shelfNo);
+        Shelf shelf = shelfMapper.selectOne(shelfWrapper);
+        if (shelf == null) {
+            throw new BizException(ErrorCode.SHELF_NOT_FOUND);
+        }
+        Long shelfId = shelf.getId();
+
+        // 分布式锁（粒度是货架）
+        String lockKey = RedisKeyConstant.SHELF_UPDATE_LOCK + shelfId;
+        RLock rLock = redissonClient.getLock(lockKey);
+        boolean locked = false;
+        try {
+            locked = rLock.tryLock(5, TimeUnit.SECONDS);
+            if (!locked) {
+                throw new BizException(ErrorCode.SHELF_LAYER_COUNT_LOCK_ERROR);
+            }
+
+            int affected = shelfMapper.reduceCurrentCount(storeId, shelfNo, layerNo);
+            if (affected == 0) {
+                // 更新失败（可能没找到 或 current_count 已经是 0）
+                throw new BizException(ErrorCode.SHELF_LAYER_COUNT_REDUCE_ERROR);
+            }
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 释放锁
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
+
     }
 
     /**

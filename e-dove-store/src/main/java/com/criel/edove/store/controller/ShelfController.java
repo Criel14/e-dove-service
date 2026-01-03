@@ -2,6 +2,7 @@ package com.criel.edove.store.controller;
 
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ShelfDTO;
 import com.criel.edove.store.service.ShelfService;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
@@ -53,5 +54,14 @@ public class ShelfController {
     }
 
     // TODO （店长 / 店员）修改货架层
+
+    /**
+     * （仅远程调用）扣减包裹所在货架层的【当前包裹数】
+     */
+    @PostMapping("/layer/reduce")
+    public Result<Void> layerReduceCount(@RequestBody LayerReduceCountDTO layerReduceCountDTO) {
+        shelfService.layerReduceCount(layerReduceCountDTO);
+        return Result.success();
+    }
 
 }

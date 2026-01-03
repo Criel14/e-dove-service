@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.criel.edove.store.mapper.ShelfMapper">
+    <update id="reduceCurrentCount">
+        UPDATE shelf_layer sl
+            JOIN shelf s ON sl.shelf_id = s.id
+        SET sl.current_count = sl.current_count - 1
+        WHERE s.store_id = #{storeId}
+          AND s.shelf_no = #{shelfNo}
+          AND sl.layer_no = #{layerNo}
+          AND sl.current_count > 0
+    </update>
 
     <select id="selectMaxShelfNo" resultType="java.lang.Integer">
         SELECT MAX(shelf_no)

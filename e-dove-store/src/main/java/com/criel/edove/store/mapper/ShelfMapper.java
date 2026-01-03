@@ -6,8 +6,6 @@ import com.criel.edove.store.entity.Shelf;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
-
 /**
  * <p>
  * 货架表 Mapper 接口
@@ -22,5 +20,7 @@ public interface ShelfMapper extends BaseMapper<Shelf> {
     Integer selectMaxShelfNo(Long storeId);
 
     IPage<ShelfAndLayerVO> selectShelfAndLayerByStoreId(IPage<?> page, Long storeId);
+
+    int reduceCurrentCount(Long storeId, Integer shelfNo, Integer layerNo);
 
 }

@@ -10,11 +10,24 @@ import java.io.Serializable;
 @Data
 public class Result<T> implements Serializable {
 
-    // 成功或失败
+    /**
+     * 成功或失败
+     */
     private Boolean status;
-    // 错误信息
+
+    /**
+     * 错误码（成功时为空）
+     */
+    private String code;
+
+    /**
+     * 错误信息（成功时为空）
+     */
     private String message;
-    // 返回数据
+
+    /**
+     * 返回数据（失败时为空）
+     */
     private T data;
 
     public static Result<Void> success() {
@@ -28,8 +41,9 @@ public class Result<T> implements Serializable {
         return result;
     }
 
-    public static Result<Object> error(String message) {
+    public static Result<Object> error(String code, String message) {
         Result<Object> result = new Result<>();
+        result.code = code;
         result.message = message;
         result.status = false;
         return result;

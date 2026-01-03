@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/store")
 public class StoreController {
 
+    // TODO 创建机器表，管理员可以创建机器，然后在前端可以选择使用本门店的哪个机器
+
     private final StoreService storeService;
 
     /**

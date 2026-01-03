@@ -1,12 +1,12 @@
 package com.criel.edove.common.exception.impl;
 
-import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.enumeration.ErrorCode;
 
 /**
  * 用户不存在
  */
-public class UserNotFoundException  extends BaseException {
+public class UserNotFoundException  extends BizException {
 
     public UserNotFoundException() {
         super(ErrorCode.USER_NOT_FOUND);

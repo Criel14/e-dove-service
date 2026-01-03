@@ -1,12 +1,12 @@
 package com.criel.edove.common.exception.impl;
 
 import com.criel.edove.common.enumeration.ErrorCode;
-import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.BizException;
 
 /**
  * 绑定门店时，远程调用失败
  */
-public class UserStoreBoundException extends BaseException {
+public class UserStoreBoundException extends BizException {
 
     public UserStoreBoundException() {
         super(ErrorCode.USER_STORE_BOUND_ERROR);

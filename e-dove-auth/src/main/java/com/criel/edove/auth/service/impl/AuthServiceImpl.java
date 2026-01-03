@@ -23,7 +23,7 @@ import com.criel.edove.common.constant.RegexConstant;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.RoleEnum;
-import com.criel.edove.common.exception.BaseException;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.auth.service.AuthService;
 import com.criel.edove.auth.vo.SignInVO;
@@ -238,7 +238,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 验证码校验统一方法（手机/邮箱）
      */
-    private void checkOtp(String phoneOrEmail, String otp, BaseException exception) {
+    private void checkOtp(String phoneOrEmail, String otp, BizException exception) {
         if (StrUtil.isNotEmpty(phoneOrEmail)) {
             String optKey = RedisKeyConstant.USER_OTP + phoneOrEmail;
             RBucket<String> otpBucket = redissonClient.getBucket(optKey);

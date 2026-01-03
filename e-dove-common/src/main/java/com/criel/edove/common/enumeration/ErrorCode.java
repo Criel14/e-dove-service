@@ -30,7 +30,7 @@ public enum ErrorCode {
     REGISTER_USERNAME_ALREADY_EXISTS("2011","用户名已被注册"),
     REGISTER_PHONE_OTP_ERROR("2012","手机验证码错误"),
     REGISTER_EMAIL_OTP_ERROR("2013","邮箱验证码错误"),
-    REGISTER_LOCK_ERROR("2014","请求过于频繁，请稍后再试"),
+    REGISTER_LOCK_ERROR("2014","操作过于频繁"),
     OTP_PARAMETER_ERROR("2015","手机号或邮箱格式错误"),
     OTP_MISSING_PARAMETER("2016","验证码请求参数缺失"),
     OTP_REQUEST_TOO_FREQUENTLY("2017","验证码请求频率过快"),
@@ -57,7 +57,13 @@ public enum ErrorCode {
     SHELF_CREATE_LOCK_ERROR("4006", "操作过于频繁"),
     SHELF_LAYER_HAS_PARCELS("4007", "货架层上仍有包裹"),
     SHELF_NOT_BELONG_TO_STORE("4008", "货架不属于当前门店"),
-    SHELF_LAYER_COUNT_LOCK_ERROR("4009", "操作过于频繁"),;
+    SHELF_LAYER_COUNT_LOCK_ERROR("4009", "操作过于频繁"),
+    SHELF_LAYER_COUNT_REDUCE_ERROR("4010", "货架层包裹数量扣减失败"),
+    SHELF_NOT_FOUND("4011", "货架不存在"),
+
+    // parcel服务异常
+    PARCEL_NOT_FOUND("5001", "包裹信息有误，请联系工作人员"),
+    PARCEL_NOT_IN_STORAGE("5002", "包裹状态有误，请联系工作人员"),;
 
     private final String code;
     private final String message;

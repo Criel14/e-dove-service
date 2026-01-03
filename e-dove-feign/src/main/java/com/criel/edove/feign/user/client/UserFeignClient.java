@@ -6,6 +6,7 @@ import com.criel.edove.common.vo.PingVO;
 import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
+import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,5 +54,12 @@ public interface UserFeignClient {
      */
     @PutMapping("/user/update-store")
     Result<Object> updateStoreBind(@RequestParam Long storeId);
+
+    /**
+     * 验证身份码条形码接口
+     * 仅远程调用：出库时使用
+     */
+    @GetMapping("/user/barcode-verify")
+    Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code);
 
 }
