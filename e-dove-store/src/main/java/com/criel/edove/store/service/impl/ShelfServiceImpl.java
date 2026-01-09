@@ -117,7 +117,6 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         Long storeId = getUserStoreId();
 
         // 分布式锁（粒度是货架）
-        // TODO 包裹出入库时需要加上这个分布式锁，才能修改货架层中包裹的数量
         String lockKey = RedisKeyConstant.SHELF_UPDATE_LOCK + shelfId;
         RLock rLock = redissonClient.getLock(lockKey);
         boolean locked = false;

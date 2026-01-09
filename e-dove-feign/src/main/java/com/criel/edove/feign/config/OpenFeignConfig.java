@@ -28,14 +28,16 @@ public class OpenFeignConfig {
             @Override
             public void apply(RequestTemplate template) {
                 UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
-                if (userInfoContext.getUserId() != null) {
-                    template.header("X-User-Id", String.valueOf(userInfoContext.getUserId()));
-                }
-                if (userInfoContext.getUsername() != null) {
-                    template.header("X-Username", userInfoContext.getUsername());
-                }
-                if (userInfoContext.getPhone() != null) {
-                    template.header("X-Phone", userInfoContext.getPhone());
+                if (userInfoContext != null) {
+                    if (userInfoContext.getUserId() != null) {
+                        template.header("X-User-Id", String.valueOf(userInfoContext.getUserId()));
+                    }
+                    if (userInfoContext.getUsername() != null) {
+                        template.header("X-Username", userInfoContext.getUsername());
+                    }
+                    if (userInfoContext.getPhone() != null) {
+                        template.header("X-Phone", userInfoContext.getPhone());
+                    }
                 }
             }
         };
