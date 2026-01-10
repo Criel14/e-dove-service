@@ -125,7 +125,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             userInfoWrapper.eq(UserInfo::getUserId, userId);
             UserInfo userInfo = userInfoMapper.selectOne(userInfoWrapper);
 
-            if (userInfo != null) {
+            if (userInfo.getStoreId() != null) {
                 // 存入redis，过期时间为5min
                 long userStoreIdTtl = 5;
                 userStoreIdBucket.set(userInfo.getStoreId(), Duration.ofMinutes(userStoreIdTtl));
@@ -204,6 +204,15 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         LambdaUpdateWrapper<UserInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(UserInfo::getUserId, userId).set(UserInfo::getStoreId, storeId);
         userInfoMapper.update(null, wrapper);
+
+        // 更新redis
+        String key = RedisKeyConstant.USER_STORE_ID + userId;
+        RBucket<Long> userStoreIdBucket = redissonClient.getBucket(key);
+        if (storeId == null) {
+            userStoreIdBucket.delete();
+        } else {
+            userStoreIdBucket.set(storeId);
+        }
     }
 
     /**
