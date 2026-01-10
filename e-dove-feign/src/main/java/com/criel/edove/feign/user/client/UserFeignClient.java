@@ -53,7 +53,7 @@ public interface UserFeignClient {
      * tip：远程调用前需要检查门店是否存在，且解绑时已判断用户是否绑定该门店
      */
     @PutMapping("/user/update-store")
-    Result<Object> updateStoreBind(@RequestParam Long storeId);
+    Result<Object> updateStoreBind(@RequestParam(required = false) Long storeId);
 
     /**
      * 验证身份码条形码接口

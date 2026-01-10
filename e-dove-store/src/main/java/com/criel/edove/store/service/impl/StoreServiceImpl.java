@@ -90,7 +90,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         store.setId(storeId);
         // 拷贝其他字段
         BeanUtils.copyProperties(storeDTO, store);
-        // 设置店长信息
+        // 设置店长信息：如果为空，则当前用户就是店长
+        // TODO （这里前端传入的就是空，没做）
         if (storeDTO.getManagerUserId() == null && StrUtil.isEmpty(storeDTO.getManagerPhone())) {
             UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
             store.setManagerUserId(userInfoContext.getUserId());
