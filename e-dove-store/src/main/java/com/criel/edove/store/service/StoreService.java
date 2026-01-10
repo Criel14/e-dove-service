@@ -3,6 +3,7 @@ package com.criel.edove.store.service;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.store.dto.StoreBindDTO;
 import com.criel.edove.store.dto.StoreDTO;
+import com.criel.edove.store.dto.StoreIdDTO;
 import com.criel.edove.store.entity.Store;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.criel.edove.store.vo.StoreVO;
@@ -21,11 +22,11 @@ public interface StoreService extends IService<Store> {
 
     StoreVO createStore(StoreDTO storeDTO);
 
-    void bindStore(Long storeId);
+    void bindStore(StoreIdDTO storeIdDTO);
 
     StoreVO updateStore(StoreDTO storeDTO);
 
-    void deleteStore(Long storeId);
+    void deleteStore(StoreIdDTO storeIdDTO);
 
-    void unbindStore(Long storeId);
+    void unbindStore(StoreIdDTO storeIdDTO);
 }

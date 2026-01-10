@@ -1,5 +1,7 @@
 package com.criel.edove.store.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 
 import java.io.Serializable;
@@ -12,8 +14,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class StoreVO implements Serializable {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long managerUserId;
 
     private String managerPhone;

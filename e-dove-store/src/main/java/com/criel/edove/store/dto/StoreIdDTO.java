@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 用户门店绑定接口请求参数
+ * 存放 storeId 的 DTO
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StoreBindDTO implements Serializable {
+public class StoreIdDTO implements Serializable {
 
-    private Long storeId;
+    Long storeId;
 
 }

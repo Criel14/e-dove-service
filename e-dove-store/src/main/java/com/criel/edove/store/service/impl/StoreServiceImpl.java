@@ -19,6 +19,7 @@ import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
 import com.criel.edove.store.dto.StoreBindDTO;
 import com.criel.edove.store.dto.StoreDTO;
+import com.criel.edove.store.dto.StoreIdDTO;
 import com.criel.edove.store.entity.Store;
 import com.criel.edove.store.mapper.StoreMapper;
 import com.criel.edove.store.service.StoreService;
@@ -141,7 +142,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      * 删除门店
      */
     @Override
-    public void deleteStore(Long storeId) {
+    public void deleteStore(StoreIdDTO storeIdDTO) {
+        Long storeId = storeIdDTO.getStoreId();
         if (storeId == null) {
             throw new StoreNotFoundException();
         }
@@ -153,7 +155,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      */
     @Override
     @GlobalTransactional
-    public void bindStore(Long storeId) {
+    public void bindStore(StoreIdDTO storeIdDTO) {
+        Long storeId = storeIdDTO.getStoreId();
         // 判断门店是否存在
         Store store = storeMapper.selectById(storeId);
         if (store == null) {
@@ -173,7 +176,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      */
     @Override
     @GlobalTransactional
-    public void unbindStore(Long storeId) {
+    public void unbindStore(StoreIdDTO storeIdDTO) {
+        Long storeId = storeIdDTO.getStoreId();
         // 判断门店是否存在
         Store store = storeMapper.selectById(storeId);
         if (store == null) {

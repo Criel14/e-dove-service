@@ -4,6 +4,7 @@ import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.store.dto.StoreDTO;
 import com.criel.edove.store.dto.StoreBindDTO;
+import com.criel.edove.store.dto.StoreIdDTO;
 import com.criel.edove.store.service.StoreService;
 import com.criel.edove.store.vo.StoreVO;
 import lombok.RequiredArgsConstructor;
@@ -72,8 +73,8 @@ public class StoreController {
      * （店长）注销门店
      */
     @DeleteMapping("/delete")
-    public Result<Void> deleteStore(@RequestParam Long storeId) {
-        storeService.deleteStore(storeId);
+    public Result<Void> deleteStore(@RequestBody StoreIdDTO storeIdDTO) {
+        storeService.deleteStore(storeIdDTO);
         return Result.success();
     }
 
@@ -81,8 +82,8 @@ public class StoreController {
      * （店长/店员）绑定门店
      */
     @PostMapping("/bind")
-    public Result<Void> bindStore(@RequestParam Long storeId) {
-        storeService.bindStore(storeId);
+    public Result<Void> bindStore(@RequestBody StoreIdDTO storeIdDTO) {
+        storeService.bindStore(storeIdDTO);
         return Result.success();
     }
 
@@ -90,8 +91,8 @@ public class StoreController {
      * （店长/店员）解绑门店
      */
     @PostMapping("/unbind")
-    public Result<Void> unbindStore(@RequestParam Long storeId) {
-        storeService.unbindStore(storeId);
+    public Result<Void> unbindStore(@RequestBody StoreIdDTO storeIdDTO) {
+        storeService.unbindStore(storeIdDTO);
         return Result.success();
     }
 

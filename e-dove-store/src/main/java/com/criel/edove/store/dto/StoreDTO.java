@@ -2,13 +2,15 @@ package com.criel.edove.store.dto;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 /**
  * 创建/修改门店信息接口请求参数
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StoreDTO {
+public class StoreDTO implements Serializable {
 
     // 修改时id不为null
     private Long id;
