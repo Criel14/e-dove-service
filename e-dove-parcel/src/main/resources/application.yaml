@@ -1,5 +1,5 @@
 server:
-  port: 8140
+  port: 8141
 
 
 spring:

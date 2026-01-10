@@ -14,21 +14,39 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RegisterDTO implements Serializable {
 
+    /**
+     * 用户名
+     */
     private String username;
 
+    /**
+     * 密码
+     */
     private String password;
 
+    /**
+     * 手机号（不能为空）
+     */
     private String phone;
 
+    /**
+     * 邮箱（有则需要有邮箱验证码）
+     */
     private String email;
 
-    // 头像地址
+    /**
+     * 头像地址
+     */
     private String avatarUrl;
 
-    // 手机的验证码
+    /**
+     * 手机的验证码
+     */
     private String phoneOtp;
 
-    // 邮箱的验证码
+    /**
+     * 邮箱的验证码
+     */
     private String emailOtp;
 
 }

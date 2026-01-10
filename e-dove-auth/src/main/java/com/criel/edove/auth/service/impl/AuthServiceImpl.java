@@ -139,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * 注册：手机号为必填项，其他的为选填
+     * 注册：手机号和手机号的验证码为必填项，其他的为选填
      */
     @Override
     @GlobalTransactional
@@ -149,7 +149,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RegisterMissingParameterException();
         }
 
-        // 验证手机号/邮箱/用户是否存在
+        // 验证手机号/邮箱/用户名是否存在
         checkUserExists(registerDTO);
 
         // 验证码校验
@@ -180,7 +180,8 @@ public class AuthServiceImpl implements AuthService {
             // 创建新用户信息（远程调用）
             UserInfoDTO userInfoDTO = new UserInfoDTO();
             BeanUtils.copyProperties(userAuth, userInfoDTO);
-            if (StrUtil.isNotEmpty(registerDTO.getAvatarUrl())) {
+            // 设置默认头像
+            if (StrUtil.isEmpty(registerDTO.getAvatarUrl())) {
                 userInfoDTO.setAvatarUrl(registerDTO.getAvatarUrl());
             }
             userFeignClient.createUserInfo(userInfoDTO);
