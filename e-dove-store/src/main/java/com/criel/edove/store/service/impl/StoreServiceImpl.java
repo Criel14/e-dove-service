@@ -87,7 +87,6 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         Store store = new Store();
         // 门店ID
         long storeId = snowflakeService.nextId();
-        store.setId(storeId);
         // 拷贝其他字段
         BeanUtils.copyProperties(storeDTO, store);
         // 设置店长信息：如果为空，则当前用户就是店长
@@ -99,6 +98,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         }
         // 初始化门店状态：营业
         store.setStatus(StoreStatusEnum.OPEN.getCode());
+        store.setId(storeId);
         // 插入门店信息
         storeMapper.insert(store);
 
