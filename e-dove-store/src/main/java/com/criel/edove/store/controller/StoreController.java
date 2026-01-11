@@ -3,7 +3,6 @@ package com.criel.edove.store.controller;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.store.dto.StoreDTO;
-import com.criel.edove.store.dto.StoreBindDTO;
 import com.criel.edove.store.dto.StoreIdDTO;
 import com.criel.edove.store.service.StoreService;
 import com.criel.edove.store.vo.StoreVO;
@@ -72,9 +71,9 @@ public class StoreController {
     /**
      * （店长）注销门店
      */
-    @DeleteMapping("/delete")
+    @PatchMapping("/deactivate")
     public Result<Void> deleteStore(@RequestBody StoreIdDTO storeIdDTO) {
-        storeService.deleteStore(storeIdDTO);
+        storeService.deactivateStore(storeIdDTO);
         return Result.success();
     }
 

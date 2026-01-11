@@ -140,15 +140,28 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     }
 
     /**
-     * 删除门店
+     * 注销门店
      */
     @Override
-    public void deleteStore(StoreIdDTO storeIdDTO) {
+    @GlobalTransactional
+    public void deactivateStore(StoreIdDTO storeIdDTO) {
         Long storeId = storeIdDTO.getStoreId();
         if (storeId == null) {
             throw new StoreNotFoundException();
         }
-        storeMapper.deleteById(storeId);
+
+        // 查出门店信息
+        Store store = storeMapper.selectById(storeId);
+        if (store == null) {
+            throw new StoreNotFoundException();
+        }
+        store.setStatus(StoreStatusEnum.DEACTIVATED.getCode());
+
+        // 更新门店信息
+        storeMapper.updateById(store);
+
+        // 检查用户是否绑定该门店并解绑
+        checkAndUnbind(storeId);
     }
 
     /**
@@ -185,6 +198,14 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
             throw new StoreNotFoundException();
         }
 
+        // 检查用户是否绑定该门店并解绑
+        checkAndUnbind(storeId);
+    }
+
+    /**
+     * 检查用户是否绑定该门店并解绑
+     */
+    private void checkAndUnbind(Long storeId) {
         // （远程调用）检查用户是否绑定该门店
         Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo();
         UserInfoVO userInfoVO = userInfoResult.getData();
@@ -198,7 +219,6 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         } catch (Exception e) {
             throw new UserStoreBoundException();
         }
-
     }
 
 }

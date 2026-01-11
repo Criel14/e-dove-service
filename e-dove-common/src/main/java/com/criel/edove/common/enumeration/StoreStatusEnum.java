@@ -13,7 +13,7 @@ public enum StoreStatusEnum {
     // 休息
     CLOSED(2, "休息"),
     // 注销
-    STOPPED(3, "注销");
+    DEACTIVATED(3, "注销");
 
 
     private final int code;

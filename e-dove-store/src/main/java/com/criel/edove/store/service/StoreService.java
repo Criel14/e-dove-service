@@ -1,7 +1,6 @@
 package com.criel.edove.store.service;
 
 import com.criel.edove.common.result.PageResult;
-import com.criel.edove.store.dto.StoreBindDTO;
 import com.criel.edove.store.dto.StoreDTO;
 import com.criel.edove.store.dto.StoreIdDTO;
 import com.criel.edove.store.entity.Store;
@@ -26,7 +25,7 @@ public interface StoreService extends IService<Store> {
 
     StoreVO updateStore(StoreDTO storeDTO);
 
-    void deleteStore(StoreIdDTO storeIdDTO);
+    void deactivateStore(StoreIdDTO storeIdDTO);
 
     void unbindStore(StoreIdDTO storeIdDTO);
 }
