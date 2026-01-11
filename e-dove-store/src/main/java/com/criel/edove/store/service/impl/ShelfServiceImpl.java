@@ -15,6 +15,7 @@ import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ParcelCheckInDTO;
 import com.criel.edove.store.dto.ShelfDTO;
+import com.criel.edove.store.dto.ShelfQueryDTO;
 import com.criel.edove.store.entity.Shelf;
 import com.criel.edove.store.entity.ShelfLayer;
 import com.criel.edove.store.mapper.ShelfLayerMapper;
@@ -96,7 +97,10 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
      * 分页查询货架 + 货架层
      */
     @Override
-    public PageResult<ShelfAndLayerVO> queryShelfAndLayer(int pageNum, int pageSize) {
+    public PageResult<ShelfAndLayerVO> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO) {
+        int pageNum = shelfQueryDTO.getPageNum();
+        int pageSize = shelfQueryDTO.getPageSize();
+
         // 获取用户所属门店
         Long storeId = getUserStoreId();
 

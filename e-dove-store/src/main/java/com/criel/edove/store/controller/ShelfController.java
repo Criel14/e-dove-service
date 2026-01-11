@@ -5,6 +5,7 @@ import com.criel.edove.common.result.Result;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ParcelCheckInDTO;
 import com.criel.edove.store.dto.ShelfDTO;
+import com.criel.edove.store.dto.ShelfQueryDTO;
 import com.criel.edove.store.service.ShelfService;
 import com.criel.edove.store.vo.ParcelCheckInVO;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
@@ -38,11 +39,9 @@ public class ShelfController {
      * （店长 / 店员）分页查询货架 + 货架层
      */
     // TODO 这个接口的sql比较乱，待测试
-    @PostMapping("/query")
-    public Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(
-            @RequestParam int pageNum,
-            @RequestParam int pageSize) {
-        return Result.success(shelfService.queryShelfAndLayer(pageNum, pageSize));
+    @GetMapping("/query")
+    public Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO) {
+        return Result.success(shelfService.queryShelfAndLayer(shelfQueryDTO));
     }
 
     /**
@@ -68,6 +67,7 @@ public class ShelfController {
 
     /**
      * （仅远程调用）为包裹选择合适的货架层，并生成取件码
+     *
      * @return 取件码
      */
     @PostMapping("/choose")

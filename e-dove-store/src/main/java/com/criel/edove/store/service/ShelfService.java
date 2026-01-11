@@ -4,6 +4,7 @@ import com.criel.edove.common.result.PageResult;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ParcelCheckInDTO;
 import com.criel.edove.store.dto.ShelfDTO;
+import com.criel.edove.store.dto.ShelfQueryDTO;
 import com.criel.edove.store.entity.Shelf;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.criel.edove.store.vo.ParcelCheckInVO;
@@ -19,7 +20,7 @@ public interface ShelfService extends IService<Shelf> {
 
     void createShelf(ShelfDTO shelfDTO);
 
-    PageResult<ShelfAndLayerVO> queryShelfAndLayer(int pageNum, int pageSize);
+    PageResult<ShelfAndLayerVO> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO);
 
     void updateShelf(ShelfDTO shelfDTO);
 

@@ -30,7 +30,7 @@ spring:
         - id: e-dove-store
           uri: lb://e-dove-store
           predicates:
-            - Path=/store/**
+            - Path=/store/**, /shelf/**
         # parcel 模块
         - id: e-dove-parcel
           uri: lb://e-dove-parcel

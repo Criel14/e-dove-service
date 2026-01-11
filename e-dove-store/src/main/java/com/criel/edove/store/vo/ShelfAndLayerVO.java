@@ -1,5 +1,7 @@
 package com.criel.edove.store.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,11 +21,13 @@ public class ShelfAndLayerVO implements Serializable {
     /**
      * 货架id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
      * 所属门店 ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long storeId;
 
     /**
