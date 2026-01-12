@@ -48,7 +48,7 @@ public class ShelfController {
      * （店长 / 店员）修改货架
      * tip: 货架不能删除，只能启用和停用，停用后，不会再有新的包裹分配到该货架
      */
-    @PutMapping("/update/shelf")
+    @PutMapping("/update")
     public Result<Void> updateShelf(@RequestBody ShelfDTO shelfDTO) {
         shelfService.updateShelf(shelfDTO);
         return Result.success();

@@ -412,7 +412,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         final int maxCapacity = 999;
         // 批量插入
         List<ShelfLayer> shelfLayers = new ArrayList<>();
-        for (int layerNo = curMaxLayerNo + 1; layerNo <= layerCount; layerNo++) {
+        for (int layerNo = curMaxLayerNo + 1; layerNo <= curMaxLayerNo + layerCount; layerNo++) {
             ShelfLayer shelfLayer = new ShelfLayer();
             shelfLayer.setShelfId(shelfId); // 所属货架ID
             shelfLayer.setTodayMaxSeq(todayMaxSeq); // 当前最大序号
