@@ -22,6 +22,9 @@ public interface ShelfMapper extends BaseMapper<Shelf> {
 
     Integer selectMaxShelfNo(Long storeId);
 
+    /**
+     * 一次性查出【货架+货架层】（由于在分页查询时存在一些问题，所以弃用）
+     */
     IPage<ShelfAndLayerVO> selectShelfAndLayerByStoreId(IPage<?> page, Long storeId);
 
     int reduceCurrentCount(Long storeId, Integer shelfNo, Integer layerNo);

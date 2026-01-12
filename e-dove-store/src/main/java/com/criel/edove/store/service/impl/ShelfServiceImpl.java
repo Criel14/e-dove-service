@@ -24,6 +24,7 @@ import com.criel.edove.store.service.ShelfService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.store.vo.ParcelCheckInVO;
 import com.criel.edove.store.vo.ShelfAndLayerVO;
+import com.criel.edove.store.vo.ShelfLayerVO;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -32,10 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -98,16 +98,58 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
      */
     @Override
     public PageResult<ShelfAndLayerVO> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO) {
+        // 这2个参数指的是【货架】，而不是【货架层】
         int pageNum = shelfQueryDTO.getPageNum();
         int pageSize = shelfQueryDTO.getPageSize();
 
         // 获取用户所属门店
         Long storeId = getUserStoreId();
 
-        // 分页查询
-        Page<ShelfAndLayerVO> page = new Page<>(pageNum, pageSize);
-        IPage<ShelfAndLayerVO> iPage = shelfMapper.selectShelfAndLayerByStoreId(page, storeId);
-        return new PageResult<>(iPage.getRecords(), iPage.getTotal());
+        // 分页查询用户所属门店的【货架】
+        IPage<Shelf> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Shelf> shelfWrapper = new LambdaQueryWrapper<>();
+        shelfWrapper.eq(Shelf::getStoreId, storeId)
+                .orderByAsc(Shelf::getShelfNo);
+        IPage<Shelf> shelfIPage = shelfMapper.selectPage(page, shelfWrapper);
+        List<Shelf> shelves = shelfIPage.getRecords();
+        List<Long> shelfIds = shelves.stream()
+                .map(Shelf::getId)
+                .toList();
+
+        // 空则提前返回，否则mybatis-plus会生成"IN ()"这样的内容
+        if (shelves.isEmpty()) {
+            return new PageResult<>(Collections.emptyList(), shelfIPage.getTotal());
+        }
+
+        // 查询这些货架所对应的【货架层】
+        LambdaQueryWrapper<ShelfLayer> shelfLayerWrapper = new LambdaQueryWrapper<>();
+        shelfLayerWrapper.in(ShelfLayer::getShelfId, shelfIds)
+                .orderByAsc(ShelfLayer::getLayerNo);
+        List<ShelfLayer> shelfLayers = shelfLayerMapper.selectList(shelfLayerWrapper);
+
+        // 先把【货架层】映射成Map
+        Map<Long, List<ShelfLayerVO>> shelfLayerVOMap = shelfLayers.stream()
+                .map(shelfLayer -> {
+                    ShelfLayerVO shelfLayerVO = new ShelfLayerVO();
+                    BeanUtils.copyProperties(shelfLayer, shelfLayerVO);
+                    return shelfLayerVO;
+                })
+                .collect(Collectors.groupingBy(ShelfLayerVO::getShelfId));
+
+        // 遍历【货架】然后封装结果
+        List<ShelfAndLayerVO> shelfAndLayerVOs = new ArrayList<>(shelves.size());
+        shelves.forEach(shelf -> {
+            // 拿到对应的【货架层】
+            List<ShelfLayerVO> shelfLayerVOs = shelfLayerVOMap.getOrDefault(shelf.getId(), Collections.emptyList());
+            // 封装数据
+            ShelfAndLayerVO shelfAndLayerVO = new ShelfAndLayerVO();
+            BeanUtils.copyProperties(shelf, shelfAndLayerVO);
+            shelfAndLayerVO.setShelfLayers(shelfLayerVOs);
+            // 插入数据
+            shelfAndLayerVOs.add(shelfAndLayerVO);
+        });
+
+        return new PageResult<>(shelfAndLayerVOs, shelfIPage.getTotal());
     }
 
     /**

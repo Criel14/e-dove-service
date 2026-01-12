@@ -26,6 +26,12 @@ public class ShelfLayerVO implements Serializable {
     private Long id;
 
     /**
+     * 所属货架 ID
+     */
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long shelfId;
+
+    /**
      * 层号编号（从 1 开始）
      */
     private Integer layerNo;
