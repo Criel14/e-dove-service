@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 用户信息操作 Controller
@@ -29,6 +30,8 @@ public class UserController {
 
     private final UserInfoService userInfoService;
     private final BarcodeService barcodeService;
+
+    // TODO 头像上传接口（可能要写在其他微服务里）
 
     /**
      * 连接测试
@@ -85,7 +88,6 @@ public class UserController {
 
     /**
      * 生成身份码条形码接口
-     * TODO 新版本未测试
      *
      * @return base64编码的条形码图片
      */
@@ -95,15 +97,19 @@ public class UserController {
     }
 
     /**
-     * 验证身份码条形码接口
-     * 仅远程调用：出库时使用
-     * TODO 新版本未测试
+     * （仅远程调用）验证身份码条形码接口，出库时使用
      */
     @GetMapping("/barcode-verify")
     public Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code) {
         return Result.success(barcodeService.verifyIdentityBarcode(code));
     }
 
+    /**
+     * （仅远程调用）生成包裹时需要从数据库抽取指定数量的手机号
+     */
+    @GetMapping("/phone-extract")
+    public Result<List<String>> extractPhone(@RequestParam Integer count) {
+        return Result.success(userInfoService.extractPhone(count));
+    }
 
-    // TODO 头像上传接口（可能要写在其他微服务里）
 }

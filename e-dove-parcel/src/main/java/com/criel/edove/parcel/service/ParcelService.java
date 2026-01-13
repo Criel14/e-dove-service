@@ -26,4 +26,6 @@ public interface ParcelService extends IService<Parcel> {
     PageResult<ParcelVO> adminInfo(ParcelQueryDTO parcelQueryDTO);
 
     PageResult<ParcelVO> userInfo(ParcelQueryDTO parcelQueryDTO);
+
+    void generate(Integer count);
 }

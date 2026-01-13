@@ -10,6 +10,8 @@ import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * e-dove-user模块的远程调用
  */
@@ -61,5 +63,11 @@ public interface UserFeignClient {
      */
     @GetMapping("/user/barcode-verify")
     Result<VerifyBarcodeVO> verifyBarcode(@RequestParam String code);
+
+    /**
+     * （仅远程调用）生成包裹时需要从数据库抽取指定数量的手机号
+     */
+    @GetMapping("/user/phone-extract")
+    Result<List<String>> extractPhone(@RequestParam Integer count);
 
 }

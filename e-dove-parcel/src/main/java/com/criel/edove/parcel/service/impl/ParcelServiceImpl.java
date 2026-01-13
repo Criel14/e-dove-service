@@ -23,6 +23,7 @@ import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
 import com.criel.edove.parcel.service.ParcelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.criel.edove.parcel.util.TrackingNumberGenerator;
 import com.criel.edove.parcel.vo.CheckOutVO;
 import com.criel.edove.parcel.vo.ParcelVO;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * <p>
@@ -167,6 +167,59 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
                 parcelQueryDTO.getPageSize(),
                 parcelWrapper
         );
+    }
+
+    /**
+     * 在数据库里生成指定数量的随机包裹（这算是一个调试方法，就不需要加分布式锁了）
+     */
+    @Override
+    public void generate(Integer count) {
+        // 生成随机运单号
+        List<String> trackingNumbers = generateTrackingNumbers(count);
+        // 抽取手机号
+        List<String> phones = getPhones(count);
+
+        // TODO 没写完
+    }
+
+    /**
+     * 在数据库中抽取指定数量的手机号
+     */
+    private List<String> getPhones(Integer count) {
+        Result<List<String>> result = userFeignClient.extractPhone(count);
+        if (!result.getStatus()) {
+            throw new BizException(ErrorCode.PARCEL_GENERATE_ERROR);
+        }
+        return result.getData();
+    }
+
+    /**
+     * 生成指定数量的随机运单号
+     */
+    private List<String> generateTrackingNumbers(Integer count) {
+        // 生成运单号
+        List<String> resultList = new ArrayList<>();
+        while (resultList.size() < count) {
+            // 生成缺少的数量 * 2，增加命中概率
+            int remaining = count - resultList.size();
+            Set<String> set = new HashSet<>();
+            while (set.size() < remaining * 2) {
+                set.add(TrackingNumberGenerator.generateOne());
+            }
+
+            // 查找数据库
+            LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+            parcelWrapper.in(Parcel::getTrackingNumber, set);
+            List<Parcel> parcels = parcelMapper.selectList(parcelWrapper);
+
+            // 过滤掉存在的
+            parcels.forEach(parcel -> set.remove(parcel.getTrackingNumber()));
+
+            resultList.addAll(set);
+        }
+
+        // 可能会多生成，去掉重复的
+        return resultList.subList(0, count);
     }
 
     /**

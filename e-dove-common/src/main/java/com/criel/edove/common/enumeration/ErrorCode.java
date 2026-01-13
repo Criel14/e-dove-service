@@ -66,7 +66,8 @@ public enum ErrorCode {
     // parcel服务异常
     PARCEL_NOT_FOUND("5001", "包裹信息不存在"),
     PARCEL_NOT_IN_STORAGE("5002", "包裹未入库"),
-    PARCEL_STORE_MISMATCHED("5003", "包裹不属于当前门店"),;
+    PARCEL_STORE_MISMATCHED("5003", "包裹不属于当前门店"),
+    PARCEL_GENERATE_ERROR("5004", "包裹生成出现问题");
 
     private final String code;
     private final String message;

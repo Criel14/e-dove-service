@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
@@ -29,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * <p>
@@ -135,6 +139,39 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 return null;
             }
         }
+    }
+
+    /**
+     * 生成包裹时需要从数据库抽取指定数量的手机号
+     */
+    @Override
+    public List<String> extractPhone(Integer count) {
+        Random rd = new Random();
+
+        // 获取用户数量
+        Long selectCount = userInfoMapper.selectCount(null);
+        int userCount = selectCount.intValue();
+
+        // 数量不够则拿到全部，然后随机重复
+        if (userCount < count) {
+            List<UserInfo> userInfos = userInfoMapper.selectList(null);
+            List<String> phones = new ArrayList<>();
+            while (phones.size() < count) {
+                UserInfo userInfo = userInfos.get(rd.nextInt(userCount));
+                phones.add(userInfo.getPhone());
+            }
+            return phones;
+        }
+
+        // 查询随机count条数据
+        LambdaQueryWrapper<UserInfo> userInfoWrapper = new LambdaQueryWrapper<>();
+        userInfoWrapper.last("ORDER BY RAND() LIMIT " + count);
+        List<UserInfo> userInfos = userInfoMapper.selectList(userInfoWrapper);
+
+        // 获取手机号
+        return userInfos.stream()
+                .map(UserInfo::getPhone)
+                .toList();
     }
 
     /**
