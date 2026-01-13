@@ -1,11 +1,14 @@
 package com.criel.edove.parcel.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.criel.edove.common.context.UserInfoContext;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ParcelStatusEnum;
 import com.criel.edove.common.exception.BizException;
+import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
@@ -15,17 +18,20 @@ import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
+import com.criel.edove.parcel.dto.ParcelQueryDTO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
 import com.criel.edove.parcel.service.ParcelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.parcel.vo.CheckOutVO;
+import com.criel.edove.parcel.vo.ParcelVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -102,7 +108,88 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     }
 
     /**
+     * 管理端分页查询门店包裹信息
+     */
+    @Override
+    public PageResult<ParcelVO> adminInfo(ParcelQueryDTO parcelQueryDTO) {
+        Integer status = parcelQueryDTO.getStatus();
+        String trackingNumber = parcelQueryDTO.getTrackingNumber();
+        String recipientPhone = parcelQueryDTO.getRecipientPhone();
+        String timeType = parcelQueryDTO.getTimeType();
+        LocalDateTime startTime = parcelQueryDTO.getStartTime();
+        LocalDateTime endTime = parcelQueryDTO.getEndTime();
+
+        LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        // 包裹状态
+        if (status != null) {
+            parcelWrapper.eq(Parcel::getStatus, status);
+        }
+        // 快递运单号
+        if (StrUtil.isEmpty(trackingNumber)) {
+            parcelWrapper.like(Parcel::getTrackingNumber, trackingNumber);
+        }
+        // 收件人手机号
+        if (StrUtil.isEmpty(recipientPhone)) {
+            parcelWrapper.like(Parcel::getRecipientPhone, recipientPhone);
+        }
+        // 查询时间段
+        if (StrUtil.isEmpty(timeType) && startTime != null && endTime != null) {
+            switch (timeType) {
+                // 入库时间
+                case "in_time" -> parcelWrapper.between(Parcel::getInTime, startTime, endTime);
+                // 出库时间
+                case "out_time" -> parcelWrapper.between(Parcel::getOutTime, startTime, endTime);
+            }
+        }
+
+        // 分页查询
+        return selectParcelVOPageResult(
+                parcelQueryDTO.getPageNum(),
+                parcelQueryDTO.getPageSize(),
+                parcelWrapper
+        );
+    }
+
+    /**
+     * 用户端分页查询门店包裹信息：查询用户近30日的包裹，不包含复杂的条件查询
+     */
+    @Override
+    public PageResult<ParcelVO> userInfo(ParcelQueryDTO parcelQueryDTO) {
+        // 获取用户手机号
+        String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        // 查询近30日的包裹
+        LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        parcelWrapper.eq(Parcel::getRecipientPhone, phone)
+                .between(Parcel::getCreateTime, LocalDateTime.now().minusDays(30), LocalDateTime.now());
+        // 分页查询
+        return selectParcelVOPageResult(
+                parcelQueryDTO.getPageNum(),
+                parcelQueryDTO.getPageSize(),
+                parcelWrapper
+        );
+    }
+
+    /**
+     * 按照给定条件分页查询包裹，并封装成VO
+     */
+    private PageResult<ParcelVO> selectParcelVOPageResult(Integer pageNum, Integer pageSize, LambdaQueryWrapper<Parcel> parcelWrapper) {
+        IPage<Parcel> page = new Page<>(pageNum, pageSize);
+        IPage<Parcel> parcelPage = parcelMapper.selectPage(page, parcelWrapper);
+        List<Parcel> parcels = parcelPage.getRecords();
+        List<ParcelVO> parcelVOs = parcels.stream()
+                .map(parcel -> {
+                            ParcelVO vo = new ParcelVO();
+                            BeanUtils.copyProperties(parcel, vo);
+                            return vo;
+                        }
+                )
+                .toList();
+        return new PageResult<>(parcelVOs, parcelPage.getTotal());
+    }
+
+    /**
      * 远程调用：选择合适的货架层，并生成取件码
+     *
      * @param parcel 要入库的包裹信息
      * @return 取件码
      */
@@ -122,6 +209,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     /**
      * 查询用户所属门店
+     *
      * @return 用户所属的门店ID
      */
     private Long getUserStoreId() {

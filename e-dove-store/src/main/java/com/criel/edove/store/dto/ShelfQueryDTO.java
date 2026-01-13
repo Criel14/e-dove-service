@@ -14,8 +14,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class ShelfQueryDTO implements Serializable {
 
-    private int pageNum;
+    private Integer pageNum;
 
-    private int pageSize;
+    private Integer pageSize;
 
 }

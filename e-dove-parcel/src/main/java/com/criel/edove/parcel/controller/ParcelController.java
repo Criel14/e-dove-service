@@ -1,15 +1,15 @@
 package com.criel.edove.parcel.controller;
 
+import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
+import com.criel.edove.parcel.dto.ParcelQueryDTO;
 import com.criel.edove.parcel.service.ParcelService;
 import com.criel.edove.parcel.vo.CheckOutVO;
+import com.criel.edove.parcel.vo.ParcelVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 包裹 Controller
@@ -37,5 +37,21 @@ public class ParcelController {
     public Result<Void> checkIn(@RequestBody CheckInDTO checkInDTO) {
         parcelService.checkIn(checkInDTO);
         return Result.success();
+    }
+
+    /**
+     * 管理端分页查询门店包裹信息
+     */
+    @GetMapping("/admin/info")
+    public Result<PageResult<ParcelVO>> adminInfo(ParcelQueryDTO parcelQueryDTO) {
+        return Result.success(parcelService.adminInfo(parcelQueryDTO));
+    }
+
+    /**
+     * 用户端分页查询个人包裹信息
+     */
+    @GetMapping("/user/info")
+    public Result<PageResult<ParcelVO>> userInfo(ParcelQueryDTO parcelQueryDTO) {
+        return Result.success(parcelService.userInfo(parcelQueryDTO));
     }
 }
