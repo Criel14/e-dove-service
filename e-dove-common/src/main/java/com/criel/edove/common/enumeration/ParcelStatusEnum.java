@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 public enum ParcelStatusEnum {
 
-    NEW_PARCEL (0, "新包裹"),
+    NEW_PARCEL (0, "新包裹/未入库"),
     IN_STORAGE (1, "已入库"),
     OUT_STORAGE (2, "已取出"),
     LOST (3, "滞留"),

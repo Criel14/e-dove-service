@@ -4,7 +4,9 @@ import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
 import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
 import com.criel.edove.feign.store.vo.ParcelCheckInVO;
+import com.criel.edove.feign.store.vo.StoreVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -26,5 +28,12 @@ public interface StoreFeignClient {
      */
     @PostMapping("/shelf/choose")
     Result<ParcelCheckInVO> parcelCheckIn(@RequestBody ParcelCheckInDTO parcelCheckInDTO);
+
+    /**
+     * （店长/店员）查询所属门店信息
+     * 若未绑定门店，则抛出“未绑定门店异常”
+     */
+    @GetMapping("/store/my")
+    Result<StoreVO> getStoreInfoByUser();
 
 }

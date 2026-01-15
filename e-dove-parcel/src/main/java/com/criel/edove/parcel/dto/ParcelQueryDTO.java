@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * 查询包裹信息接口的请求参数
@@ -50,12 +50,12 @@ public class ParcelQueryDTO implements Serializable {
      * （选填）要查询的时间段的开始时间
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime startTime;
+    private LocalDate startTime;
 
     /**
      * （选填）要查询的时间段的结束时间
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDateTime endTime;
+    private LocalDate endTime;
 
 }

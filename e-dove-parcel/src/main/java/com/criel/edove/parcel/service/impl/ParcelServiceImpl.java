@@ -10,10 +10,15 @@ import com.criel.edove.common.enumeration.ParcelStatusEnum;
 import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
+import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.feign.assistant.client.AssistantFeignClient;
+import com.criel.edove.feign.assistant.dto.AddressGenerateDTO;
+import com.criel.edove.feign.assistant.vo.AddressGenerateVO;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
 import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
 import com.criel.edove.feign.store.vo.ParcelCheckInVO;
+import com.criel.edove.feign.store.vo.StoreVO;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import com.criel.edove.parcel.dto.CheckInDTO;
@@ -31,6 +36,8 @@ import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -48,7 +55,11 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     private final UserFeignClient userFeignClient;
     private final StoreFeignClient storeFeignClient;
+    private final AssistantFeignClient assistantFeignClient;
     private final ParcelMapper parcelMapper;
+    private final SnowflakeService snowflakeService;
+
+    private final Random random = new Random();
 
     /**
      * 出库：机器调用或管理员手动出库
@@ -116,29 +127,32 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         String trackingNumber = parcelQueryDTO.getTrackingNumber();
         String recipientPhone = parcelQueryDTO.getRecipientPhone();
         String timeType = parcelQueryDTO.getTimeType();
-        LocalDateTime startTime = parcelQueryDTO.getStartTime();
-        LocalDateTime endTime = parcelQueryDTO.getEndTime();
+        LocalDate startTime = parcelQueryDTO.getStartTime();
+        LocalDate endTime = parcelQueryDTO.getEndTime();
 
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        // 所属门店
+        Long storeId = getUserStoreId();
+        parcelWrapper.eq(Parcel::getStoreId, storeId);
         // 包裹状态
         if (status != null) {
             parcelWrapper.eq(Parcel::getStatus, status);
         }
         // 快递运单号
-        if (StrUtil.isEmpty(trackingNumber)) {
+        if (StrUtil.isNotEmpty(trackingNumber)) {
             parcelWrapper.like(Parcel::getTrackingNumber, trackingNumber);
         }
         // 收件人手机号
-        if (StrUtil.isEmpty(recipientPhone)) {
+        if (StrUtil.isNotEmpty(recipientPhone)) {
             parcelWrapper.like(Parcel::getRecipientPhone, recipientPhone);
         }
         // 查询时间段
-        if (StrUtil.isEmpty(timeType) && startTime != null && endTime != null) {
+        if (StrUtil.isNotEmpty(timeType) && startTime != null && endTime != null) {
             switch (timeType) {
                 // 入库时间
-                case "in_time" -> parcelWrapper.between(Parcel::getInTime, startTime, endTime);
+                case "inTime" -> parcelWrapper.between(Parcel::getInTime, startTime, endTime);
                 // 出库时间
-                case "out_time" -> parcelWrapper.between(Parcel::getOutTime, startTime, endTime);
+                case "outTime" -> parcelWrapper.between(Parcel::getOutTime, startTime, endTime);
             }
         }
 
@@ -171,15 +185,83 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     /**
      * 在数据库里生成指定数量的随机包裹（这算是一个调试方法，就不需要加分布式锁了）
+     * 暂定为：生成的包裹全部送到【用户所在的门店】
      */
     @Override
     public void generate(Integer count) {
+        // TODO 用线程池去做
         // 生成随机运单号
         List<String> trackingNumbers = generateTrackingNumbers(count);
         // 抽取手机号
         List<String> phones = getPhones(count);
+        // 获取用户所在门店信息
+        StoreVO storeVO = getStoreInfoByUser();
+        // 调用 LLM 生成 count 个随机详细地址
+        List<String> addresses = generateAddresses(
+                count,
+                storeVO.getAddrProvince(),
+                storeVO.getAddrCity(),
+                storeVO.getAddrDistrict()
+        );
 
-        // TODO 没写完
+        // 循环生成包裹
+        List<Parcel> parcels = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Parcel parcel = new Parcel();
+            // 包裹ID、运单号、收件人手机号
+            parcel.setId(snowflakeService.nextId());
+            parcel.setTrackingNumber(trackingNumbers.get(i));
+            parcel.setRecipientPhone(phones.get(i));
+            // 包裹地址
+            parcel.setRecipientAddrProvince(storeVO.getAddrProvince());
+            parcel.setRecipientAddrCity(storeVO.getAddrCity());
+            parcel.setRecipientAddrDistrict(storeVO.getAddrDistrict());
+            parcel.setRecipientAddrDetail(addresses.get(i));
+            // 包裹大小：长宽高重
+            parcel.setWeight(new BigDecimal(random.nextDouble(0, 10)));
+            parcel.setLength(new BigDecimal(random.nextDouble(0, 50)));
+            parcel.setWidth(new BigDecimal(random.nextDouble(0, 50)));
+            parcel.setHeight(new BigDecimal(random.nextDouble(0, 50)));
+            // 门店ID
+            parcel.setStoreId(storeVO.getId());
+            // 包裹状态
+            parcel.setStatus(ParcelStatusEnum.NEW_PARCEL.getCode());
+
+            parcels.add(parcel);
+        }
+
+        // 批量插入
+        parcelMapper.insert(parcels);
+    }
+
+    /**
+     * 获取用户所在门店信息
+     */
+    private StoreVO getStoreInfoByUser() {
+        Result<StoreVO> storeVOResult = storeFeignClient.getStoreInfoByUser();
+        if (!storeVOResult.getStatus()) {
+            throw new BizException(storeVOResult.getCode(), storeVOResult.getMessage());
+        }
+        return storeVOResult.getData();
+    }
+
+    /**
+     * 调用 LLM 生成 count 个随机详细地址
+     */
+    private List<String> generateAddresses(Integer count, String province, String city, String district) {
+        AddressGenerateDTO addressGenerateDTO = new AddressGenerateDTO(
+                count,
+                province,
+                city,
+                district
+        );
+        // 远程调用
+        Result<AddressGenerateVO> addressGenerateVOResult = assistantFeignClient.generateAddresses(addressGenerateDTO);
+        if (!addressGenerateVOResult.getStatus()) {
+            throw new BizException(addressGenerateVOResult.getCode(), addressGenerateVOResult.getMessage());
+        }
+        AddressGenerateVO addressGenerateVO = addressGenerateVOResult.getData();
+        return addressGenerateVO.getAddresses();
     }
 
     /**

@@ -5,6 +5,7 @@ import com.criel.edove.feign.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.feign.assistant.vo.AddressGenerateVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * e-dove-assistant模块的远程调用
@@ -17,6 +18,6 @@ public interface AssistantFeignClient {
      * @param addressGenerateDTO 门店的省市区地址 + 要生成的地址数量
      */
     @PostMapping("/assistant/address")
-    Result<AddressGenerateVO> generateAddresses(AddressGenerateDTO addressGenerateDTO);
+    Result<AddressGenerateVO> generateAddresses(@RequestBody AddressGenerateDTO addressGenerateDTO);
 
 }

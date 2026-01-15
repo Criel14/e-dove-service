@@ -15,12 +15,7 @@ public interface Assistant {
     @UserMessage("""
             请根据下面的省市区，随机生成{{count}}个标准的详细地址。
             省：{{province}}，市：{{city}}，区/县：{{district}}
-            输出内容只包含地址，不带额外解释，以JSON格式输出，例如：
-                [
-                  "莲花街道百合园小区6栋701号",
-                  "华强北路102号金园大厦15楼",
-                  "深南大道5003号海岸城公寓B座1204"
-                ]
+            输出内容只包含地址，不带额外解释，以JSON格式输出
             """)
     List<String> generateAddress(
             @V("count") Integer count,

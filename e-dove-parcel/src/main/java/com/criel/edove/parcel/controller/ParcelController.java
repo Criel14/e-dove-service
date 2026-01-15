@@ -57,9 +57,9 @@ public class ParcelController {
     }
 
     /**
-     * 在数据库里生成指定数量的随机包裹（暂定为生成的包裹全部送到用户所在的门店）
+     * 在数据库里生成指定数量的随机包裹（暂定为：生成的包裹全部送到【用户所在的门店】）
      */
-    @PostMapping("generate")
+    @PostMapping("/generate")
     public Result<Void> generate(GenerateDTO generateDTO) {
         parcelService.generate(generateDTO.getCount());
         return Result.success();

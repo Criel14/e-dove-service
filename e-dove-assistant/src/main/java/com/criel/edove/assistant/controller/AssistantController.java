@@ -6,6 +6,7 @@ import com.criel.edove.assistant.vo.AddressGenerateVO;
 import com.criel.edove.common.result.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +28,7 @@ public class AssistantController {
      * @param addressGenerateDTO 门店的省市区地址 + 要生成的地址数量
      */
     @PostMapping("/address")
-    public Result<AddressGenerateVO> generateAddresses(AddressGenerateDTO addressGenerateDTO) {
+    public Result<AddressGenerateVO> generateAddresses(@RequestBody AddressGenerateDTO addressGenerateDTO) {
         return Result.success(assistantService.generateAddresses(addressGenerateDTO));
     }
 
