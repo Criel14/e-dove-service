@@ -25,6 +25,7 @@
         <module>e-dove-auth</module>
         <module>e-dove-store</module>
         <module>e-dove-parcel</module>
+        <module>e-dove-assistant</module>
     </modules>
 
     <developers>

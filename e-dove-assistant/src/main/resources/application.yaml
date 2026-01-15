@@ -1,0 +1,24 @@
+server:
+  port: 8150
+
+
+spring:
+  profiles:
+    active: dev
+
+# 日志级别
+logging:
+  level:
+    com.criel.edove.user.mapper: trace
+    dev:
+      langchain4j: debug
+
+# 大模型配置，这里用deepseek
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.deepseek.com
+      model-name: deepseek-chat
+      log-requests: true
+      log-responses: true

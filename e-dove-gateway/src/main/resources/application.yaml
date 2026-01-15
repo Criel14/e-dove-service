@@ -36,6 +36,11 @@ spring:
           uri: lb://e-dove-parcel
           predicates:
             - Path=/parcel/**
+        # assistant 模块
+        - id: e-dove-assistant
+          uri: lb://e-dove-assistant
+          predicates:
+            - Path=/assistant/**
 
 edove:
   uri:
