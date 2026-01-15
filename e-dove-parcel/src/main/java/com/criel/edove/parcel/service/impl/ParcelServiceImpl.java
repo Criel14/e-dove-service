@@ -189,7 +189,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      */
     @Override
     public void generate(Integer count) {
-        // TODO 用线程池去做
+        if (count > 30) {
+            throw new BizException(ErrorCode.GENERATE_PARCEL_COUNT_TOO_LARGE);
+        }
         // 生成随机运单号
         List<String> trackingNumbers = generateTrackingNumbers(count);
         // 抽取手机号

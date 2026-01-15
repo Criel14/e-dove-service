@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class GenerateDTO implements Serializable {
 
     /**
-     * 范围是1 - 100
+     * 范围是1 - 30
      */
     Integer count;
 
