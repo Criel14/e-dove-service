@@ -1,10 +1,16 @@
 package com.criel.edove.assistant.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONUtil;
 import com.criel.edove.assistant.assistant.Assistant;
 import com.criel.edove.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.assistant.service.AssistantService;
 import com.criel.edove.assistant.vo.AddressGenerateVO;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,12 +34,14 @@ public class AssistantServiceImpl implements AssistantService {
     @Override
     public AddressGenerateVO generateAddresses(AddressGenerateDTO addressGenerateDTO) {
         // 调用大模型生成地址数组
-        List<String> addresses = assistant.generateAddress(
+        String result = assistant.generateAddress(
                 addressGenerateDTO.getCount(),
                 addressGenerateDTO.getStoreAddrProvince(),
                 addressGenerateDTO.getStoreAddrCity(),
                 addressGenerateDTO.getStoreAddrDistrict()
         );
+        JSONArray jsonArray = JSONUtil.parseArray(result);
+        List<String> addresses = jsonArray.toList(String.class);
         return new AddressGenerateVO(addresses);
     }
 
