@@ -156,9 +156,6 @@ public class AuthServiceImpl implements AuthService {
         checkOtp(registerDTO.getPhone(), registerDTO.getPhoneOtp(), new BizException(ErrorCode.REGISTER_PHONE_OTP_ERROR));
         checkOtp(registerDTO.getEmail(), registerDTO.getEmailOtp(), new BizException(ErrorCode.REGISTER_EMAIL_OTP_ERROR));
 
-        // 处理密码
-        String hash = passwordEncoder.encode(registerDTO.getPassword());
-
         // 分布式锁防止并发注册
         String registerLockKey = RedisKeyConstant.USER_REGISTER_LOCK + registerDTO.getPhone();
         RLock rLock = redissonClient.getLock(registerLockKey);
@@ -173,16 +170,23 @@ public class AuthServiceImpl implements AuthService {
             UserAuth userAuth = new UserAuth();
             BeanUtils.copyProperties(registerDTO, userAuth); // 拷贝相同字段
             userAuth.setStatus(true);
-            userAuth.setPassword(hash);
             userAuth.setStatus(true); // 设置默认用户状态
             this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER); // 默认是【普通用户】
+            if (StrUtil.isNotEmpty(registerDTO.getPassword())) { // 密码
+                String hash = passwordEncoder.encode(registerDTO.getPassword());
+                userAuth.setPassword(hash);
+            }
 
             // 创建新用户信息（远程调用）
+            String username = registerDTO.getUsername();
+            if (StrUtil.isEmpty(username)) {
+                username = "edove" + userAuth.getUserId();
+            }
             UserInfoDTO userInfoDTO = new UserInfoDTO();
             BeanUtils.copyProperties(userAuth, userInfoDTO);
             // 设置默认头像
             if (StrUtil.isEmpty(registerDTO.getAvatarUrl())) {
-                userInfoDTO.setAvatarUrl(registerDTO.getAvatarUrl());
+                userInfoDTO.setAvatarUrl("https://api.dicebear.com/9.x/identicon/svg?seed=" + username);
             }
             userFeignClient.createUserInfo(userInfoDTO);
 
