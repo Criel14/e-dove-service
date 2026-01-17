@@ -38,7 +38,6 @@ public class ShelfController {
     /**
      * （店长 / 店员）分页查询货架 + 货架层
      */
-    // TODO 这个接口的sql比较乱，待测试
     @GetMapping("/query")
     public Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO) {
         return Result.success(shelfService.queryShelfAndLayer(shelfQueryDTO));
