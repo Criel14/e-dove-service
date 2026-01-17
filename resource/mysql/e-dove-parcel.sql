@@ -51,6 +51,7 @@ CREATE TABLE parcel
     status                  INT DEFAULT 0 COMMENT '包裹状态（整型）：0=新包裹、1=已入库、2=已取出、3=滞留、4=退回',
     in_time                 DATETIME COMMENT '包裹入库时间',
     out_time                DATETIME COMMENT '包裹取件／出库时间',
+    out_machine_id          BIGINT COMMENT '出库机器 ID',
     create_time             DATETIME     NOT NULL COMMENT '记录创建时间',
     update_time             DATETIME     NOT NULL COMMENT '记录最后更新时间',
 

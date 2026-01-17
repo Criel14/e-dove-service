@@ -125,6 +125,12 @@ public class Parcel implements Serializable {
     private LocalDateTime outTime;
 
     /**
+     * 包裹出库的机器ID
+     */
+    @TableField("out_machine_id")
+    private Long outMachineId;
+
+    /**
      * 记录创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

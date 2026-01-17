@@ -69,13 +69,23 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     @Override
     @GlobalTransactional
     public CheckOutVO checkOut(CheckOutDTO checkOutDTO) {
-        String phone = verifyBarcodeAndGetPhone(checkOutDTO);
-        String trackingNumber = checkOutDTO.getTrackingNumber();
         // TODO 机器ID可以用来做审计：parcel表加上一个字段
         Long machineId = checkOutDTO.getMachineId();
+        String trackingNumber = checkOutDTO.getTrackingNumber();
+        String identityCode = checkOutDTO.getIdentityCode();
+
+        // 获取用户手机号
+        String phone;
+        if (StrUtil.isNotBlank(checkOutDTO.getRecipientPhone())) {
+            // 【管理员出库】：直接获取收件人手机号
+            phone = checkOutDTO.getRecipientPhone();
+        } else {
+            // 【用户出库】：验证身份码，并获取手机号
+            phone = verifyBarcodeAndGetPhone(identityCode);
+        }
 
         // 更新包裹
-        Parcel parcel = updateParcel(phone, trackingNumber);
+        Parcel parcel = updateParcel(phone, trackingNumber, machineId);
 
         // 远程调用：扣减包裹所在货架层的当前包裹数
         layerReduceCount(parcel);
@@ -359,10 +369,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     }
 
     /**
-     * 更新包裹表的status和out_time
-     * TODO 更新出库审计（机器ID）
+     * 更新包裹表的status, out_time, out_machine_id
      */
-    private Parcel updateParcel(String phone, String trackingNumber) {
+    private Parcel updateParcel(String phone, String trackingNumber, Long machineId) {
         // 查询包裹
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         parcelWrapper.eq(Parcel::getRecipientPhone, phone).eq(Parcel::getTrackingNumber, trackingNumber);
@@ -370,13 +379,21 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         if (parcel == null) {
             throw new BizException(ErrorCode.PARCEL_NOT_FOUND);
         }
+
         // 校验包裹状态是否为“1-已入库”
         if (!Objects.equals(parcel.getStatus(), ParcelStatusEnum.IN_STORAGE.getCode())) {
             throw new BizException(ErrorCode.PARCEL_NOT_IN_STORAGE);
         }
+
         // 更新包裹表的status和out_time
         parcel.setStatus(ParcelStatusEnum.OUT_STORAGE.getCode());
         parcel.setOutTime(LocalDateTime.now());
+        // 更新包裹表的out_machine_id
+        if (machineId != null) {
+            parcel.setOutMachineId(machineId);
+        }
+
+        parcelMapper.updateById(parcel);
         return parcel;
     }
 
@@ -398,9 +415,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     /**
      * （远程调用）验证身份码，并获取手机号
      */
-    private String verifyBarcodeAndGetPhone(CheckOutDTO checkOutDTO) {
+    private String verifyBarcodeAndGetPhone(String identityCode) {
         // 通过用户身份码获取用户手机号
-        Result<VerifyBarcodeVO> result = userFeignClient.verifyBarcode(checkOutDTO.getIdentityCode());
+        Result<VerifyBarcodeVO> result = userFeignClient.verifyBarcode(identityCode);
         if (!result.getStatus()) {
             throw new BizException(result.getCode(), result.getMessage());
         }
