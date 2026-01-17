@@ -171,11 +171,12 @@ public class AuthServiceImpl implements AuthService {
             BeanUtils.copyProperties(registerDTO, userAuth); // 拷贝相同字段
             userAuth.setStatus(true);
             userAuth.setStatus(true); // 设置默认用户状态
-            this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER); // 默认是【普通用户】
             if (StrUtil.isNotEmpty(registerDTO.getPassword())) { // 密码
                 String hash = passwordEncoder.encode(registerDTO.getPassword());
                 userAuth.setPassword(hash);
             }
+            // 创建用户并授权
+            this.createUserAuthAndGrantRole(userAuth, RoleEnum.USER); // 默认是【普通用户】
 
             // 创建新用户信息（远程调用）
             String username = registerDTO.getUsername();
