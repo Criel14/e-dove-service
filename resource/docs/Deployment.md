@@ -5,9 +5,7 @@
 
 ## docker环境
 
->  实际上windows版docker也可以；如果用linux虚拟机，则wsl和vmware都可以；
->
->  我使用的是wsl，所以下面的内容以wsl为例；
+>  实际上windows版docker也可以；如果用linux虚拟机，则wsl和vmware都可以，下面的内容以wsl为例；
 
 ### linux环境(wsl)
 
