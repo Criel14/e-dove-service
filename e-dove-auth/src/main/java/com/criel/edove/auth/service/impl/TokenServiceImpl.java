@@ -73,7 +73,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         // 校验3：用户传来的 refresh token 的jti和redis中存储的jti是否一致
-        String currentJti = getRefreshTokenId(refreshTokenBucket.get());
+        String currentJti = refreshTokenBucket.get();
         if (!currentJti.equals(userJti)) {
             throw new RefreshTokenException();
         }

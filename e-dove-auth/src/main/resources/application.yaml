@@ -31,7 +31,7 @@ edove:
   jwt:
     # access token
     access-key: "Q3JpZWxFRG92ZUp3dEFjY2Vzc1Rva2VuS2V5MTIzNDU="
-    access-ttl: 3600000 # 1小时
+    access-ttl: 900000 # 15分钟
 
     # refresh token
     refresh-key: "Q3JpZWxFRG92ZUp3dFJlZnJlc2hUb2tlbktleTEyMzQ="

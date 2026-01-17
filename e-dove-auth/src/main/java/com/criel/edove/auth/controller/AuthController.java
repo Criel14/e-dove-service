@@ -1,9 +1,6 @@
 package com.criel.edove.auth.controller;
 
-import com.criel.edove.auth.dto.SignInDTO;
-import com.criel.edove.auth.dto.OtpDTO;
-import com.criel.edove.auth.dto.RegisterDTO;
-import com.criel.edove.auth.dto.UpdateUserAuthDTO;
+import com.criel.edove.auth.dto.*;
 import com.criel.edove.auth.service.TokenService;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.context.UserInfoContext;
@@ -51,8 +48,8 @@ public class AuthController {
      * 前端接收到401后会尝试调用这里
      */
     @PostMapping("/refresh")
-    public Result<TokenRefreshVO> refresh(@RequestParam String refreshToken) {
-        return Result.success(tokenService.refresh(refreshToken));
+    public Result<TokenRefreshVO> refresh(@RequestBody RefreshDTO refreshDTO) {
+        return Result.success(tokenService.refresh(refreshDTO.getRefreshToken()));
     }
 
     /**
