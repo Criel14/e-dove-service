@@ -21,9 +21,9 @@ wsl --install
 
 >  在wsl中安装docker
 
-方式一：按照 [wsl官网](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers)上的说明，安装Windows 的 Docker Desktop，并集成至wsl；
+方式一：按照 [wsl官网](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers) 上的说明，安装Windows 的 Docker Desktop，并集成至wsl；
 
-方式二：按照[docker官网](https://docs.docker.com/desktop/setup/install/linux/ubuntu/)上的说明，直接在wsl中安装docker；
+方式二：按照 [docker官网](https://docs.docker.com/desktop/setup/install/linux/ubuntu/) 上的说明，直接在wsl中安装docker；
 
 ### 配置docker镜像源（可选）
 
@@ -108,9 +108,9 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 
 ### Seata配置
 
-seata相关的**配置**已准备在项目中：[applicayion.yml](https://github.com/Criel14/e-dove-service/blob/master/resource/seata/application.yml)
+seata相关的**配置**已准备在项目中：[application.yml](https://github.com/Criel14/e-dove-service/blob/master/resource/seata/application.yml)
 
-添加前，需要修改`yml`中的内容：
+添加前，需要修改 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L73) 中的内容：
 
 ```yml
 services:
@@ -121,7 +121,7 @@ services:
     ...
 ```
 
-将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+将`application.yml`放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
 
 ```
 sudo mv application.yml ./e-dove/seata/conf/
@@ -141,7 +141,7 @@ sudo mv mysql-connector-j-8.4.0.jar ./e-dove/seata/jdbc/
 
 docker compose 启动完成后：
 
-1. 使用 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml) 中的 `root` 用户登录MySQL；
+1. 使用 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L42) 中的 `root` 用户登录MySQL；
 
 ```yaml
 services:
@@ -204,7 +204,7 @@ E_DOVE_DOCKER_IP_ADDR=你的docker所在的主机的地址 （如果部署在本
 
 ### 大模型的 API key
 
-项目中用到了大模型，选择了价格实惠的DeepSeek，前往 [deepseek开发平台](https://platform.deepseek.com/api_keys) 获取你的 API key；
+项目中用到了大模型，选择的是DeepSeek，前往 [deepseek开放平台](https://platform.deepseek.com/api_keys) 获取你的 API key；
 
 项目中的使用示例：
 
