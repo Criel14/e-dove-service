@@ -18,12 +18,14 @@ public class UpdateUserInfoDTO implements Serializable {
 
     private String email;
 
-    // 修改邮箱需要邮箱验证码
+    /**
+     * 修改邮箱需要邮箱验证码
+     */
     private String emailOtp;
 
-    // 所属门店ID
-    private Long storeId;
-
+    /**
+     * 头像地址
+     */
     private String avatarUrl;
 
 }
