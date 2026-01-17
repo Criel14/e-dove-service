@@ -1,15 +1,15 @@
 # 项目部署
 
-项目中所有的组件都通过 docker compose 部署，yaml文件在项目中准备好：`./resource/docker-compose/e-dove.yaml`；
+项目中所有的组件都通过 docker compose 部署，yaml文件在项目中已准备好：[e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml)
 
 
 ## docker环境
 
 >  实际上windows版docker也可以；如果用linux虚拟机，则wsl和vmware都可以；
+>
+>  我使用的是wsl，所以下面的内容以wsl为例；
 
-### linux环境（可选）
-
-组件部署需要准备docker环境，这里以`wsl`为例子；
+### linux环境(wsl)
 
 在windows下安装wsl，默认为ubuntu系统：
 
@@ -21,13 +21,9 @@ wsl --install
 
 >  在wsl中安装docker
 
-方式一：
+方式一：按照 [wsl官网](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers)上的说明，安装Windows 的 Docker Desktop，并集成至wsl；
 
-	按照 [wsl官网](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers)上的说明，安装Windows 的 Docker Desktop，并集成至wsl；
-
-方式二：
-
-	按照[docker官网](https://docs.docker.com/desktop/setup/install/linux/ubuntu/)上的说明，直接在wsl中安装docker；
+方式二：按照[docker官网](https://docs.docker.com/desktop/setup/install/linux/ubuntu/)上的说明，直接在wsl中安装docker；
 
 ### 配置docker镜像源（可选）
 
@@ -44,6 +40,8 @@ wsl --install
 
 将`e-dove.yaml`文件放入linux的`home`目录；
 
+> 任意有权限的目录都可以，后续的命令都在这个目录执行；
+
 启动命令：
 
 ```
@@ -56,17 +54,41 @@ docker compose -f e-dove.yaml -p e-dove up -d
 docker compose -f e-dove.yaml -p e-dove down
 ```
 
+> 第一次启动需要安装镜像，需要等待一段时间
+
 
 
 ## 配置组件
 
+配置完成后的目录结构如下：
+
+```
+home
+├── e-dove.yaml
+└── e-dove
+    ├── mysql
+    │   └── conf
+    │       └── ...（mysql配置文件，仅保留目录，项目里暂无配置）
+    ├── nacos-standalone-logs
+    │   └── ...（nacos日志文件，docker挂载后生成在此处）
+    ├── redis
+    │   ├── conf
+    │       └── redis.conf（redis配置文件）
+    │   └── logs（redis日志，docker挂载后生成在此处）
+    └── seata
+        ├── conf
+        │   └── application.yml（seata配置文件）
+        └── jdbc
+            └──mysql-connector-j-8.4.0.jar（jdbc依赖）
+```
+
+
+
 ### 创建nacos命名空间
 
-组件启动后，在本机访问 `linux地址:8848/nacos` 进入nacos控台，首次进入需要设置**初始密码**，设置为`nacos`；
+组件启动后，在本机访问 `linux地址:8848/nacos` 进入nacos控台，首次进入需要设置**初始密码**，设置为：用户名`nacos`，密码`nacos`；
 
-> 即用户名`nacos`，密码`nacos`；如果不这样设置，需要不少地方的配置；
-
-在"命名空间"栏创建命名空间，命名空间ID设置为`e-dove-1014`;
+在"**命名空间**"栏创建命名空间，命名空间ID设置为`e-dove-1014`，如下图所示：
 
 ![](..//images/nacos命名空间.png)
 
@@ -74,7 +96,7 @@ docker compose -f e-dove.yaml -p e-dove down
 
 ### Redis配置
 
-redis的**配置**已准备在项目中：`./resource/redis/redis.conf`；
+redis的**配置**已准备在项目中：[redis.conf](https://github.com/Criel14/e-dove-service/blob/master/resource/redis/redis.conf)
 
 将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
 
@@ -86,9 +108,9 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 
 ### Seata配置
 
-seata相关的**配置**已准备在项目中：`./resource/seata/applicayion.yml`
+seata相关的**配置**已准备在项目中：[applicayion.yml](https://github.com/Criel14/e-dove-service/blob/master/resource/seata/application.yml)
 
-添加前，需要修改配置中的内容：
+添加前，需要修改`yml`中的内容：
 
 ```yml
 services:
@@ -119,8 +141,17 @@ sudo mv mysql-connector-j-8.4.0.jar ./e-dove/seata/jdbc/
 
 docker compose 启动完成后：
 
-1. 使用 `e-dove.yaml` 中的 `root` 用户登录MySQL；
-2. 执行 `./resource/mysql` 目录下的所有sql语句；
+1. 使用 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml) 中的 `root` 用户登录MySQL；
+
+```yaml
+services:
+  mysql:
+    environment:
+      - MYSQL_ROOT_PASSWORD=eDoveMysql1014 # 管理员密码
+    ...
+```
+
+2. 执行 [./resource/mysql](https://github.com/Criel14/e-dove-service/tree/master/resource/mysql) 目录下的所有sql语句；
 
 
 
@@ -128,11 +159,13 @@ docker compose 启动完成后：
 
 项目中一些地方需要使用环境变量做配置，需要配置**项目运行的系统**的环境变量（可以是windows，也可以是打包后运行在的linux或docker）
 
-> 用引用环境变量的方式，就不用改那么多地方了；但是有些地方还是必须要修改，比如seata的配置等，没有办法；
+> 在配置里引用环境变量，部署就不用改那么多地方；
+>
+> 但是有些地方还是必须要修改，比如seata的配置等，没有办法；
 
 ### docker所在地址
 
-使用：
+项目中的使用示例：
 
 ```yaml
 spring:
@@ -164,5 +197,33 @@ criel@CrielLaptop:~$ ip a
 将IP地址保存在环境变量中：
 
 ```
-E_DOVE_DOCKER_IP_ADDR = docker所在的主机的地址 （如果部署在本机，则可以配置成127.0.0.1）
+E_DOVE_DOCKER_IP_ADDR=你的docker所在的主机的地址 （如果部署在本机，则可以配置成127.0.0.1）
 ```
+
+
+
+### 大模型的 API key
+
+项目中用到了大模型，选择了价格实惠的DeepSeek，前往 [deepseek开发平台](https://platform.deepseek.com/api_keys) 获取你的 API key；
+
+项目中的使用示例：
+
+```yaml
+# 大模型配置，这里用deepseek
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.deepseek.com
+      model-name: deepseek-chat
+      log-requests: true
+      log-responses: true
+```
+
+将 API key 保存在环境变量中：
+
+```
+DEEPSEEK_API_KEY=你的API key
+```
+
+> 如果想用别的模型，则上面的配置信息也需要相应的修改
