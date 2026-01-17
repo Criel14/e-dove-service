@@ -1,16 +1,13 @@
 package com.criel.edove.store.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
+import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.StoreStatusEnum;
-import com.criel.edove.common.exception.impl.StoreNotFoundException;
-import com.criel.edove.common.exception.impl.UserStoreBoundException;
-import com.criel.edove.common.exception.impl.UserStoreBoundNotMatchedException;
-import com.criel.edove.common.exception.impl.UserStoreNotBoundException;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
@@ -64,7 +61,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         // 远程调用获取用户所属门店ID
         Result<Long> result = userFeignClient.getUserStoreId();
         if (result.getData() == null) {
-            throw new UserStoreNotBoundException();
+            throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
         }
         Long storeId = result.getData();
 
@@ -106,7 +103,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         try {
             userFeignClient.updateStoreBind(storeId);
         } catch (Exception e) {
-            throw new UserStoreBoundException();
+            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
         }
 
         // 返回门店信息
@@ -124,7 +121,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         // 检查门店ID
         Long storeId = storeDTO.getId();
         if (storeId == null) {
-            throw new StoreNotFoundException();
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
         }
 
         // 更新数据
@@ -147,13 +144,13 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     public void deactivateStore(StoreIdDTO storeIdDTO) {
         Long storeId = storeIdDTO.getStoreId();
         if (storeId == null) {
-            throw new StoreNotFoundException();
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
         }
 
         // 查出门店信息
         Store store = storeMapper.selectById(storeId);
         if (store == null) {
-            throw new StoreNotFoundException();
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
         }
         store.setStatus(StoreStatusEnum.DEACTIVATED.getCode());
 
@@ -174,14 +171,14 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         // 判断门店是否存在
         Store store = storeMapper.selectById(storeId);
         if (store == null) {
-            throw new StoreNotFoundException();
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
         }
 
         // 绑定用户与门店
         try {
             userFeignClient.updateStoreBind(storeId);
         } catch (Exception e) {
-            throw new UserStoreBoundException();
+            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
         }
     }
 
@@ -195,7 +192,7 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         // 判断门店是否存在
         Store store = storeMapper.selectById(storeId);
         if (store == null) {
-            throw new StoreNotFoundException();
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
         }
 
         // 检查用户是否绑定该门店并解绑
@@ -210,14 +207,14 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo();
         UserInfoVO userInfoVO = userInfoResult.getData();
         if (!Objects.equals(storeId, userInfoVO.getStoreId())) {
-            throw new UserStoreBoundNotMatchedException();
+            throw new BizException(ErrorCode.USER_STORE_BOUND_NOT_MATCHED);
         }
 
         // 解绑用户与门店
         try {
             userFeignClient.updateStoreBind(null);
         } catch (Exception e) {
-            throw new UserStoreBoundException();
+            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.criel.edove.common.util;
 
-import com.criel.edove.common.exception.impl.IdentityCodeVerifyEmptyException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class Base36Util {
             return bytes;
         } catch (NumberFormatException e) {
             LOGGER.info("Base36解码失败，无效的Base36字符串:：{}", base36);
-            throw new IdentityCodeVerifyEmptyException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_EMPTY_ERROR);
         }
     }
 

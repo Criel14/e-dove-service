@@ -5,9 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.criel.edove.auth.dto.SignInDTO;
 import com.criel.edove.auth.entity.UserAuth;
 import com.criel.edove.auth.mapper.UserAuthMapper;
-import com.criel.edove.common.exception.impl.UserSignInPasswordException;
-import com.criel.edove.common.exception.impl.UserSignInPasswordNotFoundException;
-import com.criel.edove.common.exception.impl.UserNotFoundException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.auth.strategy.PreSignInStrategy;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -42,18 +41,18 @@ public class EmailPasswordPreSignInStrategy implements PreSignInStrategy {
         userAuthWrapper.eq(UserAuth::getEmail, email);
         UserAuth userAuth = userAuthMapper.selectOne(userAuthWrapper);
         if (userAuth == null) {
-            throw new UserNotFoundException();
+            throw new BizException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 检查用户是否设置了密码
         if (StrUtil.isEmpty(userAuth.getPassword())) {
-            throw new UserSignInPasswordNotFoundException();
+            throw new BizException(ErrorCode.PASSWORD_NOT_FOUND);
         }
 
         // 校验密码（比对【密码原文】和【存储的哈希值】）
         boolean isMatched = passwordEncoder.matches(signInDTO.getPassword(), userAuth.getPassword());
         if (!isMatched) {
-            throw new UserSignInPasswordException();
+            throw new BizException(ErrorCode.PASSWORD_ERROR);
         }
 
         return userAuth;

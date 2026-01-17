@@ -4,15 +4,11 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
-import com.criel.edove.common.exception.impl.UpdateInfoEmailAlreadyExistsException;
-import com.criel.edove.common.exception.impl.UpdateInfoEmailOtpException;
-import com.criel.edove.common.exception.impl.UpdateInfoUsernameAlreadyExistsException;
-import com.criel.edove.common.exception.impl.UserInfoMissingUserIdException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.feign.auth.client.AuthFeignClient;
 import com.criel.edove.feign.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.user.dto.UpdateUserInfoDTO;
@@ -60,7 +56,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     public UserInfoVO createUserInfo(UserInfoDTO userInfoDTO) {
         // 校验是否有用户ID
         if (userInfoDTO.getUserId() == null) {
-            throw new UserInfoMissingUserIdException();
+            throw new BizException(ErrorCode.USERINFO_MISSING_USER_ID);
         }
 
         UserInfo userInfo = new UserInfo();
@@ -193,7 +189,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             String otpKey = RedisKeyConstant.USER_OTP + updateUserInfoDTO.getEmail();
             RBucket<String> otpBucket = redissonClient.getBucket(otpKey);
             if (!otpBucket.isExists() || !StrUtil.equals(updateUserInfoDTO.getEmailOtp(), otpBucket.get())) {
-                throw new UpdateInfoEmailOtpException();
+                throw new BizException(ErrorCode.UPDATE_INFO_EMAIL_OTP_ERROR);
             }
         }
 
@@ -270,11 +266,11 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             for (UserInfo userInfo : userInfos) {
                 if (StrUtil.isNotEmpty(userInfo.getUsername())
                         && userInfo.getUsername().equals(updateUserInfoDTO.getUsername())) {
-                    throw new UpdateInfoUsernameAlreadyExistsException();
+                    throw new BizException(ErrorCode.UPDATE_INFO_USERNAME_ALREADY_EXISTS);
                 }
                 if (StrUtil.isNotEmpty(userInfo.getEmail())
                         && userInfo.getEmail().equals(updateUserInfoDTO.getEmail())) {
-                    throw new UpdateInfoEmailAlreadyExistsException();
+                    throw new BizException(ErrorCode.UPDATE_INFO_EMAIL_ALREADY_EXISTS);
                 }
             }
         }

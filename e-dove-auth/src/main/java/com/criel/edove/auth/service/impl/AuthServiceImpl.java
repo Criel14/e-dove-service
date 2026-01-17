@@ -22,9 +22,9 @@ import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.constant.RegexConstant;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
+import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.RoleEnum;
 import com.criel.edove.common.exception.BizException;
-import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.auth.service.AuthService;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.service.SnowflakeService;
@@ -94,7 +94,7 @@ public class AuthServiceImpl implements AuthService {
             try {
                 locked = rLock.tryLock(otpProperties.getTtl(), TimeUnit.MINUTES);
                 if (!locked) {
-                    throw new RegisterLockException();
+                    throw new BizException(ErrorCode.REGISTER_LOCK_ERROR);
                 }
 
                 // 创建用户认证
@@ -146,15 +146,15 @@ public class AuthServiceImpl implements AuthService {
     public SignInVO register(RegisterDTO registerDTO) {
         // 验证参数是否缺失
         if (registerDTO.getPhone() == null || registerDTO.getPhoneOtp() == null) {
-            throw new RegisterMissingParameterException();
+            throw new BizException(ErrorCode.REGISTER_MISSING_PARAMETER);
         }
 
         // 验证手机号/邮箱/用户名是否存在
         checkUserExists(registerDTO);
 
         // 验证码校验
-        checkOtp(registerDTO.getPhone(), registerDTO.getPhoneOtp(), new RegisterPhoneOtpException());
-        checkOtp(registerDTO.getEmail(), registerDTO.getEmailOtp(), new RegisterEmailOtpException());
+        checkOtp(registerDTO.getPhone(), registerDTO.getPhoneOtp(), new BizException(ErrorCode.REGISTER_PHONE_OTP_ERROR));
+        checkOtp(registerDTO.getEmail(), registerDTO.getEmailOtp(), new BizException(ErrorCode.REGISTER_EMAIL_OTP_ERROR));
 
         // 处理密码
         String hash = passwordEncoder.encode(registerDTO.getPassword());
@@ -166,7 +166,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             locked = rLock.tryLock(otpProperties.getTtl(), TimeUnit.MINUTES);
             if (!locked) {
-                throw new RegisterLockException();
+                throw new BizException(ErrorCode.REGISTER_LOCK_ERROR);
             }
 
             // 创建用户认证信息并指定角色
@@ -222,15 +222,15 @@ public class AuthServiceImpl implements AuthService {
         if (!existingUsers.isEmpty()) {
             for (UserAuth user : existingUsers) {
                 if (registerDTO.getPhone().equals(user.getPhone())) {
-                    throw new RegisterPhoneAlreadyExistsException();
+                    throw new BizException(ErrorCode.REGISTER_PHONE_ALREADY_EXISTS);
                 }
                 if (!StrUtil.isEmpty(registerDTO.getEmail()) &&
                         registerDTO.getEmail().equals(user.getEmail())) {
-                    throw new RegisterEmailAlreadyExistsException();
+                    throw new BizException(ErrorCode.REGISTER_EMAIL_ALREADY_EXISTS);
                 }
                 if (!StrUtil.isEmpty(registerDTO.getUsername()) &&
                         registerDTO.getUsername().equals(user.getUsername())) {
-                    throw new RegisterUsernameAlreadyExistsException();
+                    throw new BizException(ErrorCode.REGISTER_USERNAME_ALREADY_EXISTS);
                 }
             }
         }
@@ -259,14 +259,14 @@ public class AuthServiceImpl implements AuthService {
 
         String phoneOrEmail = otpDTO.getPhoneOrEmail();
         if (phoneOrEmail == null) {
-            throw new OtpMissingParameterException();
+            throw new BizException(ErrorCode.OTP_MISSING_PARAMETER);
         }
 
         // 判断验证码是否还存在于redis中，存在则提示请求频率过快
         String optKey = RedisKeyConstant.USER_OTP + phoneOrEmail;
         RBucket<String> otpBucket = redissonClient.getBucket(optKey);
         if (otpBucket.isExists()) {
-            throw new OtpRequestTooFrequentlyException();
+            throw new BizException(ErrorCode.OTP_REQUEST_TOO_FREQUENTLY);
         }
 
         // 判断是手机号还是邮箱
@@ -277,7 +277,7 @@ public class AuthServiceImpl implements AuthService {
             // TODO 发送邮箱验证码
             LOGGER.info("发送邮箱验证码到：{}，验证码为：{}", phoneOrEmail, otp);
         } else {
-            throw new OtpParameterException();
+            throw new BizException(ErrorCode.OTP_PARAMETER_ERROR);
         }
 
         // 验证码存入redis
@@ -320,7 +320,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 都匹配失败说明参数缺失
-        throw new UserSignInMissingParameterException();
+        throw new BizException(ErrorCode.SIGN_IN_MISSING_PARAMETER);
     }
 
     /**

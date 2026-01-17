@@ -3,10 +3,8 @@ package com.criel.edove.user.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContextHolder;
-import com.criel.edove.common.exception.impl.IdentityCodeLockException;
-import com.criel.edove.common.exception.impl.IdentityCodeVerifyEmptyException;
-import com.criel.edove.common.exception.impl.IdentityCodeVerifyErrorException;
-import com.criel.edove.common.exception.impl.IdentityCodeVerifyExpiredException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.common.util.Base36Util;
 import com.criel.edove.common.util.SipHashUtil;
@@ -118,7 +116,7 @@ public class BarcodeServiceImpl implements BarcodeService {
         try {
             locked = rLock.tryLock(10, TimeUnit.SECONDS);
             if (!locked) {
-                throw new IdentityCodeLockException();
+                throw new BizException(ErrorCode.IDENTITY_CODE_LOCK_ERROR);
             }
 
             // 先检查之前的身份码有没有过期
@@ -178,7 +176,7 @@ public class BarcodeServiceImpl implements BarcodeService {
     @Override
     public VerifyBarcodeVO verifyIdentityBarcode(String code) {
         if (StrUtil.isEmpty(code)) {
-            throw new IdentityCodeVerifyEmptyException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_EMPTY_ERROR);
         }
         String phone = verifyCodeV1(code);
 
@@ -208,14 +206,14 @@ public class BarcodeServiceImpl implements BarcodeService {
 
         // 校验是否过期
         if (Math.abs(System.currentTimeMillis() / 60000 - timestampMinute) > barcodeProperties.getTtl()) {
-            throw new IdentityCodeVerifyExpiredException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_EXPIRED_ERROR);
         }
 
         // 校验签名
         String plainText = phone + time;
         byte[] sipHash = SipHashUtil.sipHash24(barcodeProperties.getKey().getBytes(), plainText.getBytes());
         if (!Arrays.equals(sipHash, sipHashBytes)) {
-            throw new IdentityCodeVerifyErrorException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_ERROR);
         }
         return phone;
     }
@@ -226,14 +224,14 @@ public class BarcodeServiceImpl implements BarcodeService {
     private String verifyCodeV2(String code) {
         // 验证前缀
         if (!code.startsWith(codePrefix)) {
-            throw new IdentityCodeVerifyErrorException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_ERROR);
         }
 
         // 验证校验位
         String id = code.substring(3, code.length() - 1);
         char checkDigit = code.charAt(code.length() - 1);
         if (checkDigit != getCheckDigit(Long.parseLong(id))) {
-            throw new IdentityCodeVerifyErrorException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_ERROR);
         }
 
         // 从redis中获取用户的手机号
@@ -241,7 +239,7 @@ public class BarcodeServiceImpl implements BarcodeService {
         RBucket<String> codeBucket = redissonClient.getBucket(codeToPhoneKey);
         String phone = codeBucket.get();
         if (StrUtil.isEmpty(phone)) {
-            throw new IdentityCodeVerifyErrorException();
+            throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_ERROR);
         }
 
         return phone;

@@ -6,7 +6,8 @@ import com.criel.edove.auth.dto.SignInDTO;
 import com.criel.edove.auth.entity.UserAuth;
 import com.criel.edove.auth.mapper.UserAuthMapper;
 import com.criel.edove.common.constant.RedisKeyConstant;
-import com.criel.edove.common.exception.impl.UserSignInPhoneOtpException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.auth.strategy.PreSignInStrategy;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
@@ -48,7 +49,7 @@ public class PhoneOtpPreSignInStrategy implements PreSignInStrategy {
         String otpKey = RedisKeyConstant.USER_OTP + phone;
         RBucket<String> loginOtp = redissonClient.getBucket(otpKey);
         if (!loginOtp.isExists() || !StrUtil.equals(otp, loginOtp.get())) {
-            throw new UserSignInPhoneOtpException();
+            throw new BizException(ErrorCode.SIGN_IN_PHONE_OTP_ERROR);
         }
 
         // 验证码校验成功 且 用户不存在，则返回一个空用户ID的用户

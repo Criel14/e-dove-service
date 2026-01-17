@@ -8,13 +8,12 @@ import cn.hutool.jwt.JWTValidator;
 import cn.hutool.jwt.signers.JWTSignerUtil;
 import com.criel.edove.auth.properties.JwtProperties;
 import com.criel.edove.auth.service.TokenService;
-import com.criel.edove.auth.strategy.factory.LoginStrategyFactory;
 import com.criel.edove.auth.vo.TokenRefreshVO;
 import com.criel.edove.common.constant.JWTConstant;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContext;
-import com.criel.edove.common.exception.impl.JWTException;
-import com.criel.edove.common.exception.impl.RefreshTokenException;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.service.SnowflakeService;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBucket;
@@ -60,7 +59,7 @@ public class TokenServiceImpl implements TokenService {
         String blackListKey = RedisKeyConstant.REFRESH_TOKEN_BLACK_LIST + userJti;
         RBucket<String> blackListBucket = redissonClient.getBucket(blackListKey);
         if (blackListBucket.isExists()) {
-            throw new RefreshTokenException();
+            throw new BizException(ErrorCode.REFRESH_TOKEN_ERROR);
         }
 
         // 校验2：用户传来的 refresh token 在redis中是否存在
@@ -69,13 +68,13 @@ public class TokenServiceImpl implements TokenService {
         String refreshTokenKey = RedisKeyConstant.REFRESH_TOKEN_PREFIX + userInfoContext.getUserId();
         RBucket<String> refreshTokenBucket = redissonClient.getBucket(refreshTokenKey);
         if (!refreshTokenBucket.isExists()) {
-            throw new RefreshTokenException();
+            throw new BizException(ErrorCode.REFRESH_TOKEN_ERROR);
         }
 
         // 校验3：用户传来的 refresh token 的jti和redis中存储的jti是否一致
         String currentJti = refreshTokenBucket.get();
         if (!currentJti.equals(userJti)) {
-            throw new RefreshTokenException();
+            throw new BizException(ErrorCode.REFRESH_TOKEN_ERROR);
         }
 
         // 生成2个新的token
@@ -145,7 +144,7 @@ public class TokenServiceImpl implements TokenService {
         // jwt校验
         boolean validateResult = validateToken(accessToken, jwtProperties.getAccessKey());
         if (!validateResult) {
-            throw new RefreshTokenException();
+            throw new BizException(ErrorCode.REFRESH_TOKEN_ERROR);
         }
 
         // 解析token中的用户信息并返回
@@ -163,7 +162,7 @@ public class TokenServiceImpl implements TokenService {
         // jwt校验
         boolean validateResult = validateToken(refreshToken, jwtProperties.getRefreshKey());
         if (!validateResult) {
-            throw new RefreshTokenException();
+            throw new BizException(ErrorCode.REFRESH_TOKEN_ERROR);
         }
 
         // 解析token中的用户信息并返回
@@ -202,7 +201,7 @@ public class TokenServiceImpl implements TokenService {
         // jwt校验
         boolean validateResult = validateToken(refreshToken, jwtProperties.getRefreshKey());
         if (!validateResult) {
-            throw new JWTException();
+            throw new BizException(ErrorCode.JWT_ERROR);
         }
         // 获取jwt信息
         JWT jwt = JWTUtil.parseToken(refreshToken).setKey(jwtProperties.getRefreshKey().getBytes());

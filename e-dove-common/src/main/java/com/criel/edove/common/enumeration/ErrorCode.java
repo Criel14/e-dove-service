@@ -17,8 +17,8 @@ public enum ErrorCode {
     SYSTEM_ERROR("1001", "系统异常，请联系管理员"),
 
     // auth服务异常
-    JWT_ERROR("2001", "用户信息校验异常"),
-    REFRESH_TOKEN_ERROR("2002","用户信息校验异常"),
+    JWT_ERROR("2001", "用户令牌校验异常"),
+    REFRESH_TOKEN_ERROR("2002","用户令牌校验异常"),
     USER_NOT_FOUND("2003","用户不存在"),
     PASSWORD_NOT_FOUND("2004","该用户未设置密码"),
     PASSWORD_ERROR("2005","密码错误"),

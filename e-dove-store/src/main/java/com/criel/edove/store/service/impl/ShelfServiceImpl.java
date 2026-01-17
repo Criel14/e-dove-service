@@ -7,7 +7,6 @@ import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ShelfStatusEnum;
 import com.criel.edove.common.exception.BizException;
-import com.criel.edove.common.exception.impl.*;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
@@ -74,7 +73,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         try {
             locked = rLock.tryLock(10, TimeUnit.SECONDS);
             if (!locked) {
-                throw new ShelfCreateLockException();
+                throw new BizException(ErrorCode.SHELF_CREATE_LOCK_ERROR);
             }
             // 获取货架编号
             int shelfNo = getShelfNo(shelfDTO.getShelfNo(), storeId);
@@ -169,7 +168,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         try {
             locked = rLock.tryLock(5, TimeUnit.SECONDS);
             if (!locked) {
-                throw new ShelfLayerCountLockException();
+                throw new BizException(ErrorCode.SHELF_LAYER_COUNT_LOCK_ERROR);
             }
 
             // 查询原始货架数据
@@ -177,7 +176,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
 
             // 验证货架所属门店
             if (!Objects.equals(shelf.getStoreId(), storeId)) {
-                throw new ShelfNotBelongToStoreException();
+                throw new BizException(ErrorCode.SHELF_NOT_BELONG_TO_STORE);
             }
 
             // 验证【货架编号】是否符合条件
@@ -185,7 +184,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
                 // 检查传入的货架编号是否存在
                 boolean exists = existsShelfNo(shelfDTO.getShelfNo(), storeId);
                 if (exists) {
-                    throw new ShelfNoAlreadyExistsException();
+                    throw new BizException(ErrorCode.SHELF_NO_ALREADY_EXISTS);
                 }
             }
 
@@ -208,7 +207,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
                 // 遍历检查多余的货架层上是否有包裹
                 redundantLayers.forEach(shelfLayer -> {
                     if (shelfLayer.getCurrentCount() > 0) {
-                        throw new ShelfLayerHasParcelsException();
+                        throw new BizException(ErrorCode.SHELF_LAYER_HAS_PARCELS);
                     }
                 });
 
@@ -350,7 +349,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     private Long getUserStoreId() {
         Result<Long> result = userFeignClient.getUserStoreId();
         if (result.getData() == null) {
-            throw new UserStoreNotBoundException();
+            throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
         }
         return result.getData();
     }
@@ -366,7 +365,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
             // 检查传入的货架编号是否存在
             boolean exists = existsShelfNo(shelfNo, storeId);
             if (exists) {
-                throw new ShelfNoAlreadyExistsException();
+                throw new BizException(ErrorCode.SHELF_NO_ALREADY_EXISTS);
             }
             // 不存在则指定为传入的编号
             return shelfNo;
