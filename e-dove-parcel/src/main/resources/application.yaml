@@ -31,3 +31,17 @@ edove:
   snowflake:
     data-center-id: 4 # 数据中心ID
     worker-id: 4 # 机器ID
+
+
+# xxl-job 配置
+xxl:
+  job:
+    admin:
+      access-token: default_token # 调度中心通讯TOKEN（和调度中心配置一致）
+      addresses: http://${E_DOVE_DOCKER_IP_ADDR}:8080/xxl-job-admin # 调度中心部署根地址
+      timeout: 3 # 调度中心通讯超时时间
+    executor:
+      enabled: true # 执行器启用开关，关闭时不进行执行器初始化
+      appname: e-dove-parcel # 执行器AppName（执行器心跳注册表AppName，为空则关闭自动注册）
+      logpath: logs/xxl-job # 执行器日志文件存储路径
+      logretentiondays: 30 # 执行器日志文件保存天数

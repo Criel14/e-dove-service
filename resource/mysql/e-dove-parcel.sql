@@ -61,10 +61,10 @@ CREATE TABLE parcel
 
     PRIMARY KEY (id),
     UNIQUE KEY uk_tracking_number_phone (tracking_number, recipient_phone), -- 唯一索引：运单号 + 手机号，方便出库时快速查找
-    INDEX idx_recipient_phone (recipient_phone),
-    INDEX idx_tracking_number (tracking_number),
-    INDEX idx_store_id (store_id),
-    INDEX idx_status (status)
+    INDEX idx_recipient_phone (recipient_phone), -- 用户查询自己的包裹
+    INDEX idx_tracking_number (tracking_number), -- 运单号查包裹
+    INDEX idx_store_id (store_id), -- 门店查送至门店的包裹
+    INDEX idx_status_in_time_id (status, in_time, id) -- 方便查找出滞留包裹
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT = '包裹信息表';
 

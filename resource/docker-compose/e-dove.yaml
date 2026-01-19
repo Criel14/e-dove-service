@@ -15,8 +15,8 @@ volumes:
 
 services:
   nacos:
-    container_name: e-dove-nacos-standalone
     image: nacos/nacos-server:v2.4.2.1
+    container_name: e-dove-nacos-standalone
     environment:
       - PREFER_HOST_MODE=hostname # 优先使用主机名
       - MODE=standalone # 单机模式
@@ -34,8 +34,8 @@ services:
       - e-dove-network # 自定义网络
     restart: unless-stopped # 自动重启
   mysql:
-    container_name: e-dove-mysql
     image: mysql:8.4.6-oraclelinux9 # 版本：MySQL 8.4.6 LTS
+    container_name: e-dove-mysql
     ports:
       - "3306:3306"
     environment:
@@ -50,8 +50,8 @@ services:
       - e-dove-network # 自定义网络
     restart: unless-stopped # 自动重启
   redis:
-    container_name: e-dove-redis
     image: redis:7.2.10-alpine
+    container_name: e-dove-redis
     ports:
       - "6379:6379" # 主机端口:容器端口
     volumes:
@@ -80,3 +80,19 @@ services:
       - mysql  # 确保MySQL先启动
       - nacos  # 确保Nacos先启动
     restart: unless-stopped
+  xxl-job-admin:
+    image: xuxueli/xxl-job-admin:3.3.2
+    container_name: e-dove-xxl-job-admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./e-dove/xxl-job/logs:/data/applogs # 挂载日志目录
+      - ./e-dove/xxl-job/conf/application.properties:/application.properties # 挂载配置文件
+    environment:
+      - PARAMS=--spring.config.location=/application.properties # 告诉应用从挂载的配置文件位置加载配置
+    networks:
+      - e-dove-network
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
