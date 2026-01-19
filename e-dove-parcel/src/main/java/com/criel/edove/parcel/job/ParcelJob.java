@@ -22,11 +22,14 @@ public class ParcelJob {
 
     private final ParcelMapper parcelMapper;
 
-    private static final int BATCH_SIZE = 1000; // 每一批处理的数量
+    private static final int BATCH_SIZE = 1000; // 每一批处理的包裹数量
     private static final int MAX_STALE_DAYS = 7; // 最大滞留时间
 
     /**
-     * 定时任务：标记入库时间超过【7天】的滞留包裹，用【游标分页】按批次处理：
+     * 定时任务：标记入库时间超过【7天】的滞留包裹；
+     * 执行时间：每天凌晨3点
+     * <p>
+     * 用【游标分页】按批次处理：
      * 1. 首先查询条件是【已入库但未出库 && 入库时间在7天前】
      * 2. 结果按 id 游标分页，每次取下一批符合条件的记录，类似滑动窗口
      * 3. 更新后继续推进到下一个窗口，如果查询结果为空，则说明都处理完了，break

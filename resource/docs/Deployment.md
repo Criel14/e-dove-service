@@ -266,7 +266,7 @@ services:
 
 组件启动后，在本机访问 `linux地址:8080/xxl-job-admin` 进入xxl-job调度中心，使用默认登录账号登录：用户名`admin`，密码`123456`；
 
-在 Parcel 服务的[配置文件](https://github.com/Criel14/e-dove-service/blob/master/e-dove-parcel/src/main/resources/application.yaml#L37)中，我们做了如下配置：
+以 Parcel 服务为例：在 Parcel 服务的[配置文件](https://github.com/Criel14/e-dove-service/blob/master/e-dove-parcel/src/main/resources/application.yaml#L37)中，我们做了如下配置：
 
 ```yaml
 # xxl-job 配置
@@ -286,7 +286,7 @@ public void handleStalePackages() {
 }
 ```
 
-需要将它们配置在调度中心里：
+需要将它们配置在调度中心里，其他服务的定时任务同理；
 
 #### 新增执行器
 
@@ -294,18 +294,34 @@ public void handleStalePackages() {
 
 在“**执行器管理**”页新增执行器，AppName和上面的配置相同，其他的参考下图：
 
-![](../images/xxl-job新增执行器.png)
+![](../images/xxl-job新增执行器-parcel.png)
 
 新增后，我们可以只运行 **Parcel 服务**来测试（在IDEA里运行就可以），刷新xxl-job调度中心，直到出现下图的情况则说明成功：
 
 ![](../images/xxl-job执行器状态.png)
 
+同样地，还需要新增其他用到了xxl-job的服务：
+
+**Store 服务**：
+
+![](../images/xxl-job新增执行器-store.png)
+
+
+
 
 
 #### 新增任务
 
-在“**任务管理**”页新增任务，参考下面的配置，主要是 **JobHandler** 需要和`@XxlJob`注解的参数一致；
+在“**任务管理**”页新增任务，参考下面的配置，主要是 **JobHandler** 需要和`@XxlJob`注解的参数一致（邮箱是不用填的）
 
-![](../images/xxl-job新增滞留包裹任务.png)
+> 这里的Cron表达式 `0 0 3 * * ?` 表示**每天凌晨3点**执行
 
-完成后，选中任务并点击启动即可；
+![](../images/xxl-job新增任务-标记滞留包裹.png)
+
+完成后，选中任务并点击**启动**即可；
+
+同样地，还需要新增其他任务：
+
+**Store 服务**：
+
+![](../images/xxl-job新增任务-重置当天最大序号.png)
