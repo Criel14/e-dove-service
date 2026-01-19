@@ -43,5 +43,5 @@ xxl:
     executor:
       enabled: true # 执行器启用开关，关闭时不进行执行器初始化
       appname: e-dove-parcel # 执行器AppName（执行器心跳注册表AppName，为空则关闭自动注册）
-      logpath: logs/xxl-job # 执行器日志文件存储路径
+      logpath: logs/xxl-job/parcel # 执行器日志文件存储路径
       logretentiondays: 30 # 执行器日志文件保存天数
