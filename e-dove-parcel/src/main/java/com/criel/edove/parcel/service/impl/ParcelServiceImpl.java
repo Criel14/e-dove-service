@@ -84,6 +84,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
             phone = verifyBarcodeAndGetPhone(identityCode);
         }
 
+        // TODO 消息队列异步削峰
+
         // 更新包裹
         Parcel parcel = updateParcel(phone, trackingNumber, machineId);
 
@@ -100,6 +102,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     /**
      * 入库：管理员将包裹入库到本门店
+     * TODO （消息队列）推送入库消息给用户
      */
     @Override
     @GlobalTransactional

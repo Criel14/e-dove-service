@@ -71,6 +71,7 @@ public class ParcelJob {
             XxlJobHelper.log("本批处理：" + ids.size() + "条，累计：" + total + "条");
 
             // TODO 通知驿站人员去处理滞留包裹
+            // TODO 提醒用户包裹滞留
 
             // 更新 lastId 作为下一轮游标
             lastId = ids.get(ids.size() - 1);
