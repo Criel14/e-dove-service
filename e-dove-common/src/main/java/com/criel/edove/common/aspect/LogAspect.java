@@ -56,7 +56,7 @@ public class LogAspect {
         reqData.put("URL路径", req.getRequestURI());
         reqData.put("请求方法", req.getMethod());
         String queryString = req.getQueryString();
-        if (StrUtil.isEmpty(queryString)) {
+        if (StrUtil.isNotEmpty(queryString)) {
             reqData.put("请求参数", queryString);
         }
         reqData.put("IP地址", req.getRemoteAddr());
