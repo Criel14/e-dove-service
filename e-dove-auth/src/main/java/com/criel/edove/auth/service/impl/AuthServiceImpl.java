@@ -325,7 +325,6 @@ public class AuthServiceImpl implements AuthService {
         if (!StrUtil.equals(updatePasswordDTO.getPhoneOtp(), otp)) {
             throw new BizException(ErrorCode.PASSWORD_PHONE_OTP_ERROR);
         }
-        otpBucket.delete();
 
         // 更新密码
         String newPassword = updatePasswordDTO.getNewPassword();
