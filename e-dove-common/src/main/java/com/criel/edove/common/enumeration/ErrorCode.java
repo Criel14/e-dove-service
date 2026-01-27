@@ -34,6 +34,9 @@ public enum ErrorCode {
     OTP_PARAMETER_ERROR("2015","手机号或邮箱格式错误"),
     OTP_MISSING_PARAMETER("2016","验证码请求参数缺失"),
     OTP_REQUEST_TOO_FREQUENTLY("2017","验证码请求频率过快"),
+    OTP_EXPIRED("2018","请重新获取验证码"),
+    PASSWORD_PHONE_OTP_ERROR("2019","手机验证码错误"),
+    PASSWORD_LENGTH_ERROR("2020","密码长度不得少于6位"),
 
     // user服务异常
     USERINFO_MISSING_USER_ID("3001","用户信息缺失用户ID"),

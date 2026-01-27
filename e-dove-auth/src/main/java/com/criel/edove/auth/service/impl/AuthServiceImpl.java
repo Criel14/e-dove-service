@@ -3,10 +3,7 @@ package com.criel.edove.auth.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.criel.edove.auth.dto.OtpDTO;
-import com.criel.edove.auth.dto.RegisterDTO;
-import com.criel.edove.auth.dto.SignInDTO;
-import com.criel.edove.auth.dto.UpdateUserAuthDTO;
+import com.criel.edove.auth.dto.*;
 import com.criel.edove.auth.entity.Permission;
 import com.criel.edove.auth.entity.Role;
 import com.criel.edove.auth.entity.UserAuth;
@@ -304,6 +301,41 @@ public class AuthServiceImpl implements AuthService {
         if (StrUtil.isNotEmpty(updateUserAuthDTO.getEmail())) {
             userAuth.setEmail(updateUserAuthDTO.getEmail());
         }
+        userAuthMapper.updateById(userAuth);
+    }
+
+    /**
+     * 更新密码
+     *
+     * @param updatePasswordDTO 手机号验证码 + 新密码
+     */
+    @Override
+    public void updatePassword(UpdatePasswordDTO updatePasswordDTO) {
+        // 获取当前用户手机号
+        UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
+        String phone = userInfoContext.getPhone();
+
+        // 验证码
+        String optKey = RedisKeyConstant.USER_OTP + phone;
+        RBucket<String> otpBucket = redissonClient.getBucket(optKey);
+        String otp = otpBucket.get();
+        if (StrUtil.isEmpty(otp)) {
+            throw new BizException(ErrorCode.OTP_EXPIRED);
+        }
+        if (!StrUtil.equals(updatePasswordDTO.getPhoneOtp(), otp)) {
+            throw new BizException(ErrorCode.PASSWORD_PHONE_OTP_ERROR);
+        }
+        otpBucket.delete();
+
+        // 更新密码
+        String newPassword = updatePasswordDTO.getNewPassword();
+        if (StrUtil.isEmpty(newPassword) || newPassword.length() < 6) {
+            throw new BizException(ErrorCode.PASSWORD_LENGTH_ERROR);
+        }
+        String hash = passwordEncoder.encode(newPassword);
+        UserAuth userAuth = new UserAuth();
+        userAuth.setUserId(userInfoContext.getUserId());
+        userAuth.setPassword(hash);
         userAuthMapper.updateById(userAuth);
     }
 
