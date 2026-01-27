@@ -12,7 +12,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class StoreDTO implements Serializable {
 
-    // 修改时id不为null
+    /**
+     * 修改时id不为null
+     */
     private Long id;
 
     private String storeName;
@@ -29,7 +31,9 @@ public class StoreDTO implements Serializable {
 
     private String addrDetail;
 
-    // 修改门店营业状态时不为null
+    /**
+     * 修改门店营业状态时不为null
+     */
     private Integer status;
 
 }

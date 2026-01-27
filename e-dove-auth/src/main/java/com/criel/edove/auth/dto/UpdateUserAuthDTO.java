@@ -14,8 +14,14 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UpdateUserAuthDTO implements Serializable {
 
+    /**
+     * 用户名
+     */
     private String username;
 
+    /**
+     * 邮箱
+     */
     private String email;
 
 }

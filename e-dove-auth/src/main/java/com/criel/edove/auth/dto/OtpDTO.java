@@ -14,7 +14,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class OtpDTO implements Serializable {
 
-    // 手机号或邮箱
+    /**
+     * 手机号或邮箱
+     */
     private String phoneOrEmail;
 
 }

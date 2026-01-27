@@ -14,16 +14,29 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UpdateUserInfoDTO implements Serializable {
 
+    /**
+     * 用户名
+     */
     private String username;
 
+    /**
+     * 邮箱
+     */
     private String email;
 
-    // 修改邮箱需要邮箱验证码
+    /**
+     * 修改邮箱需要邮箱验证码
+     */
     private String emailOtp;
 
-    // 所属门店ID
+    /**
+     * 所属门店ID
+     */
     private Long storeId;
 
+    /**
+     * 头像URL
+     */
     private String avatarUrl;
 
 }
