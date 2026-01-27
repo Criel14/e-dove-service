@@ -10,6 +10,7 @@ import com.criel.edove.common.util.Base36Util;
 import com.criel.edove.common.util.SipHashUtil;
 import com.criel.edove.user.properties.BarcodeProperties;
 import com.criel.edove.user.service.BarcodeService;
+import com.criel.edove.user.vo.IdentityBarcodeBase64VO;
 import com.criel.edove.user.vo.IdentityBarcodeVO;
 import com.criel.edove.user.vo.VerifyBarcodeVO;
 import com.google.zxing.BarcodeFormat;
@@ -65,17 +66,31 @@ public class BarcodeServiceImpl implements BarcodeService {
     }
 
     /**
-     * 生成base64编码的用户【身份码】条形码图片
+     * 生成用户【身份码】条形码原始数据
      */
     @Override
-    public IdentityBarcodeVO generateUserBarcodeBase64() throws IOException, WriterException {
+    public IdentityBarcodeVO generateUserBarcode() {
+        // 当前用户手机号
+        String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        // String code = getCodeV1(phone);
+        String code = getCodeV2(phone);
+
+        // 返回条形码原始数据
+        return new IdentityBarcodeVO(code);
+    }
+
+    /**
+     * 生成base64编码的用户【身份码】条形码图片（弃用）
+     */
+    @Override
+    public IdentityBarcodeBase64VO generateUserBarcodeBase64() throws IOException, WriterException {
         // 当前用户手机号
         String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
         // String code = getCodeV1(phone);
         String code = getCodeV2(phone);
 
         // 生成base64编码的条形码图片
-        return new IdentityBarcodeVO(generateBarcodeBase64(code));
+        return new IdentityBarcodeBase64VO(generateBarcodeBase64(code));
     }
 
     /**

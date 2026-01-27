@@ -12,8 +12,8 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class IdentityBarcodeVO implements Serializable {
+public class IdentityBarcodeBase64VO implements Serializable {
 
-    String barcode;
+    String barcodeBase64;
 
 }

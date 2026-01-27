@@ -1,5 +1,6 @@
 package com.criel.edove.user.service;
 
+import com.criel.edove.user.vo.IdentityBarcodeBase64VO;
 import com.criel.edove.user.vo.IdentityBarcodeVO;
 import com.criel.edove.user.vo.VerifyBarcodeVO;
 import com.google.zxing.WriterException;
@@ -11,8 +12,9 @@ import java.io.IOException;
  */
 public interface BarcodeService {
 
-    IdentityBarcodeVO generateUserBarcodeBase64() throws IOException, WriterException;
+    IdentityBarcodeBase64VO generateUserBarcodeBase64() throws IOException, WriterException;
 
     VerifyBarcodeVO verifyIdentityBarcode(String code);
 
+    IdentityBarcodeVO generateUserBarcode();
 }

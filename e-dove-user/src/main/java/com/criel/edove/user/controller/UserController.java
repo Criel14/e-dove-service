@@ -7,6 +7,7 @@ import com.criel.edove.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.user.dto.UserInfoDTO;
 import com.criel.edove.user.service.BarcodeService;
 import com.criel.edove.user.service.UserInfoService;
+import com.criel.edove.user.vo.IdentityBarcodeBase64VO;
 import com.criel.edove.user.vo.IdentityBarcodeVO;
 import com.criel.edove.user.vo.UserInfoVO;
 import com.criel.edove.user.vo.VerifyBarcodeVO;
@@ -89,10 +90,20 @@ public class UserController {
     /**
      * 生成身份码条形码接口
      *
+     * @return 条形码的原始内容（而不是完整的条形码图片）
+     */
+    @GetMapping("/barcode")
+    public Result<IdentityBarcodeVO> generateBarcode() {
+        return Result.success(barcodeService.generateUserBarcode());
+    }
+
+    /**
+     * 生成身份码条形码接口（弃用）
+     *
      * @return base64编码的条形码图片
      */
     @GetMapping("/barcode-create")
-    public Result<IdentityBarcodeVO> generateBarcode() throws IOException, WriterException {
+    public Result<IdentityBarcodeBase64VO> generateBarcodeBase64() throws IOException, WriterException {
         return Result.success(barcodeService.generateUserBarcodeBase64());
     }
 
