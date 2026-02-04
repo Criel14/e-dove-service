@@ -32,6 +32,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.parcel.util.TrackingNumberGenerator;
 import com.criel.edove.parcel.vo.CheckOutVO;
 import com.criel.edove.parcel.vo.ParcelVO;
+import com.criel.edove.parcel.vo.UserCountVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
@@ -264,6 +265,19 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         ParcelVO parcelVO = new ParcelVO();
         BeanUtils.copyProperties(parcel, parcelVO);
         return parcelVO;
+    }
+
+    /**
+     * 查询用户历史【已取出】包裹数量
+     */
+    @Override
+    public UserCountVO userCount() {
+        String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        parcelWrapper.eq(Parcel::getRecipientPhone, phone)
+                .eq(Parcel::getStatus, ParcelStatusEnum.OUT_STORAGE.getCode());
+        Long count = parcelMapper.selectCount(parcelWrapper);
+        return new UserCountVO(count);
     }
 
     /**

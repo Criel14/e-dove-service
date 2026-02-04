@@ -6,6 +6,7 @@ import com.criel.edove.parcel.dto.*;
 import com.criel.edove.parcel.service.ParcelService;
 import com.criel.edove.parcel.vo.CheckOutVO;
 import com.criel.edove.parcel.vo.ParcelVO;
+import com.criel.edove.parcel.vo.UserCountVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,13 @@ public class ParcelController {
         return Result.success(parcelService.queryByTrackingNumber(trackingNumber));
     }
 
+    /**
+     * 查询用户历史【已取出】包裹数量
+     */
+    @GetMapping("/user/count")
+    public Result<UserCountVO> userCount() {
+        return Result.success(parcelService.userCount());
+    }
 
     /**
      * 在数据库里生成指定数量的随机包裹（暂定为：生成的包裹全部送到【用户所在的门店】）

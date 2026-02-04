@@ -9,6 +9,7 @@ import com.criel.edove.parcel.entity.Parcel;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.criel.edove.parcel.vo.CheckOutVO;
 import com.criel.edove.parcel.vo.ParcelVO;
+import com.criel.edove.parcel.vo.UserCountVO;
 
 /**
  * <p>
@@ -31,4 +32,6 @@ public interface ParcelService extends IService<Parcel> {
     void generate(Integer count);
 
     ParcelVO queryByTrackingNumber(String trackingNumber);
+
+    UserCountVO userCount();
 }
