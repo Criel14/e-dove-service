@@ -251,6 +251,22 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     }
 
     /**
+     * 运单号查包裹
+     */
+    @Override
+    public ParcelVO queryByTrackingNumber(String trackingNumber) {
+        LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+        parcelWrapper.eq(Parcel::getTrackingNumber, trackingNumber);
+        Parcel parcel = parcelMapper.selectOne(parcelWrapper);
+        if (parcel == null) {
+            throw new BizException(ErrorCode.PARCEL_NOT_FOUND);
+        }
+        ParcelVO parcelVO = new ParcelVO();
+        BeanUtils.copyProperties(parcel, parcelVO);
+        return parcelVO;
+    }
+
+    /**
      * 获取用户所在门店信息
      */
     private StoreVO getStoreInfoByUser() {

@@ -54,6 +54,15 @@ public class ParcelController {
     }
 
     /**
+     * 运单号查包裹
+     */
+    @GetMapping("/{trackingNumber}")
+    public Result<ParcelVO> queryByTrackingNumber(@PathVariable String trackingNumber) {
+        return Result.success(parcelService.queryByTrackingNumber(trackingNumber));
+    }
+
+
+    /**
      * 在数据库里生成指定数量的随机包裹（暂定为：生成的包裹全部送到【用户所在的门店】）
      */
     @PostMapping("/generate")

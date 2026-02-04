@@ -29,4 +29,6 @@ public interface ParcelService extends IService<Parcel> {
     PageResult<ParcelVO> userInfo(ParcelUserQueryDTO parcelUserQueryDTO);
 
     void generate(Integer count);
+
+    ParcelVO queryByTrackingNumber(String trackingNumber);
 }
