@@ -190,6 +190,10 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         parcelWrapper.eq(Parcel::getRecipientPhone, phone)
                 .between(Parcel::getCreateTime, LocalDateTime.now().minusDays(30), LocalDateTime.now());
+        // 包裹状态
+        if (parcelUserQueryDTO.getStatus() != null) {
+            parcelWrapper.eq(Parcel::getStatus, parcelUserQueryDTO.getStatus());
+        }
         // 分页查询
         return selectParcelVOPageResult(
                 parcelUserQueryDTO.getPageNum(),
