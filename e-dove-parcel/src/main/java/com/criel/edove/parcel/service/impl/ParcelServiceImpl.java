@@ -23,7 +23,8 @@ import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
-import com.criel.edove.parcel.dto.ParcelQueryDTO;
+import com.criel.edove.parcel.dto.ParcelAdminQueryDTO;
+import com.criel.edove.parcel.dto.ParcelUserQueryDTO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
 import com.criel.edove.parcel.service.ParcelService;
@@ -135,13 +136,13 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * 管理端分页查询门店包裹信息
      */
     @Override
-    public PageResult<ParcelVO> adminInfo(ParcelQueryDTO parcelQueryDTO) {
-        Integer status = parcelQueryDTO.getStatus();
-        String trackingNumber = parcelQueryDTO.getTrackingNumber();
-        String recipientPhone = parcelQueryDTO.getRecipientPhone();
-        String timeType = parcelQueryDTO.getTimeType();
-        LocalDate startTime = parcelQueryDTO.getStartTime();
-        LocalDate endTime = parcelQueryDTO.getEndTime();
+    public PageResult<ParcelVO> adminInfo(ParcelAdminQueryDTO parcelAdminQueryDTO) {
+        Integer status = parcelAdminQueryDTO.getStatus();
+        String trackingNumber = parcelAdminQueryDTO.getTrackingNumber();
+        String recipientPhone = parcelAdminQueryDTO.getRecipientPhone();
+        String timeType = parcelAdminQueryDTO.getTimeType();
+        LocalDate startTime = parcelAdminQueryDTO.getStartTime();
+        LocalDate endTime = parcelAdminQueryDTO.getEndTime();
 
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         // 所属门店
@@ -171,8 +172,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
         // 分页查询
         return selectParcelVOPageResult(
-                parcelQueryDTO.getPageNum(),
-                parcelQueryDTO.getPageSize(),
+                parcelAdminQueryDTO.getPageNum(),
+                parcelAdminQueryDTO.getPageSize(),
                 parcelWrapper
         );
     }
@@ -181,7 +182,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * 用户端分页查询门店包裹信息：查询用户近30日的包裹，不包含复杂的条件查询
      */
     @Override
-    public PageResult<ParcelVO> userInfo(ParcelQueryDTO parcelQueryDTO) {
+    public PageResult<ParcelVO> userInfo(ParcelUserQueryDTO parcelUserQueryDTO) {
         // 获取用户手机号
         String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
         // 查询近30日的包裹
@@ -190,8 +191,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
                 .between(Parcel::getCreateTime, LocalDateTime.now().minusDays(30), LocalDateTime.now());
         // 分页查询
         return selectParcelVOPageResult(
-                parcelQueryDTO.getPageNum(),
-                parcelQueryDTO.getPageSize(),
+                parcelUserQueryDTO.getPageNum(),
+                parcelUserQueryDTO.getPageSize(),
                 parcelWrapper
         );
     }

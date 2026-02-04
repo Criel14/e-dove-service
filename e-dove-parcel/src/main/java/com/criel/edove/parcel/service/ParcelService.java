@@ -3,7 +3,8 @@ package com.criel.edove.parcel.service;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
-import com.criel.edove.parcel.dto.ParcelQueryDTO;
+import com.criel.edove.parcel.dto.ParcelAdminQueryDTO;
+import com.criel.edove.parcel.dto.ParcelUserQueryDTO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.criel.edove.parcel.vo.CheckOutVO;
@@ -23,9 +24,9 @@ public interface ParcelService extends IService<Parcel> {
 
     void checkIn(CheckInDTO checkInDTO);
 
-    PageResult<ParcelVO> adminInfo(ParcelQueryDTO parcelQueryDTO);
+    PageResult<ParcelVO> adminInfo(ParcelAdminQueryDTO parcelAdminQueryDTO);
 
-    PageResult<ParcelVO> userInfo(ParcelQueryDTO parcelQueryDTO);
+    PageResult<ParcelVO> userInfo(ParcelUserQueryDTO parcelUserQueryDTO);
 
     void generate(Integer count);
 }

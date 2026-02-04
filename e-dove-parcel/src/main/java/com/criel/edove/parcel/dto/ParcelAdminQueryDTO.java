@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ParcelQueryDTO implements Serializable {
+public class ParcelAdminQueryDTO implements Serializable {
 
     /**
      * （必填）分页查询页码
