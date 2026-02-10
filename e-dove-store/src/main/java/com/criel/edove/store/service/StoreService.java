@@ -28,4 +28,6 @@ public interface StoreService extends IService<Store> {
     void deactivateStore(StoreIdDTO storeIdDTO);
 
     void unbindStore(StoreIdDTO storeIdDTO);
+
+    StoreVO getStoreInfoById(Long storeId);
 }

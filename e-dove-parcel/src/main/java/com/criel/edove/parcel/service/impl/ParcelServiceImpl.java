@@ -361,10 +361,29 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         IPage<Parcel> page = new Page<>(pageNum, pageSize);
         IPage<Parcel> parcelPage = parcelMapper.selectPage(page, parcelWrapper);
         List<Parcel> parcels = parcelPage.getRecords();
+
+        // 门店ID和门店名称映射
+        Map<Long, String> storeMap = new HashMap<>();
+        for (Parcel parcel : parcels) {
+            Long storeId = parcel.getStoreId();
+            if (!storeMap.containsKey(storeId)) {
+                Result<StoreVO> result = storeFeignClient.getStoreInfoById(storeId);
+                if (!result.getStatus()) {
+                    throw new BizException(result.getCode(), result.getMessage());
+                }
+                StoreVO storeVO = result.getData();
+                // 更新map
+                storeMap.put(storeId, storeVO.getStoreName());
+            }
+        }
+
+        // 构建VO列表
         List<ParcelVO> parcelVOs = parcels.stream()
                 .map(parcel -> {
                             ParcelVO vo = new ParcelVO();
                             BeanUtils.copyProperties(parcel, vo);
+                            // 门店名称
+                            vo.setStoreName(storeMap.get(parcel.getStoreId()));
                             return vo;
                         }
                 )

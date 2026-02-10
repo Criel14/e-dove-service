@@ -45,6 +45,14 @@ public class StoreController {
     }
 
     /**
+     * （仅远程调用）根据门店ID查询门店信息
+     */
+    @GetMapping("/{storeId}")
+    public Result<StoreVO> getStoreInfoById(@PathVariable Long storeId) {
+        return Result.success(storeService.getStoreInfoById(storeId));
+    }
+
+    /**
      * （店长）新建门店
      */
     @PostMapping("/create")

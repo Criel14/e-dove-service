@@ -7,6 +7,7 @@ import com.criel.edove.feign.store.vo.ParcelCheckInVO;
 import com.criel.edove.feign.store.vo.StoreVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -35,5 +36,11 @@ public interface StoreFeignClient {
      */
     @GetMapping("/store/my")
     Result<StoreVO> getStoreInfoByUser();
+
+    /**
+     * （仅远程调用）根据门店ID查询门店信息
+     */
+    @GetMapping("/store/{storeId}")
+    Result<StoreVO> getStoreInfoById(@PathVariable Long storeId);
 
 }

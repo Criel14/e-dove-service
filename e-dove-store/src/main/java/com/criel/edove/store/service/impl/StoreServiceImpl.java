@@ -200,6 +200,21 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     }
 
     /**
+     * 根据门店ID查询门店信息
+     */
+    @Override
+    public StoreVO getStoreInfoById(Long storeId) {
+        Store store = storeMapper.selectById(storeId);
+        if (store == null) {
+            throw new BizException(ErrorCode.STORE_NOT_FOUND_ERROR);
+        }
+
+        StoreVO storeVO = new StoreVO();
+        BeanUtils.copyProperties(store, storeVO);
+        return storeVO;
+    }
+
+    /**
      * 检查用户是否绑定该门店并解绑
      */
     private void checkAndUnbind(Long storeId) {

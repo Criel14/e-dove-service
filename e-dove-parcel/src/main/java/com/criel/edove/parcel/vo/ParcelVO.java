@@ -82,6 +82,11 @@ public class ParcelVO implements Serializable {
     private Long storeId;
 
     /**
+     * 送至门店名称
+     */
+    private String storeName;
+
+    /**
      * 6 位取件码（已入库后生成，包含货架／层信息）
      */
     private String pickCode;
