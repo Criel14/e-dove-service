@@ -27,8 +27,7 @@ public class CheckOutDTO implements Serializable {
     private String identityCode;
 
     /**
-     * 收件人手机号
-     * tip：【管理员出库】：recipientPhone不为空，直接传入，不需要通过身份码传入
+     * 收件人手机号（该字段不再需要）
      */
     private String recipientPhone;
 

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ParcelStatusEnum;
+import com.criel.edove.common.enumeration.RoleEnum;
 import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
@@ -14,6 +15,8 @@ import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.feign.assistant.client.AssistantFeignClient;
 import com.criel.edove.feign.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.feign.assistant.vo.AddressGenerateVO;
+import com.criel.edove.feign.auth.client.AuthFeignClient;
+import com.criel.edove.feign.auth.vo.RolesVO;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
 import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
@@ -56,6 +59,7 @@ import java.util.*;
 public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> implements ParcelService {
 
     private final UserFeignClient userFeignClient;
+    private final AuthFeignClient authFeignClient;
     private final StoreFeignClient storeFeignClient;
     private final AssistantFeignClient assistantFeignClient;
     private final ParcelMapper parcelMapper;
@@ -76,14 +80,11 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         String trackingNumber = checkOutDTO.getTrackingNumber();
         String identityCode = checkOutDTO.getIdentityCode();
 
-        // 获取用户手机号
-        String phone;
-        if (StrUtil.isNotBlank(checkOutDTO.getRecipientPhone())) {
-            // 【管理员出库】：直接获取收件人手机号
-            phone = checkOutDTO.getRecipientPhone();
-        } else {
-            // 【用户出库】：验证身份码，并获取手机号
+        String phone = "";
+        if (StrUtil.isNotEmpty(identityCode)) {
+            // 若为【用户自行出库】：需要验证用户手机号
             phone = verifyBarcodeAndGetPhone(identityCode);
+            // 【管理员出库】则保持手机号为空
         }
 
         // TODO 消息队列异步削峰
@@ -427,14 +428,39 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     /**
      * 更新包裹表的status, out_time, out_machine_id
+     *
+     * @param phone 管理员出库时，直接传入空字符串
      */
     private Parcel updateParcel(String phone, String trackingNumber, Long machineId) {
-        // 查询包裹
+        // 用运单号查询包裹
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
-        parcelWrapper.eq(Parcel::getRecipientPhone, phone).eq(Parcel::getTrackingNumber, trackingNumber);
+        parcelWrapper.eq(Parcel::getTrackingNumber, trackingNumber);
         Parcel parcel = parcelMapper.selectOne(parcelWrapper);
         if (parcel == null) {
             throw new BizException(ErrorCode.PARCEL_NOT_FOUND);
+        }
+
+        // 检查是否是管理员出库
+        if (StrUtil.isBlank(phone)) {
+            // TODO 验证当前用户（发起请求的用户）的管理员身份
+            Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+            Result<RolesVO> result = authFeignClient.getUserRoles(userId);
+            if (!result.getStatus()) {
+                throw new BizException(result.getCode(), result.getMessage());
+            }
+            RolesVO rolesVO = result.getData();
+            List<String> roleNames = rolesVO.getRoleNames();
+            if (!(roleNames.contains(RoleEnum.ADMIN.getRoleName())
+                    || roleNames.contains(RoleEnum.STATION_ADMIN.getRoleName())
+                    || roleNames.contains(RoleEnum.STATION_STAFF.getRoleName()))) {
+                // 无出库权限
+                throw new BizException(ErrorCode.CHECK_OUT_PERMISSION_DENIED);
+            }
+        } else {
+            // 若为【用户自行出库】：检查收件人手机号是否匹配
+            if (!Objects.equals(parcel.getRecipientPhone(), phone)) {
+                throw new BizException(ErrorCode.PARCEL_PHONE_NOT_MATCH);
+            }
         }
 
         // 校验包裹状态是否为“1-已入库”

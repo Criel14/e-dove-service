@@ -1,10 +1,10 @@
 package com.criel.edove.feign.auth.client;
 
-import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.dto.PingDTO;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.vo.PingVO;
 import com.criel.edove.feign.auth.dto.UpdateUserAuthDTO;
+import com.criel.edove.feign.auth.vo.RolesVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,5 +26,11 @@ public interface AuthFeignClient {
      */
     @PutMapping("/auth/update")
     Result<Object> update(@RequestBody UpdateUserAuthDTO updateUserAuthDTO);
+
+    /**
+     * （仅远程调用）获取用户角色名称
+     */
+    @GetMapping("/auth/role")
+    Result<RolesVO> getUserRoles(@RequestParam Long userId);
 
 }

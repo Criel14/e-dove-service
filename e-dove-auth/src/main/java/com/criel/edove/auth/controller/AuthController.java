@@ -2,6 +2,7 @@ package com.criel.edove.auth.controller;
 
 import com.criel.edove.auth.dto.*;
 import com.criel.edove.auth.service.TokenService;
+import com.criel.edove.auth.vo.RolesVO;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.dto.PingDTO;
@@ -41,6 +42,14 @@ public class AuthController {
     @GetMapping("/validate")
     public Result<UserInfoContext> validateAccessToken(@RequestParam String accessToken) {
         return Result.success(tokenService.validateAccessToken(accessToken));
+    }
+
+    /**
+     * （仅远程调用）获取用户角色名称
+     */
+    @GetMapping("/role")
+    public Result<RolesVO> getUserRoles(@RequestParam Long userId) {
+        return Result.success(authService.getUserRoles(userId));
     }
 
     /**

@@ -14,6 +14,7 @@ import com.criel.edove.auth.mapper.UserRoleMapper;
 import com.criel.edove.auth.properties.OtpProperties;
 import com.criel.edove.auth.service.TokenService;
 import com.criel.edove.auth.strategy.factory.LoginStrategyFactory;
+import com.criel.edove.auth.vo.RolesVO;
 import com.criel.edove.common.constant.LoginStrategyConstant;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.constant.RegexConstant;
@@ -339,7 +340,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * 根据登录i参数返回登录策略
+     * 获取用户的角色名称
+     */
+    @Override
+    public RolesVO getUserRoles(Long userId) {
+        List<Role> roles = userAuthMapper.getRolesByUserId(userId);
+        return new RolesVO(
+                roles.stream()
+                        .map(Role::getRoleName)
+                        .toList()
+        );
+    }
+
+    /**
+     * 根据登录参数返回登录策略
      */
     private String checkSignInStrategy(SignInDTO signInDTO) {
         String phone = signInDTO.getPhone();

@@ -1,6 +1,7 @@
 package com.criel.edove.auth.service;
 
 import com.criel.edove.auth.dto.*;
+import com.criel.edove.auth.vo.RolesVO;
 import com.criel.edove.auth.vo.SignInVO;
 
 /**
@@ -20,4 +21,6 @@ public interface AuthService {
     void updateUserAuth(UpdateUserAuthDTO updateUserAuthDTO);
 
     void updatePassword(UpdatePasswordDTO updatePasswordDTO);
+
+    RolesVO getUserRoles(Long userId);
 }
