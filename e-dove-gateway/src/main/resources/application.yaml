@@ -46,3 +46,13 @@ edove:
   uri:
     # 验证jwt接口
     jwt-auth: lb://e-dove-auth/auth/validate
+
+# 健康检测，访问 http://地址:8100/actuator/health
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
