@@ -193,7 +193,7 @@ public class BarcodeServiceImpl implements BarcodeService {
         if (StrUtil.isEmpty(code)) {
             throw new BizException(ErrorCode.IDENTITY_CODE_VERIFY_EMPTY_ERROR);
         }
-        String phone = verifyCodeV1(code);
+        String phone = verifyCodeV2(code);
 
         // 验证成功返回手机号
         return new VerifyBarcodeVO(phone);
