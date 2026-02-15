@@ -1,4 +1,4 @@
-# 中间件部署
+# 项目部署
 
 项目启动前，需要部署项目里用到的中间件，项目中所有的中间件都通过 docker compose 部署，yaml文件在项目中已准备好：[e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml)；需要将`e-dove.yaml`文件放入 Linux 的`home`目录；
 
@@ -325,3 +325,19 @@ public void handleStalePackages() {
 **Store 服务**：
 
 ![](../images/xxl-job新增任务-重置当天最大序号.png)
+
+
+
+## 放开端口
+
+为了使手机上运行的小程序（即微信开发者工具的“真机调试”）能够连接到电脑上运行的后端程序，我们需要放开网关的端口`8100`；Win11的操作步骤如下：
+
+1. 在开始菜单搜索并打开`Windows Defender 防火墙`；
+2. 点击左侧”高级设置“；
+3. 在新弹出的”高级安全“页面的左侧，选中”入站规则“，并在右侧点击”新建规则“；
+4. 在新弹出的窗口中操作：
+   1. 规则类型：端口
+   2. 协议和端口：TCP，特定本地端口 8100
+   3. 操作：允许连接
+   4. 配置文件：域、专用、公用全勾选
+   5. 名称随意
