@@ -12,7 +12,7 @@ import dev.langchain4j.service.spring.AiService;
 )
 public interface StreamingAssistant {
 
-    @SystemMessage("你是一个快递驿站的智能助手")
+    @SystemMessage(fromResource = "/prompt/system-prompt-admin.txt")
     TokenStream AdminChat(@MemoryId String memeryId, @UserMessage String message);
 
     @SystemMessage("你是一个快递驿站的智能助手")
