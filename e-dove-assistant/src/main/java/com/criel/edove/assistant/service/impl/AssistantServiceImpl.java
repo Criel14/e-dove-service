@@ -56,12 +56,13 @@ public class AssistantServiceImpl implements AssistantService {
 
     /**
      * 管理端AI对话
+     * @return SSE连接对象，服务端不断推新的token给前端
      */
     @Override
     public SseEmitter adminChat(String memoryId, String message) {
         // timeout 为0表示永不超时
         SseEmitter emitter = new SseEmitter(0L);
-        TokenStream tokenStream = streamingAssistant.AdminChat(memoryId, message);
+        TokenStream tokenStream = streamingAssistant.adminChat(memoryId, message);
 
         tokenStream
                 .onPartialResponse(partial -> { // 每个分片 token 到达时触发
@@ -69,7 +70,7 @@ public class AssistantServiceImpl implements AssistantService {
                         emitter.send(
                                 SseEmitter.event()
                                         .name("token")
-                                        .data(partial, UTF8_TEXT)
+                                        .data(partial, UTF8_TEXT) // 发送该token
                         );
                     } catch (Exception e) {
                         emitter.completeWithError(e);
@@ -81,7 +82,7 @@ public class AssistantServiceImpl implements AssistantService {
                         emitter.send(
                                 SseEmitter.event()
                                         .name("done")
-                                        .data(fullText, UTF8_TEXT)
+                                        .data(fullText, UTF8_TEXT) // 发送完整内容
                         );
                     } catch (Exception ignored) {
                     } finally {
