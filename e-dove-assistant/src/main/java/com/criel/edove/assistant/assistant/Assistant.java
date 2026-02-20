@@ -4,12 +4,10 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.service.spring.AiService;
 
-import java.util.List;
-
 /**
  * 大模型
  */
-@AiService
+@AiService(chatModel = "openAiChatModel")
 public interface Assistant {
 
     @UserMessage("""

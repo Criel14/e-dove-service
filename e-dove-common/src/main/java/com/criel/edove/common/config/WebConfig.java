@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Web配置：注册拦截器
  */
 @Configuration
-@EnableWebMvc
+// @EnableWebMvc // 去掉这个注解，否则AI聊天无法返回UTF8
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 

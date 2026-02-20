@@ -1,5 +1,10 @@
 server:
   port: 8150
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true
+      enabled: true
 
 
 spring:
@@ -16,6 +21,12 @@ logging:
 # 大模型配置，这里用deepseek
 langchain4j:
   open-ai:
+    streaming-chat-model:
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.deepseek.com
+      model-name: deepseek-chat
+      log-requests: true
+      log-responses: true
     chat-model:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: https://api.deepseek.com
