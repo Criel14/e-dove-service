@@ -3,7 +3,7 @@ package com.criel.edove.assistant.service.impl;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.criel.edove.assistant.assistant.Assistant;
-import com.criel.edove.assistant.assistant.StreamingAssistant;
+import com.criel.edove.assistant.assistant.AdminAssistant;
 import com.criel.edove.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.assistant.service.AssistantService;
 import com.criel.edove.assistant.vo.AddressGenerateVO;
@@ -29,7 +29,7 @@ import java.util.List;
 public class AssistantServiceImpl implements AssistantService {
 
     private final Assistant assistant;
-    private final StreamingAssistant streamingAssistant;
+    private final AdminAssistant adminAssistant;
     private final SnowflakeService snowflakeService;
 
     private static final MediaType UTF8_TEXT = new MediaType("text", "plain", StandardCharsets.UTF_8);
@@ -61,7 +61,7 @@ public class AssistantServiceImpl implements AssistantService {
     public SseEmitter adminChat(String memoryId, String message) {
         // timeout 为0表示永不超时
         SseEmitter emitter = new SseEmitter(0L);
-        TokenStream tokenStream = streamingAssistant.adminChat(memoryId, message);
+        TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);
 
         tokenStream
                 .onPartialResponse(partial -> { // 每个分片 token 到达时触发

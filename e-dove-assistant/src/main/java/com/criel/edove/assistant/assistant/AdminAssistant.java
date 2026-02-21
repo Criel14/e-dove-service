@@ -8,14 +8,14 @@ import dev.langchain4j.service.spring.AiService;
  */
 @AiService(
         streamingChatModel = "openAiStreamingChatModel",
-        chatMemoryProvider = "chatMemoryProvider"
+        chatMemoryProvider = "chatMemoryProvider",
+        tools = {
+                "adminChatTool"
+        }
 )
-public interface StreamingAssistant {
+public interface AdminAssistant {
 
     @SystemMessage(fromResource = "/prompt/system-prompt-admin.txt")
     TokenStream adminChat(@MemoryId String memeryId, @UserMessage String message);
-
-    @SystemMessage("你是一个快递驿站的智能助手")
-    TokenStream userChat(@MemoryId String memeryId, @UserMessage String message);
 
 }

@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
      * 拦截非业务异常：代码报错等
      */
     @ExceptionHandler(Exception.class)
-    public Result<Object> exceptionHandler(Exception e) {
+    public Result<Void> exceptionHandler(Exception e) {
         // 检查是否在Seata全局事务中：如果是在一次全局事务里出异常了，就不要包装返回值，将异常抛给调用方，让调用方回滚事务
         //if (StrUtil.isNotBlank(RootContext.getXID())) {
         if (inSeataGlobalTx()) {
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
      * 拦截业务异常，将异常信息包装后返回
      */
     @ExceptionHandler(BizException.class)
-    public Result<Object> exceptionHandler(BizException e) {
+    public Result<Void> exceptionHandler(BizException e) {
         LOGGER.error("业务异常：{}-{}", e.getCode(), e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
     }
