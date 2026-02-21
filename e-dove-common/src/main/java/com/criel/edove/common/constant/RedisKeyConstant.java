@@ -35,4 +35,7 @@ public class RedisKeyConstant {
     // 货架数据修改操作分布式锁： + 货架id
     public static final String SHELF_UPDATE_LOCK = "shelf:update:lock:";
 
+    // AI聊天记忆 + memoryId
+    public static final String AI_CHAT_MEMORY = "ai:chat:memory:";
+
 }

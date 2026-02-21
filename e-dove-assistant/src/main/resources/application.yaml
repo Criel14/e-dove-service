@@ -11,6 +11,13 @@ spring:
   profiles:
     active: dev
 
+  # redis 配置
+  data:
+    redis:
+      host: ${E_DOVE_DOCKER_IP_ADDR}
+      port: 6379
+      password: eDoveRedis1014
+
 # 日志级别
 logging:
   level:

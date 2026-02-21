@@ -11,7 +11,6 @@ import com.criel.edove.assistant.vo.ChatCreateVO;
 import com.criel.edove.common.service.SnowflakeService;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.util.encoders.UTF8;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

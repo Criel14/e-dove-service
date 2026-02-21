@@ -3,11 +3,15 @@ package com.criel.edove.assistant.config;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class AssistantConfig {
+
+    private final PersistentChatMemoryStore persistentChatMemoryStore;
 
     /**
      * 创建一个 ChatMemoryProvider
@@ -24,8 +28,9 @@ public class AssistantConfig {
             public ChatMemory get(Object memoryId) {
                 // 这里返回的 MessageWindowChatMemory 是基于【消息窗口】记忆和淘汰数据的
                 return MessageWindowChatMemory.builder()
-                        .maxMessages(20) // 这里设置最多20条消息
                         .id(memoryId)
+                        .maxMessages(10) // 这里设置最多10条消息
+                        .chatMemoryStore(persistentChatMemoryStore)
                         .build();
             }
         };
