@@ -1,5 +1,6 @@
 package com.criel.edove.assistant.service.impl;
 
+import cn.hutool.core.lang.UUID;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.criel.edove.assistant.assistant.Assistant;
@@ -10,6 +11,8 @@ import com.criel.edove.assistant.vo.AddressGenerateVO;
 import com.criel.edove.assistant.vo.ChatCreateVO;
 import com.criel.edove.common.constant.RedisKeyConstant;
 import com.criel.edove.common.context.UserInfoContextHolder;
+import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.service.SnowflakeService;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
@@ -47,16 +50,27 @@ public class AssistantServiceImpl implements AssistantService {
      */
     @Override
     public AddressGenerateVO generateAddresses(AddressGenerateDTO addressGenerateDTO) {
+        // 随机生成一个 memoryId
+        String randomMemoryId = UUID.randomUUID().toString();
+
         // 调用大模型生成地址数组
         String result = assistant.generateAddress(
+                randomMemoryId,
                 addressGenerateDTO.getCount(),
                 addressGenerateDTO.getStoreAddrProvince(),
                 addressGenerateDTO.getStoreAddrCity(),
                 addressGenerateDTO.getStoreAddrDistrict()
         );
-        JSONArray jsonArray = JSONUtil.parseArray(result);
-        List<String> addresses = jsonArray.toList(String.class);
-        return new AddressGenerateVO(addresses);
+
+        // 格式化大模型返回的字符串
+        try {
+            JSONArray jsonArray = JSONUtil.parseArray(result);
+            List<String> addresses = jsonArray.toList(String.class);
+            return new AddressGenerateVO(addresses);
+        } catch (Exception e) {
+            // 大模型返回的不是JSON格式
+            throw new BizException(ErrorCode.MESSAGE_PARSE_JSON_ERROR);
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import lombok.Getter;
  * 3xxx：user服务异常
  * 4xxx: store服务异常
  * 5xxx: parcel服务异常
+ * 6xxx: assistant服务异常
  */
 @Getter
 public enum ErrorCode {
@@ -73,7 +74,10 @@ public enum ErrorCode {
     GENERATE_PARCEL_COUNT_TOO_LARGE("5005", "生成数量不得多于30个"),
     PARCEL_PHONE_NOT_MATCH("5006", "非本人包裹，禁止取出"),
     CHECK_OUT_PERMISSION_DENIED("5007", "无出库权限"),
-    INVALID_TIME_TYPE("5008", "包裹查询时间类型错误");
+    INVALID_TIME_TYPE("5008", "包裹查询时间类型错误"),
+
+    // assistant服务异常
+    MESSAGE_PARSE_JSON_ERROR("6001", "大模型异常，请联系管理员");
 
     private final String code;
     private final String message;
