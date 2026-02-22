@@ -8,14 +8,19 @@ import com.criel.edove.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.assistant.service.AssistantService;
 import com.criel.edove.assistant.vo.AddressGenerateVO;
 import com.criel.edove.assistant.vo.ChatCreateVO;
+import com.criel.edove.common.constant.RedisKeyConstant;
+import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.service.SnowflakeService;
 import dev.langchain4j.service.TokenStream;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -31,6 +36,7 @@ public class AssistantServiceImpl implements AssistantService {
     private final Assistant assistant;
     private final AdminAssistant adminAssistant;
     private final SnowflakeService snowflakeService;
+    private final RedissonClient redissonClient;
 
     private static final MediaType UTF8_TEXT = new MediaType("text", "plain", StandardCharsets.UTF_8);
 
@@ -59,6 +65,12 @@ public class AssistantServiceImpl implements AssistantService {
      */
     @Override
     public SseEmitter adminChat(String memoryId, String message) {
+        // 存储 memoryId → userId 映射到redis，因为在AI工具调用时，请求头中无法包含用户ID信息，需要显式传输携带
+        String key = RedisKeyConstant.AI_CHAT_USER_ID + memoryId;
+        RBucket<Long> rBucket = redissonClient.getBucket(key);
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        rBucket.set(userId, Duration.ofDays(2)); // 过期时间和会话记忆过期时间一致
+
         // timeout 为0表示永不超时
         SseEmitter emitter = new SseEmitter(0L);
         TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);

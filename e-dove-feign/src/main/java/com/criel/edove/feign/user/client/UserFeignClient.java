@@ -19,12 +19,6 @@ import java.util.List;
 public interface UserFeignClient {
 
     /**
-     * 连接测试
-     */
-    @GetMapping("/user/ping")
-    Result<PingVO> ping(@RequestParam PingDTO pingDTO);
-
-    /**
      * 创建新用户信息
      */
     @PostMapping("/user/create")
@@ -40,7 +34,7 @@ public interface UserFeignClient {
      * 查询用户所属门店id：需要保证请求头有数据
      */
     @GetMapping("/user/store-id")
-    Result<Long> getUserStoreId();
+    Result<Long> getUserStoreId(@RequestParam Long userId);
 
     /**
      * 修改用户信息

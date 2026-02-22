@@ -1,4 +1,4 @@
-package com.criel.edove.parcel.dto;
+package com.criel.edove.feign.parcel.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,7 +42,7 @@ public class ParcelAdminQueryDTO implements Serializable {
     private String recipientPhone;
 
     /**
-     * （选填）要查询的时间段类型：入库时间"inTime"、出库时间"outTime"、创建时间"createTime"
+     * （选填）要查询的时间段类型：有入库时间"inTime"，出库时间"outTime"、创建时间"createTime"
      */
     private String timeType;
 

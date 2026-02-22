@@ -110,10 +110,13 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
      * 查询用户所属门店Id
      */
     @Override
-    public Long getUserStoreId() {
+    public Long getUserStoreId(Long userId) {
+        if (userId == null) {
+            UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
+            userId = userInfoContext.getUserId();
+        }
+
         // 先查redis
-        UserInfoContext userInfoContext = UserInfoContextHolder.getUserInfoContext();
-        Long userId = userInfoContext.getUserId();
         String key = RedisKeyConstant.USER_STORE_ID + userId;
         RBucket<Long> userStoreIdBucket = redissonClient.getBucket(key);
 

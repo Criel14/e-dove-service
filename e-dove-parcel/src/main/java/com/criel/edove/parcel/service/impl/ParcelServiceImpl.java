@@ -111,7 +111,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     @GlobalTransactional
     public void checkIn(CheckInDTO checkInDTO) {
         // 查询当前用户所属门店
-        Long storeId = getUserStoreId();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Long storeId = getUserStoreId(userId);
 
         // 查找包裹，并判断包裹是否属于当前的门店
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
@@ -147,28 +148,50 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         LocalDate endTime = parcelAdminQueryDTO.getEndTime();
 
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
+
         // 所属门店
-        Long storeId = getUserStoreId();
+        Long userId = parcelAdminQueryDTO.getUserId();
+        if (userId == null) {
+            userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        }
+        Long storeId = getUserStoreId(userId);
         parcelWrapper.eq(Parcel::getStoreId, storeId);
+
         // 包裹状态
         if (status != null) {
             parcelWrapper.eq(Parcel::getStatus, status);
         }
+
         // 快递运单号
         if (StrUtil.isNotEmpty(trackingNumber)) {
             parcelWrapper.like(Parcel::getTrackingNumber, trackingNumber);
         }
+
         // 收件人手机号
         if (StrUtil.isNotEmpty(recipientPhone)) {
             parcelWrapper.like(Parcel::getRecipientPhone, recipientPhone);
         }
+
         // 查询时间段
         if (StrUtil.isNotEmpty(timeType) && startTime != null && endTime != null) {
+            // 因为 endTime 是LocalDate，而entity类的时间是LocalDateTime，会导致只统计到最后一天0点，所以要加1天
+            LocalDateTime start = startTime.atStartOfDay();
+            LocalDateTime end = endTime.plusDays(1).atStartOfDay();
+
             switch (timeType) {
-                // 入库时间
-                case "inTime" -> parcelWrapper.between(Parcel::getInTime, startTime, endTime);
-                // 出库时间
-                case "outTime" -> parcelWrapper.between(Parcel::getOutTime, startTime, endTime);
+                case "inTime" -> {
+                    parcelWrapper.ge(Parcel::getInTime, start);
+                    parcelWrapper.lt(Parcel::getInTime, end);
+                }
+                case "outTime" -> {
+                    parcelWrapper.ge(Parcel::getOutTime, start);
+                    parcelWrapper.lt(Parcel::getOutTime, end);
+                }
+                case "createTime" -> {
+                    parcelWrapper.ge(Parcel::getCreateTime, start);
+                    parcelWrapper.lt(Parcel::getCreateTime, end);
+                }
+                default -> throw new BizException(ErrorCode.INVALID_TIME_TYPE);
             }
         }
 
@@ -417,9 +440,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      *
      * @return 用户所属的门店ID
      */
-    private Long getUserStoreId() {
+    private Long getUserStoreId(Long userId) {
         // 查询当前用户所属门店
-        Result<Long> result = userFeignClient.getUserStoreId();
+        Result<Long> result = userFeignClient.getUserStoreId(userId);
         if (!result.getStatus()) {
             throw new BizException(result.getCode(), result.getMessage());
         }

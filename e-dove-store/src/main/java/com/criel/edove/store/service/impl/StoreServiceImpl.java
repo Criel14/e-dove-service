@@ -59,7 +59,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     @Override
     public StoreVO getStoreInfoByUser() {
         // 远程调用获取用户所属门店ID
-        Result<Long> result = userFeignClient.getUserStoreId();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Result<Long> result = userFeignClient.getUserStoreId(userId);
         if (result.getData() == null) {
             throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
         }

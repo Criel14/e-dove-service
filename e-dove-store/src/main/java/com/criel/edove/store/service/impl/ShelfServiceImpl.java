@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.constant.RedisKeyConstant;
+import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.enumeration.ShelfStatusEnum;
 import com.criel.edove.common.exception.BizException;
@@ -347,7 +348,8 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
      * 获取用户所属门店：远程调用user服务
      */
     private Long getUserStoreId() {
-        Result<Long> result = userFeignClient.getUserStoreId();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Result<Long> result = userFeignClient.getUserStoreId(userId);
         if (result.getData() == null) {
             throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
         }

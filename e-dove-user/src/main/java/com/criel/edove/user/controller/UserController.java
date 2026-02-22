@@ -63,8 +63,8 @@ public class UserController {
      * 查询用户所属门店id
      */
     @GetMapping("/store-id")
-    public Result<Long> getUserStoreId() {
-        return Result.success(userInfoService.getUserStoreId());
+    public Result<Long> getUserStoreId(@RequestParam Long userId) {
+        return Result.success(userInfoService.getUserStoreId(userId));
     }
 
     /**

@@ -65,7 +65,6 @@ public enum ErrorCode {
     SHELF_NOT_FOUND("4011", "货架不存在"),
     NO_AVAILABLE_SHELF_LAYER("4012", "没有可用的货架层"),
 
-
     // parcel服务异常
     PARCEL_NOT_FOUND("5001", "包裹信息不存在"),
     PARCEL_NOT_IN_STORAGE("5002", "包裹未入库"),
@@ -73,7 +72,8 @@ public enum ErrorCode {
     PARCEL_GENERATE_ERROR("5004", "包裹生成出现问题"),
     GENERATE_PARCEL_COUNT_TOO_LARGE("5005", "生成数量不得多于30个"),
     PARCEL_PHONE_NOT_MATCH("5006", "非本人包裹，禁止取出"),
-    CHECK_OUT_PERMISSION_DENIED("5007", "无出库权限"),;
+    CHECK_OUT_PERMISSION_DENIED("5007", "无出库权限"),
+    INVALID_TIME_TYPE("5008", "包裹查询时间类型错误");
 
     private final String code;
     private final String message;

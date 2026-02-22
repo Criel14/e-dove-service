@@ -38,4 +38,7 @@ public class RedisKeyConstant {
     // AI聊天记忆 + memoryId
     public static final String AI_CHAT_MEMORY = "ai:chat:memory:";
 
+    // AI聊天时存储用户ID + memoryId
+    public static final String AI_CHAT_USER_ID = "ai:chat:user:id:";
+
 }

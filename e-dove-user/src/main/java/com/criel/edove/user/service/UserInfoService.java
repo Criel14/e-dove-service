@@ -26,7 +26,7 @@ public interface UserInfoService extends IService<UserInfo> {
 
     void updateStoreBind(Long storeId);
 
-    Long getUserStoreId();
+    Long getUserStoreId(Long userId);
 
     List<String> extractPhone(Integer count);
 }
