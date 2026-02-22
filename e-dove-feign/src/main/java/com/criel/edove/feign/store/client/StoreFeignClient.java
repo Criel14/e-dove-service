@@ -9,6 +9,7 @@ import com.criel.edove.feign.store.vo.ParcelCheckInVO;
 import com.criel.edove.feign.store.vo.ShelfAndLayerVO;
 import com.criel.edove.feign.store.vo.StoreVO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +38,7 @@ public interface StoreFeignClient {
      * （店长 / 店员）分页查询货架 + 货架层
      */
     @GetMapping("/shelf/query")
-    Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO);
+    Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(@SpringQueryMap ShelfQueryDTO shelfQueryDTO);
 
     /**
      * （店长/店员）查询所属门店信息
