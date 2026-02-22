@@ -32,8 +32,6 @@ public class UserController {
     private final UserInfoService userInfoService;
     private final BarcodeService barcodeService;
 
-    // TODO 头像上传接口（可能要写在其他微服务里）
-
     /**
      * 连接测试
      */

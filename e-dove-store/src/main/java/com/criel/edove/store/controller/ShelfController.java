@@ -51,8 +51,6 @@ public class ShelfController {
         return Result.success();
     }
 
-    // TODO （店长 / 店员）修改货架层
-
     /**
      * （仅远程调用）扣减包裹所在货架层的【当前包裹数】
      */

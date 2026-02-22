@@ -75,7 +75,6 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     @Override
     @GlobalTransactional
     public CheckOutVO checkOut(CheckOutDTO checkOutDTO) {
-        // TODO 机器ID可以用来做审计：parcel表加上一个字段
         Long machineId = checkOutDTO.getMachineId();
         String trackingNumber = checkOutDTO.getTrackingNumber();
         String identityCode = checkOutDTO.getIdentityCode();

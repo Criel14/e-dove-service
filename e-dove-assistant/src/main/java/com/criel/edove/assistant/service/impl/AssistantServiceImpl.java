@@ -113,7 +113,6 @@ public class AssistantServiceImpl implements AssistantService {
      */
     @Override
     public ChatCreateVO createChat() {
-        // TODO 要结合数据库
         long nextId = snowflakeService.nextId();
         return new ChatCreateVO(String.valueOf(nextId));
     }
