@@ -62,7 +62,8 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     @Transactional
     public void createShelf(ShelfDTO shelfDTO) {
         // 获取用户所属门店
-        Long storeId = getUserStoreId();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Long storeId = getUserStoreId(userId);
 
         // 生成新的货架id
         long shelfId = snowflakeService.nextId();
@@ -103,7 +104,11 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
         int pageSize = shelfQueryDTO.getPageSize();
 
         // 获取用户所属门店
-        Long storeId = getUserStoreId();
+        Long userId = shelfQueryDTO.getUserId();
+        if (userId == null) {
+            userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        }
+        Long storeId = getUserStoreId(userId);
 
         // 分页查询用户所属门店的【货架】
         IPage<Shelf> page = new Page<>(pageNum, pageSize);
@@ -160,7 +165,8 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     public void updateShelf(ShelfDTO shelfDTO) {
         Long shelfId = shelfDTO.getId();
         // 获取用户所属门店
-        Long storeId = getUserStoreId();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Long storeId = getUserStoreId(userId);
 
         // 分布式锁（粒度是货架）
         String lockKey = RedisKeyConstant.SHELF_UPDATE_LOCK + shelfId;
@@ -347,8 +353,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     /**
      * 获取用户所属门店：远程调用user服务
      */
-    private Long getUserStoreId() {
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+    private Long getUserStoreId(Long userId) {
         Result<Long> result = userFeignClient.getUserStoreId(userId);
         if (result.getData() == null) {
             throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);

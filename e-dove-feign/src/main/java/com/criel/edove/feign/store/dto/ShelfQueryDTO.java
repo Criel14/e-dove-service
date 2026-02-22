@@ -1,4 +1,4 @@
-package com.criel.edove.store.dto;
+package com.criel.edove.feign.store.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

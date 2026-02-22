@@ -1,9 +1,12 @@
 package com.criel.edove.feign.store.client;
 
+import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
 import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
+import com.criel.edove.feign.store.dto.ShelfQueryDTO;
 import com.criel.edove.feign.store.vo.ParcelCheckInVO;
+import com.criel.edove.feign.store.vo.ShelfAndLayerVO;
 import com.criel.edove.feign.store.vo.StoreVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +32,12 @@ public interface StoreFeignClient {
      */
     @PostMapping("/shelf/choose")
     Result<ParcelCheckInVO> parcelCheckIn(@RequestBody ParcelCheckInDTO parcelCheckInDTO);
+
+    /**
+     * （店长 / 店员）分页查询货架 + 货架层
+     */
+    @GetMapping("/shelf/query")
+    Result<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(ShelfQueryDTO shelfQueryDTO);
 
     /**
      * （店长/店员）查询所属门店信息
