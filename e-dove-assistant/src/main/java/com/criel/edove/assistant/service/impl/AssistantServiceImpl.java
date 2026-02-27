@@ -25,6 +25,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 大模型调用服务
@@ -41,7 +43,7 @@ public class AssistantServiceImpl implements AssistantService {
     private final SnowflakeService snowflakeService;
     private final RedissonClient redissonClient;
 
-    private static final MediaType UTF8_TEXT = new MediaType("text", "plain", StandardCharsets.UTF_8);
+    private static final MediaType UTF8_JSON = new MediaType("application", "json", StandardCharsets.UTF_8);
 
     /**
      * 生成指定数量的 门店所在区的 随机地址
@@ -88,14 +90,20 @@ public class AssistantServiceImpl implements AssistantService {
         // timeout 为0表示永不超时
         SseEmitter emitter = new SseEmitter(0L);
         TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);
+        // 统计序列编号
+        AtomicLong seq = new AtomicLong(0);
 
         tokenStream
                 .onPartialResponse(partial -> { // 每个分片 token 到达时触发
                     try {
+                        Map<String, String> dataMap = Map.of(
+                                "seq", String.valueOf(seq.incrementAndGet()),
+                                "content", partial == null ? "" : partial
+                        );
                         emitter.send(
                                 SseEmitter.event()
                                         .name("token")
-                                        .data(partial, UTF8_TEXT) // 发送该token
+                                        .data(dataMap, UTF8_JSON) // 发送包含本次token的数据
                         );
                     } catch (Exception e) {
                         emitter.completeWithError(e);
@@ -103,11 +111,13 @@ public class AssistantServiceImpl implements AssistantService {
                 })
                 .onCompleteResponse(resp -> { // 模型完整结束时触发
                     try {
-                        String fullText = resp.aiMessage().text(); // 完整回复
+                        Map<String, Boolean> dataMap = Map.of(
+                                "finish", true
+                        );
                         emitter.send(
                                 SseEmitter.event()
                                         .name("done")
-                                        .data(fullText, UTF8_TEXT) // 发送完整内容
+                                        .data(dataMap, UTF8_JSON) // 发送结束信息
                         );
                     } catch (Exception ignored) {
                     } finally {

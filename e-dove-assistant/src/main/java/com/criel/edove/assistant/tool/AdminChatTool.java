@@ -50,6 +50,7 @@ public class AdminChatTool {
 
     @Tool("""
             获取当前时间。
+            这个功能是给你需要时使用的，而不属于系统业务，不需要呈现给用户。
             (本工具返回的data应不为null)
             """)
     public ToolResult<LocalDateTime> queryCurrentTime() {
