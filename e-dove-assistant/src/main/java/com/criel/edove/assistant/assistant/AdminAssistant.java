@@ -17,7 +17,7 @@ import dev.langchain4j.service.spring.AiServiceWiringMode;
 )
 public interface AdminAssistant {
 
-    @SystemMessage(fromResource = "/prompt/system-prompt-admin.txt")
+    @SystemMessage(fromResource = "/prompt/system-prompt-admin.md")
     TokenStream adminChat(@MemoryId String memeryId, @UserMessage String message);
 
 }
