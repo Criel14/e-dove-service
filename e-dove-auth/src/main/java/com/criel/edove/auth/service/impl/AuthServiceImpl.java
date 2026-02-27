@@ -26,6 +26,7 @@ import com.criel.edove.common.exception.BizException;
 import com.criel.edove.auth.service.AuthService;
 import com.criel.edove.auth.vo.SignInVO;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.dto.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                 UserInfoDTO userInfoDTO = new UserInfoDTO();
                 userInfoDTO.setUserId(checkedUserAuth.getUserId());
                 userInfoDTO.setPhone(checkedUserAuth.getPhone());
-                userFeignClient.createUserInfo(userInfoDTO);
+                RemoteCallUtil.callAndUnwrap(() -> userFeignClient.createUserInfo(userInfoDTO));
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -187,7 +188,7 @@ public class AuthServiceImpl implements AuthService {
             if (StrUtil.isEmpty(registerDTO.getAvatarUrl())) {
                 userInfoDTO.setAvatarUrl("https://api.dicebear.com/9.x/identicon/svg?seed=" + username);
             }
-            userFeignClient.createUserInfo(userInfoDTO);
+            RemoteCallUtil.callAndUnwrap(() -> userFeignClient.createUserInfo(userInfoDTO));
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

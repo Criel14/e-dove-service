@@ -11,6 +11,7 @@ import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.store.dto.LayerReduceCountDTO;
 import com.criel.edove.store.dto.ParcelCheckInDTO;
@@ -354,11 +355,10 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
      * 获取用户所属门店：远程调用user服务
      */
     private Long getUserStoreId(Long userId) {
-        Result<Long> result = userFeignClient.getUserStoreId(userId);
-        if (result.getData() == null) {
-            throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
-        }
-        return result.getData();
+        return RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.getUserStoreId(userId),
+                ErrorCode.USER_STORE_NOT_BOUND_ERROR
+        );
     }
 
     /**

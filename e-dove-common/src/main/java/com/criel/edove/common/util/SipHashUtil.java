@@ -5,6 +5,9 @@ package com.criel.edove.common.util;
  */
 public class SipHashUtil {
 
+    private SipHashUtil() {
+    }
+
     /**
      * 计算SipHash-2-4并返回8字节的byte数组
      *

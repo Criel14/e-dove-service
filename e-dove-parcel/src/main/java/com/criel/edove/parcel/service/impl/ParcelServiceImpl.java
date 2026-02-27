@@ -12,6 +12,7 @@ import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.assistant.client.AssistantFeignClient;
 import com.criel.edove.feign.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.feign.assistant.vo.AddressGenerateVO;
@@ -312,11 +313,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      */
     private StoreVO getStoreInfoByUser() {
         Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
-        Result<StoreVO> storeVOResult = storeFeignClient.getUserStore(userId);
-        if (!storeVOResult.getStatus()) {
-            throw new BizException(storeVOResult.getCode(), storeVOResult.getMessage());
-        }
-        return storeVOResult.getData();
+        return RemoteCallUtil.callAndUnwrap(() -> storeFeignClient.getUserStore(userId));
     }
 
     /**
@@ -330,11 +327,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
                 district
         );
         // 远程调用
-        Result<AddressGenerateVO> addressGenerateVOResult = assistantFeignClient.generateAddresses(addressGenerateDTO);
-        if (!addressGenerateVOResult.getStatus()) {
-            throw new BizException(addressGenerateVOResult.getCode(), addressGenerateVOResult.getMessage());
-        }
-        AddressGenerateVO addressGenerateVO = addressGenerateVOResult.getData();
+        AddressGenerateVO addressGenerateVO = RemoteCallUtil.callAndUnwrap(
+                () -> assistantFeignClient.generateAddresses(addressGenerateDTO)
+        );
         return addressGenerateVO.getAddresses();
     }
 
@@ -342,11 +337,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * 在数据库中抽取指定数量的手机号
      */
     private List<String> getPhones(Integer count) {
-        Result<List<String>> result = userFeignClient.extractPhone(count);
-        if (!result.getStatus()) {
-            throw new BizException(ErrorCode.PARCEL_GENERATE_ERROR);
-        }
-        return result.getData();
+        return RemoteCallUtil.callAndUnwrap(() -> userFeignClient.extractPhone(count));
     }
 
     /**
@@ -391,11 +382,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         for (Parcel parcel : parcels) {
             Long storeId = parcel.getStoreId();
             if (!storeMap.containsKey(storeId)) {
-                Result<StoreVO> result = storeFeignClient.getStoreInfoById(storeId);
-                if (!result.getStatus()) {
-                    throw new BizException(result.getCode(), result.getMessage());
-                }
-                StoreVO storeVO = result.getData();
+                StoreVO storeVO = RemoteCallUtil.callAndUnwrap(
+                        () -> storeFeignClient.getStoreInfoById(storeId)
+                );
                 // 更新map
                 storeMap.put(storeId, storeVO.getStoreName());
             }
@@ -424,14 +413,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     private String getPickCode(Parcel parcel) {
         ParcelCheckInDTO parcelCheckInDTO = new ParcelCheckInDTO();
         BeanUtils.copyProperties(parcel, parcelCheckInDTO);
-        Result<ParcelCheckInVO> result = storeFeignClient.parcelCheckIn(parcelCheckInDTO);
-        if (!result.getStatus()) {
-            throw new BizException(result.getCode(), result.getMessage());
-        }
-        ParcelCheckInVO parcelCheckInVO = result.getData();
-        if (parcelCheckInVO == null) {
-            throw new BizException(ErrorCode.SYSTEM_ERROR);
-        }
+        ParcelCheckInVO parcelCheckInVO = RemoteCallUtil.callAndUnwrap(
+                () -> storeFeignClient.parcelCheckIn(parcelCheckInDTO)
+        );
         return parcelCheckInVO.getPickCode();
     }
 
@@ -441,12 +425,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * @return 用户所属的门店ID
      */
     private Long getUserStoreId(Long userId) {
-        // 查询当前用户所属门店
-        Result<Long> result = userFeignClient.getUserStoreId(userId);
-        if (!result.getStatus()) {
-            throw new BizException(result.getCode(), result.getMessage());
-        }
-        return result.getData();
+        return RemoteCallUtil.callAndUnwrap(() -> userFeignClient.getUserStoreId(userId));
     }
 
     /**
@@ -467,11 +446,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         if (StrUtil.isBlank(phone)) {
             // TODO 验证当前用户（发起请求的用户）的管理员身份
             Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
-            Result<RolesVO> result = authFeignClient.getUserRoles(userId);
-            if (!result.getStatus()) {
-                throw new BizException(result.getCode(), result.getMessage());
-            }
-            RolesVO rolesVO = result.getData();
+            RolesVO rolesVO = RemoteCallUtil.callAndUnwrap(
+                    () -> authFeignClient.getUserRoles(userId)
+            );
             List<String> roleNames = rolesVO.getRoleNames();
             if (!(roleNames.contains(RoleEnum.ADMIN.getRoleName())
                     || roleNames.contains(RoleEnum.STATION_ADMIN.getRoleName())
@@ -512,10 +489,10 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         String[] codes = pickCode.split("-");
         Integer shelfNo = Integer.valueOf(codes[0]);
         Integer layerNo = Integer.valueOf(codes[1]);
-        Result<Void> result = storeFeignClient.layerReduceCount(new LayerReduceCountDTO(storeId, shelfNo, layerNo));
-        if (!result.getStatus()) {
-            throw new BizException(result.getCode(), result.getMessage());
-        }
+        LayerReduceCountDTO layerReduceCountDTO = new LayerReduceCountDTO(storeId, shelfNo, layerNo);
+        RemoteCallUtil.callAndUnwrap(
+                () -> storeFeignClient.layerReduceCount(layerReduceCountDTO)
+        );
     }
 
     /**
@@ -523,17 +500,9 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      */
     private String verifyBarcodeAndGetPhone(String identityCode) {
         // 通过用户身份码获取用户手机号
-        Result<VerifyBarcodeVO> result = userFeignClient.verifyBarcode(identityCode);
-        if (!result.getStatus()) {
-            throw new BizException(result.getCode(), result.getMessage());
-        }
-        VerifyBarcodeVO verifyBarcodeVO = result.getData();
-
-        // 如果status是true，但是数据为空，则说明有问题
-        if (verifyBarcodeVO == null) {
-            throw new BizException(ErrorCode.SYSTEM_ERROR);
-        }
-
+        VerifyBarcodeVO verifyBarcodeVO = RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.verifyBarcode(identityCode)
+        );
         return verifyBarcodeVO.getPhone();
     }
 }

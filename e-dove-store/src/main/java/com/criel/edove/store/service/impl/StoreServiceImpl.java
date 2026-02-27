@@ -11,6 +11,7 @@ import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.dto.UpdateUserInfoDTO;
 import com.criel.edove.feign.user.vo.UserInfoVO;
@@ -63,11 +64,11 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
             userId = UserInfoContextHolder.getUserInfoContext().getUserId();
         }
         // 远程调用获取用户所属门店ID
-        Result<Long> result = userFeignClient.getUserStoreId(userId);
-        if (result.getData() == null) {
-            throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
-        }
-        Long storeId = result.getData();
+        Long finalUserId = userId;
+        Long storeId = RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.getUserStoreId(finalUserId),
+                ErrorCode.USER_STORE_NOT_BOUND_ERROR
+        );
 
         // 查询门店信息
         Store store = storeMapper.selectById(storeId);
@@ -104,11 +105,10 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         storeMapper.insert(store);
 
         // 绑定用户与门店
-        try {
-            userFeignClient.updateStoreBind(storeId);
-        } catch (Exception e) {
-            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
-        }
+        RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.updateStoreBind(storeId),
+                ErrorCode.USER_STORE_BOUND_ERROR
+        );
 
         // 返回门店信息
         StoreVO storeVO = new StoreVO();
@@ -179,11 +179,10 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
         }
 
         // 绑定用户与门店
-        try {
-            userFeignClient.updateStoreBind(storeId);
-        } catch (Exception e) {
-            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
-        }
+        RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.updateStoreBind(storeId),
+                ErrorCode.USER_STORE_BOUND_ERROR
+        );
     }
 
     /**
@@ -224,18 +223,19 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
     private void checkAndUnbind(Long storeId) {
         // （远程调用）检查用户是否绑定该门店
         Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
-        Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo(userId);
-        UserInfoVO userInfoVO = userInfoResult.getData();
+        UserInfoVO userInfoVO = RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.getUserInfo(userId)
+        );
+
         if (!Objects.equals(storeId, userInfoVO.getStoreId())) {
             throw new BizException(ErrorCode.USER_STORE_BOUND_NOT_MATCHED);
         }
 
         // 解绑用户与门店
-        try {
-            userFeignClient.updateStoreBind(null);
-        } catch (Exception e) {
-            throw new BizException(ErrorCode.USER_STORE_BOUND_ERROR);
-        }
+        RemoteCallUtil.callAndUnwrap(
+                () -> userFeignClient.updateStoreBind(null),
+                ErrorCode.USER_STORE_BOUND_ERROR
+        );
     }
 
 }

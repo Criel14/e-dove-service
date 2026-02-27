@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
  */
 public class Base36Util {
 
+    private Base36Util() {
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Base36Util.class);
 
     /**

@@ -9,6 +9,7 @@ import com.criel.edove.common.context.UserInfoContext;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
 import com.criel.edove.common.exception.BizException;
+import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.auth.client.AuthFeignClient;
 import com.criel.edove.feign.auth.dto.UpdateUserAuthDTO;
 import com.criel.edove.user.dto.UpdateUserInfoDTO;
@@ -136,8 +137,8 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 userStoreIdBucket.set(userInfo.getStoreId(), Duration.ofMinutes(userStoreIdTtl));
                 return userInfo.getStoreId();
             } else {
-                // 如果用户没有所属门店，则返回null即可
-                return null;
+                // 未绑定门店则抛出异常
+                throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);
             }
         }
     }
@@ -220,7 +221,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         // 更新用户认证信息（需要更新再远程调用）
         if (StrUtil.isNotEmpty(updateUserInfoDTO.getUsername()) || StrUtil.isNotEmpty(updateUserInfoDTO.getEmail())) {
             UpdateUserAuthDTO updateUserAuthDTO = new UpdateUserAuthDTO(userInfo.getUsername(), userInfo.getEmail());
-            authFeignClient.update(updateUserAuthDTO);
+            RemoteCallUtil.callAndUnwrap(() -> authFeignClient.update(updateUserAuthDTO));
         }
 
         return new UserInfoVO(
