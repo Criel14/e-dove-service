@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 管理端AI聊天工具
@@ -50,6 +52,36 @@ public class AdminChatTool {
             throw new RuntimeException("系统异常，请联系管理员");
         }
         return rBucket.get();
+    }
+
+    /**
+     * 统一处理远程调用结果
+     *
+     * @return 成功返回ToolResult.success(data)，失败返回ToolResult.error(message)
+     */
+    private <T> ToolResult<T> remoteCallAndCheck(Supplier<Result<T>> remoteCall) {
+        Result<T> result = remoteCall.get();
+        if (!result.getStatus()) {
+            return ToolResult.error(result.getMessage());
+        }
+        return ToolResult.success(result.getData());
+    }
+
+    /**
+     * 封装：先根据 memoryId 获取 userId，再做远程调用 + 结果校验
+     *
+     * @param remoteCallWithUserId 远程调用函数，参数仅为一个，即 userId
+     */
+    private <T> ToolResult<T> remoteCallWithUserAndCheck(
+            String memoryId,
+            Function<Long, Result<T>> remoteCallWithUserId
+    ) {
+        try {
+            Long userId = getUserId(memoryId);
+            return remoteCallAndCheck(() -> remoteCallWithUserId.apply(userId));
+        } catch (RuntimeException e) {
+            return ToolResult.error(e.getMessage());
+        }
     }
 
     @Tool("""
@@ -84,7 +116,8 @@ public class AdminChatTool {
               - outTime：出库/取件时间（yyyy-MM-dd HH:mm:ss）
             """)
     public ToolResult<ParcelVO> queryParcelByTrackingNumber(
-            @P("快递包裹的完整运单号") String trackingNumber) {
+            @P("快递包裹的完整运单号") String trackingNumber
+    ) {
         // 参数校验
         if (StrUtil.isEmpty(trackingNumber)) {
             return ToolResult.error("运单号不能为空");
@@ -132,7 +165,8 @@ public class AdminChatTool {
             @P("(选填) 要查询的时间段类型：入库时间\"inTime\" 或 出库时间\"outTime\" 或 创建时间\"createTime\"，为空表示不指定查询时间") String timeType,
             @P("(选填) 要查询的时间段的开始时间，格式：\"yyyy-MM-dd\"") LocalDate startTime,
             @P("(选填) 要查询的时间段的结束时间，格式：\"yyyy-MM-dd\"") LocalDate endTime,
-            @ToolMemoryId String memoryId) {
+            @ToolMemoryId String memoryId
+    ) {
         // 参数校验
         if (pageNum == null || pageSize == null) {
             return ToolResult.error("分页参数不能为空");
@@ -149,13 +183,7 @@ public class AdminChatTool {
                     timeType, startTime, endTime,
                     userId
             );
-            Result<PageResult<ParcelVO>> result = parcelFeignClient.adminInfo(parcelAdminQueryDTO);
-            // 远程调用异常
-            if (!result.getStatus()) {
-                return ToolResult.error(result.getMessage());
-            }
-
-            return ToolResult.success(result.getData());
+            return remoteCallAndCheck(() -> parcelFeignClient.adminInfo(parcelAdminQueryDTO));
 
         } catch (RuntimeException e) {
             return ToolResult.error(e.getMessage());
@@ -189,21 +217,18 @@ public class AdminChatTool {
     public ToolResult<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(
             @P("(必填) 分页参数：页码") Integer pageNum,
             @P("(必填) 分页参数：每页大小") Integer pageSize,
-            @ToolMemoryId String memoryId) {
+            @ToolMemoryId String memoryId
+    ) {
+        // 参数校验
+        if (pageNum == null || pageSize == null) {
+            return ToolResult.error("分页参数不能为空");
+        }
         try {
             // 从redis中获取用户ID
             Long userId = getUserId(memoryId);
-
             // 远程调用
             ShelfQueryDTO shelfQueryDTO = new ShelfQueryDTO(pageNum, pageSize, userId);
-            Result<PageResult<ShelfAndLayerVO>> result = storeFeignClient.queryShelfAndLayer(shelfQueryDTO);
-            // 远程调用异常
-            if (!result.getStatus()) {
-                return ToolResult.error(result.getMessage());
-            }
-
-            return ToolResult.success(result.getData());
-
+            return remoteCallAndCheck(() -> storeFeignClient.queryShelfAndLayer(shelfQueryDTO));
         } catch (RuntimeException e) {
             return ToolResult.error(e.getMessage());
         }
@@ -225,21 +250,7 @@ public class AdminChatTool {
               - status: 门店状态（1=营业、2=休息、3=注销），不需要将状态编码呈现给用户
             """)
     public ToolResult<StoreVO> getUserStore(@ToolMemoryId String memoryId) {
-        try {
-            // 从redis中获取用户ID
-            Long userId = getUserId(memoryId);
-
-            // 远程调用
-            Result<StoreVO> result = storeFeignClient.getUserStore(userId);
-            // 远程调用异常
-            if (!result.getStatus()) {
-                return ToolResult.error(result.getMessage());
-            }
-            return ToolResult.success(result.getData());
-
-        } catch (RuntimeException e) {
-            return ToolResult.error(e.getMessage());
-        }
+        return remoteCallWithUserAndCheck(memoryId, storeFeignClient::getUserStore);
     }
 
     @Tool("""
@@ -255,21 +266,7 @@ public class AdminChatTool {
               - avatarUrl: 用户头像URL
             """)
     public ToolResult<UserInfoVO> getUserInfo(@ToolMemoryId String memoryId) {
-        try {
-            // 从redis中获取用户ID
-            Long userId = getUserId(memoryId);
-
-            // 远程调用
-            Result<UserInfoVO> result = userFeignClient.getUserInfo(userId);
-            // 远程调用异常
-            if (!result.getStatus()) {
-                return ToolResult.error(result.getMessage());
-            }
-            return ToolResult.success(result.getData());
-
-        } catch (RuntimeException e) {
-            return ToolResult.error(e.getMessage());
-        }
+        return remoteCallWithUserAndCheck(memoryId, userFeignClient::getUserInfo);
     }
 
 }
