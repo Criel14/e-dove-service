@@ -107,4 +107,9 @@ public class ParcelVO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime outTime;
 
+    /**
+     * 包裹创建时间
+     */
+    private LocalDateTime createTime;
+
 }

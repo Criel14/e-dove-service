@@ -114,6 +114,7 @@ public class AdminChatTool {
               - status：包裹状态（0未入库、1已入库、2已取出、3滞留、4退回）
               - inTime：入库时间（yyyy-MM-dd HH:mm:ss）
               - outTime：出库/取件时间（yyyy-MM-dd HH:mm:ss）
+              - createTime：包裹创建时间
             """)
     public ToolResult<ParcelVO> queryParcelByTrackingNumber(
             @P("快递包裹的完整运单号") String trackingNumber
@@ -155,6 +156,7 @@ public class AdminChatTool {
               - status：包裹状态（0未入库、1已入库、2已取出、3滞留、4退回）
               - inTime：入库时间（yyyy-MM-dd HH:mm:ss）
               - outTime：出库/取件时间（yyyy-MM-dd HH:mm:ss）
+              - createTime：包裹创建时间
             """)
     public ToolResult<PageResult<ParcelVO>> queryParcel(
             @P("(必填) 分页参数：页码") Integer pageNum,

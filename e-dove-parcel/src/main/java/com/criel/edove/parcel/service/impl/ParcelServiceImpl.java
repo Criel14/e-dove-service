@@ -173,7 +173,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         }
 
         // 查询时间段
-        if (StrUtil.isNotEmpty(timeType) && startTime != null && endTime != null) {
+        if (startTime != null && endTime != null) {
             // 因为 endTime 是LocalDate，而entity类的时间是LocalDateTime，会导致只统计到最后一天0点，所以要加1天
             LocalDateTime start = startTime.atStartOfDay();
             LocalDateTime end = endTime.plusDays(1).atStartOfDay();
@@ -191,7 +191,11 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
                     parcelWrapper.ge(Parcel::getCreateTime, start);
                     parcelWrapper.lt(Parcel::getCreateTime, end);
                 }
-                default -> throw new BizException(ErrorCode.INVALID_TIME_TYPE);
+                default -> {
+                    // 默认按照最后更新时间来查
+                    parcelWrapper.ge(Parcel::getUpdateTime, start);
+                    parcelWrapper.lt(Parcel::getUpdateTime, end);
+                }
             }
         }
 
