@@ -91,8 +91,10 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
      * 获取当前登录用户的用户信息
      */
     @Override
-    public UserInfoVO getUserInfo() {
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+    public UserInfoVO getUserInfo(Long userId) {
+        if (userId == null) {
+            userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        }
         LambdaQueryWrapper<UserInfo> userInfoWrapper = new LambdaQueryWrapper<>();
         userInfoWrapper.eq(UserInfo::getUserId, userId);
         UserInfo userInfo = userInfoMapper.selectOne(userInfoWrapper);

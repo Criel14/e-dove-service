@@ -223,7 +223,8 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      */
     private void checkAndUnbind(Long storeId) {
         // （远程调用）检查用户是否绑定该门店
-        Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Result<UserInfoVO> userInfoResult = userFeignClient.getUserInfo(userId);
         UserInfoVO userInfoVO = userInfoResult.getData();
         if (!Objects.equals(storeId, userInfoVO.getStoreId())) {
             throw new BizException(ErrorCode.USER_STORE_BOUND_NOT_MATCHED);

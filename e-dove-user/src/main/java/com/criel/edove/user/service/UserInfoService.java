@@ -20,7 +20,7 @@ public interface UserInfoService extends IService<UserInfo> {
 
     UserInfoVO createUserInfo(UserInfoDTO userInfoDTO);
 
-    UserInfoVO getUserInfo();
+    UserInfoVO getUserInfo(Long userId);
 
     UserInfoVO updateUserInfo(UpdateUserInfoDTO updateUserInfoDTO);
 

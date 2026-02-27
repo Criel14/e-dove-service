@@ -28,7 +28,7 @@ public interface UserFeignClient {
      * 获取用户信息：需要保证请求头有数据
      */
     @GetMapping("/user/info")
-    Result<UserInfoVO> getUserInfo();
+    Result<UserInfoVO> getUserInfo(@RequestParam(required = false) Long userId);
 
     /**
      * 查询用户所属门店id：需要保证请求头有数据

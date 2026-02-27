@@ -33,14 +33,6 @@ public class UserController {
     private final BarcodeService barcodeService;
 
     /**
-     * 连接测试
-     */
-    @GetMapping("/ping")
-    public Result<PingVO> ping(@RequestParam PingDTO pingDTO) {
-        return Result.success(new PingVO(pingDTO.getMessage()));
-    }
-
-    /**
      * 创建新用户信息
      * 仅远程调用：需要先在e-dove-auth创建用户认证信息，所以参数中的userId不可为null
      */
@@ -53,8 +45,8 @@ public class UserController {
      * 获取用户信息
      */
     @GetMapping("/info")
-    public Result<UserInfoVO> getUserInfo() {
-        return Result.success(userInfoService.getUserInfo());
+    public Result<UserInfoVO> getUserInfo(@RequestParam(required = false) Long userId) {
+        return Result.success(userInfoService.getUserInfo(userId));
     }
 
     /**

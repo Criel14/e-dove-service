@@ -16,6 +16,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class UserInfoVO implements Serializable {
 
+    /**
+     * 用户ID
+     */
     @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
@@ -25,12 +28,24 @@ public class UserInfoVO implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long storeId;
 
+    /**
+     * 用户名
+     */
     private String username;
 
+    /**
+     * 用户手机号（必有）
+     */
     private String phone;
 
+    /**
+     * 用户邮箱（绑定了才有值）
+     */
     private String email;
 
+    /**
+     * 用户头像URL
+     */
     private String avatarUrl;
 
 }

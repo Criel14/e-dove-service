@@ -12,6 +12,8 @@ import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.ShelfQueryDTO;
 import com.criel.edove.feign.store.vo.ShelfAndLayerVO;
 import com.criel.edove.feign.store.vo.StoreVO;
+import com.criel.edove.feign.user.client.UserFeignClient;
+import com.criel.edove.feign.user.vo.UserInfoVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -32,6 +34,7 @@ public class AdminChatTool {
 
     private final ParcelFeignClient parcelFeignClient;
     private final StoreFeignClient storeFeignClient;
+    private final UserFeignClient userFeignClient;
 
     private final RedissonClient redissonClient;
 
@@ -95,7 +98,7 @@ public class AdminChatTool {
     }
 
     @Tool("""
-            根据条件分页查询到达用户所属门店的包裹信息，查询结果仅包括到达用户所属门店的包裹，不包括其他门店。
+            根据条件分页查询到达当前对话用户所属门店的包裹信息，查询结果仅包括到达用户所属门店的包裹，不包括其他门店。
             按情况而定，可能需要多次调用查询，可以增加pageSize的大小以减少查询次数，例如100。
             例如查询近一周的包裹，你需要多次查询，直到分页查询完才结束。
             本工具部分参数为选填，表示不作为数据库查询条件，例如不指定运单号，则查询所有符合其他条件的包裹；
@@ -160,7 +163,7 @@ public class AdminChatTool {
     }
 
     @Tool("""
-            分页查询用户所属门店的货架和货架层信息。
+            分页查询当前对话用户所属门店的货架和货架层信息。
             根据获取到的信息，你可以总结每个货架/货架层的使用率等信息。
             按情况而定，可能需要多次调用查询，可以增加pageSize的大小以减少查询次数，例如50。
             (本工具返回的data应不为null)
@@ -207,7 +210,7 @@ public class AdminChatTool {
     }
 
     @Tool("""
-            查询用户所属门店信息。
+            查询当前对话用户的所属门店信息。
             (本工具返回的data应不为null)
             (推荐用表格展示查询结果)
             返回数据字段说明：
@@ -228,6 +231,36 @@ public class AdminChatTool {
 
             // 远程调用
             Result<StoreVO> result = storeFeignClient.getUserStore(userId);
+            // 远程调用异常
+            if (!result.getStatus()) {
+                return ToolResult.error(result.getMessage());
+            }
+            return ToolResult.success(result.getData());
+
+        } catch (RuntimeException e) {
+            return ToolResult.error(e.getMessage());
+        }
+    }
+
+    @Tool("""
+            查询当前对话用户的信息。
+            (本工具返回的data应不为null)
+            (推荐用表格展示查询结果)
+            返回数据字段说明：
+              - userId: 用户ID
+              - storeId: 所属门店ID（工作人员才有值）
+              - username: 用户名
+              - phone: 用户手机号（必有）
+              - email: 用户邮箱（绑定了才有值）
+              - avatarUrl: 用户头像URL
+            """)
+    public ToolResult<UserInfoVO> getUserInfo(@ToolMemoryId String memoryId) {
+        try {
+            // 从redis中获取用户ID
+            Long userId = getUserId(memoryId);
+
+            // 远程调用
+            Result<UserInfoVO> result = userFeignClient.getUserInfo(userId);
             // 远程调用异常
             if (!result.getStatus()) {
                 return ToolResult.error(result.getMessage());
