@@ -311,7 +311,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * 获取用户所在门店信息
      */
     private StoreVO getStoreInfoByUser() {
-        Result<StoreVO> storeVOResult = storeFeignClient.getStoreInfoByUser();
+        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Result<StoreVO> storeVOResult = storeFeignClient.getUserStore(userId);
         if (!storeVOResult.getStatus()) {
             throw new BizException(storeVOResult.getCode(), storeVOResult.getMessage());
         }

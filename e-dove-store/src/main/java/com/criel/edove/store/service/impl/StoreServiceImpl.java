@@ -57,9 +57,12 @@ public class StoreServiceImpl extends ServiceImpl<StoreMapper, Store> implements
      * 查询用户所属门店信息，若未绑定门店，则抛出“未绑定门店异常”
      */
     @Override
-    public StoreVO getStoreInfoByUser() {
+    public StoreVO getStoreInfoByUser(Long userId) {
+        // 如果没传入用户ID，则从ThreadLocal拿
+        if (userId == null) {
+            userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        }
         // 远程调用获取用户所属门店ID
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
         Result<Long> result = userFeignClient.getUserStoreId(userId);
         if (result.getData() == null) {
             throw new BizException(ErrorCode.USER_STORE_NOT_BOUND_ERROR);

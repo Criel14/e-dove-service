@@ -11,6 +11,7 @@ import com.criel.edove.feign.parcel.vo.ParcelVO;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.ShelfQueryDTO;
 import com.criel.edove.feign.store.vo.ShelfAndLayerVO;
+import com.criel.edove.feign.store.vo.StoreVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -99,6 +100,7 @@ public class AdminChatTool {
             例如查询近一周的包裹，你需要多次查询，直到分页查询完才结束。
             本工具部分参数为选填，表示不作为数据库查询条件，例如不指定运单号，则查询所有符合其他条件的包裹；
             (本工具返回的data应不为null)
+            (推荐用表格展示查询结果)
             返回数据字段说明：
               - id：包裹ID
               - trackingNumber：快递运单号
@@ -162,6 +164,7 @@ public class AdminChatTool {
             根据获取到的信息，你可以总结每个货架/货架层的使用率等信息。
             按情况而定，可能需要多次调用查询，可以增加pageSize的大小以减少查询次数，例如50。
             (本工具返回的data应不为null)
+            (推荐用表格展示查询结果)
             返回数据字段说明：
               - id：货架ID
               - storeId：所属门店ID
@@ -196,6 +199,39 @@ public class AdminChatTool {
                 return ToolResult.error(result.getMessage());
             }
 
+            return ToolResult.success(result.getData());
+
+        } catch (RuntimeException e) {
+            return ToolResult.error(e.getMessage());
+        }
+    }
+
+    @Tool("""
+            查询用户所属门店信息。
+            (本工具返回的data应不为null)
+            (推荐用表格展示查询结果)
+            返回数据字段说明：
+              - id: 门店ID
+              - managerUserId
+              - managerPhone: 门店管理员手机号
+              - storeName: 门店名称
+              - addrProvince: 门店地址-省
+              - addrCity: 门店地址-市
+              - addrDistrict: 门店地址-区
+              - addrDetail: 门店地址-详细地址
+              - status: 门店状态（1=营业、2=休息、3=注销），不需要将状态编码呈现给用户
+            """)
+    public ToolResult<StoreVO> getUserStore(@ToolMemoryId String memoryId) {
+        try {
+            // 从redis中获取用户ID
+            Long userId = getUserId(memoryId);
+
+            // 远程调用
+            Result<StoreVO> result = storeFeignClient.getUserStore(userId);
+            // 远程调用异常
+            if (!result.getStatus()) {
+                return ToolResult.error(result.getMessage());
+            }
             return ToolResult.success(result.getData());
 
         } catch (RuntimeException e) {

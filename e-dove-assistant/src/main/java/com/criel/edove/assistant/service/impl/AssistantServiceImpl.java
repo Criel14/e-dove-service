@@ -89,10 +89,10 @@ public class AssistantServiceImpl implements AssistantService {
 
         // timeout 为0表示永不超时
         SseEmitter emitter = new SseEmitter(0L);
-        TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);
         // 统计序列编号
         AtomicLong seq = new AtomicLong(0);
 
+        TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);
         tokenStream
                 .onPartialResponse(partial -> { // 每个分片 token 到达时触发
                     try {

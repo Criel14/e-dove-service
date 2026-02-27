@@ -38,8 +38,8 @@ public class StoreController {
      * 若未绑定门店，则抛出“未绑定门店异常”，之后用户可以查询门店，并在门店列表中绑定门店
      */
     @GetMapping("/my")
-    public Result<StoreVO> getStoreInfoByUser() {
-        return Result.success(storeService.getStoreInfoByUser());
+    public Result<StoreVO> getUserStore(@RequestParam(required = false) Long userId) {
+        return Result.success(storeService.getStoreInfoByUser(userId));
     }
 
     /**

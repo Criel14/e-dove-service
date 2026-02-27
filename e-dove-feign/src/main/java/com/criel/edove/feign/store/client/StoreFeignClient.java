@@ -10,10 +10,7 @@ import com.criel.edove.feign.store.vo.ShelfAndLayerVO;
 import com.criel.edove.feign.store.vo.StoreVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * e-dove-store模块的远程调用
@@ -45,7 +42,7 @@ public interface StoreFeignClient {
      * 若未绑定门店，则抛出“未绑定门店异常”
      */
     @GetMapping("/store/my")
-    Result<StoreVO> getStoreInfoByUser();
+    Result<StoreVO> getUserStore(@RequestParam Long userId);
 
     /**
      * （仅远程调用）根据门店ID查询门店信息

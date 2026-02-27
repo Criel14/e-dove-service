@@ -17,7 +17,7 @@ public interface StoreService extends IService<Store> {
 
     PageResult<StoreVO> page(int pageNum, int pageSize, String storeName);
 
-    StoreVO getStoreInfoByUser();
+    StoreVO getStoreInfoByUser(Long userId);
 
     StoreVO createStore(StoreDTO storeDTO);
 
