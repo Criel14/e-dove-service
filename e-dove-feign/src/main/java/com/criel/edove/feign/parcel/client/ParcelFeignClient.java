@@ -3,6 +3,7 @@ package com.criel.edove.feign.parcel.client;
 import com.criel.edove.common.result.PageResult;
 import com.criel.edove.common.result.Result;
 import com.criel.edove.feign.parcel.dto.ParcelAdminQueryDTO;
+import com.criel.edove.feign.parcel.dto.ParcelUserQueryDTO;
 import com.criel.edove.feign.parcel.vo.ParcelVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
@@ -26,5 +27,11 @@ public interface ParcelFeignClient {
      */
     @GetMapping("/parcel/admin/info")
     Result<PageResult<ParcelVO>> adminInfo(@SpringQueryMap ParcelAdminQueryDTO parcelAdminQueryDTO);
+
+    /**
+     * 用户端分页查询个人包裹信息
+     */
+    @GetMapping("/parcel/user/info")
+    Result<PageResult<ParcelVO>> userInfo(ParcelUserQueryDTO parcelUserQueryDTO);
 
 }

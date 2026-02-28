@@ -7,6 +7,7 @@ import com.criel.edove.common.result.Result;
 import com.criel.edove.common.result.ToolResult;
 import com.criel.edove.feign.parcel.client.ParcelFeignClient;
 import com.criel.edove.feign.parcel.dto.ParcelAdminQueryDTO;
+import com.criel.edove.feign.parcel.dto.ParcelUserQueryDTO;
 import com.criel.edove.feign.parcel.vo.ParcelVO;
 import com.criel.edove.feign.store.client.StoreFeignClient;
 import com.criel.edove.feign.store.dto.ShelfQueryDTO;
@@ -92,6 +93,22 @@ public class UserChatTool {
     }
 
     @Tool("""
+            查询当前对话用户的信息。
+            (本工具返回的data应不为null)
+            (推荐用表格展示查询结果)
+            返回数据字段说明：
+              - userId: 用户ID
+              - storeId: 所属门店ID（工作人员才有值）
+              - username: 用户名
+              - phone: 用户手机号（必有）
+              - email: 用户邮箱（绑定了才有值）
+              - avatarUrl: 用户头像URL
+            """)
+    public ToolResult<UserInfoVO> getUserInfo(@ToolMemoryId String memoryId) {
+        return remoteCallWithUserAndCheck(memoryId, userFeignClient::getUserInfo);
+    }
+
+    @Tool("""
             根据运单号查询包裹信息；支持在所有包裹中查询。
             (本工具返回的data应不为null)
             返回数据字段说明：
@@ -114,9 +131,7 @@ public class UserChatTool {
               - outTime：出库/取件时间（yyyy-MM-dd HH:mm:ss）
               - createTime：包裹创建时间
             """)
-    public ToolResult<ParcelVO> queryParcelByTrackingNumber(
-            @P("快递包裹的完整运单号") String trackingNumber
-    ) {
+    public ToolResult<ParcelVO> queryParcelByTrackingNumber(@P("快递包裹的完整运单号") String trackingNumber) {
         // 参数校验
         if (StrUtil.isEmpty(trackingNumber)) {
             return ToolResult.error("运单号不能为空");
@@ -130,19 +145,46 @@ public class UserChatTool {
     }
 
     @Tool("""
-            查询当前对话用户的信息。
+            分页查询当前对话用户的近30日包裹信息。不支持查询更久远的包裹信息。
+            按情况而定，可能需要多次调用查询，直到分页查询完才结束。
+            可以增加pageSize的大小以减少查询次数，例如100。
             (本工具返回的data应不为null)
-            (推荐用表格展示查询结果)
             返回数据字段说明：
-              - userId: 用户ID
-              - storeId: 所属门店ID（工作人员才有值）
-              - username: 用户名
-              - phone: 用户手机号（必有）
-              - email: 用户邮箱（绑定了才有值）
-              - avatarUrl: 用户头像URL
+              - id：包裹ID
+              - trackingNumber：快递运单号
+              - recipientPhone：收件人手机号
+              - recipientAddrProvince：收件地址-省
+              - recipientAddrCity：收件地址-市
+              - recipientAddrDistrict：收件地址-区/县
+              - recipientAddrDetail：收件地址-详细地址
+              - width：包裹宽度（cm）
+              - height：包裹高度（cm）
+              - length：包裹长度（cm）
+              - weight：包裹重量（kg）
+              - storeId：门店ID
+              - storeName：门店名称
+              - pickCode：取件码（入库后生成）
+              - status：包裹状态（0未入库、1已入库、2已取出、3滞留、4退回）
+              - inTime：入库时间（yyyy-MM-dd HH:mm:ss）
+              - outTime：出库/取件时间（yyyy-MM-dd HH:mm:ss）
+              - createTime：包裹创建时间
             """)
-    public ToolResult<UserInfoVO> getUserInfo(@ToolMemoryId String memoryId) {
-        return remoteCallWithUserAndCheck(memoryId, userFeignClient::getUserInfo);
+    public ToolResult<PageResult<ParcelVO>> getUserParcels(
+            @P("(必填) 分页参数：页码") Integer pageNum,
+            @P("(必填) 分页参数：每页大小") Integer pageSize,
+            @ToolMemoryId String memoryId) {
+        try {
+            Long userId = getUserId(memoryId);
+            ParcelUserQueryDTO parcelUserQueryDTO = new ParcelUserQueryDTO(
+                    userId,
+                    pageNum,
+                    pageSize,
+                    null
+            );
+            return remoteCallAndCheck(() -> parcelFeignClient.userInfo(parcelUserQueryDTO));
+        } catch (RuntimeException e) {
+            return ToolResult.error(e.getMessage());
+        }
     }
 
 }

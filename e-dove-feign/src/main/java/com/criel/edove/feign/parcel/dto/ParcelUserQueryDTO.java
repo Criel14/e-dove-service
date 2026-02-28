@@ -1,12 +1,10 @@
-package com.criel.edove.parcel.dto;
+package com.criel.edove.feign.parcel.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 
 /**
  * 用户查询包裹信息接口的请求参数

@@ -24,6 +24,7 @@ import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
 import com.criel.edove.feign.store.vo.ParcelCheckInVO;
 import com.criel.edove.feign.store.vo.StoreVO;
 import com.criel.edove.feign.user.client.UserFeignClient;
+import com.criel.edove.feign.user.vo.UserInfoVO;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
@@ -111,7 +112,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     @GlobalTransactional
     public void checkIn(CheckInDTO checkInDTO) {
         // 查询当前用户所属门店
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Long userId = UserInfoContextHolder.getUserInfoContext()
+                .getUserId();
         Long storeId = getUserStoreId(userId);
 
         // 查找包裹，并判断包裹是否属于当前的门店
@@ -152,7 +154,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         // 所属门店
         Long userId = parcelAdminQueryDTO.getUserId();
         if (userId == null) {
-            userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+            userId = UserInfoContextHolder.getUserInfoContext()
+                    .getUserId();
         }
         Long storeId = getUserStoreId(userId);
         parcelWrapper.eq(Parcel::getStoreId, storeId);
@@ -176,7 +179,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         if (startTime != null && endTime != null) {
             // 因为 endTime 是LocalDate，而entity类的时间是LocalDateTime，会导致只统计到最后一天0点，所以要加1天
             LocalDateTime start = startTime.atStartOfDay();
-            LocalDateTime end = endTime.plusDays(1).atStartOfDay();
+            LocalDateTime end = endTime.plusDays(1)
+                    .atStartOfDay();
 
             switch (timeType) {
                 case "inTime" -> {
@@ -212,16 +216,34 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      */
     @Override
     public PageResult<ParcelVO> userInfo(ParcelUserQueryDTO parcelUserQueryDTO) {
+        Long userId = parcelUserQueryDTO.getUserId();
         // 获取用户手机号
-        String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        String phone;
+        if (userId == null) {
+            // 为空表示不是AI工具调用，直接从ThreadLocal拿
+            phone = UserInfoContextHolder.getUserInfoContext()
+                    .getPhone();
+        } else {
+            // 不为空表示AI工具调用，需要手动查询用户的手机号
+            UserInfoVO userInfoVO = RemoteCallUtil.callAndUnwrap(
+                    () -> userFeignClient.getUserInfo(userId)
+            );
+            phone = userInfoVO.getPhone();
+        }
+
         // 查询近30日的包裹
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         parcelWrapper.eq(Parcel::getRecipientPhone, phone)
-                .between(Parcel::getCreateTime, LocalDateTime.now().minusDays(30), LocalDateTime.now());
-        // 包裹状态
+                .between(
+                        Parcel::getCreateTime, LocalDateTime.now()
+                                .minusDays(30), LocalDateTime.now()
+                );
+
+        // 匹配包裹状态
         if (parcelUserQueryDTO.getStatus() != null) {
             parcelWrapper.eq(Parcel::getStatus, parcelUserQueryDTO.getStatus());
         }
+
         // 分页查询
         return selectParcelVOPageResult(
                 parcelUserQueryDTO.getPageNum(),
@@ -304,7 +326,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      */
     @Override
     public UserCountVO userCount() {
-        String phone = UserInfoContextHolder.getUserInfoContext().getPhone();
+        String phone = UserInfoContextHolder.getUserInfoContext()
+                .getPhone();
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         parcelWrapper.eq(Parcel::getRecipientPhone, phone)
                 .eq(Parcel::getStatus, ParcelStatusEnum.OUT_STORAGE.getCode());
@@ -316,7 +339,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * 获取用户所在门店信息
      */
     private StoreVO getStoreInfoByUser() {
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+        Long userId = UserInfoContextHolder.getUserInfoContext()
+                .getUserId();
         return RemoteCallUtil.callAndUnwrap(() -> storeFeignClient.getUserStore(userId));
     }
 
@@ -376,7 +400,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     /**
      * 按照给定条件分页查询包裹，并封装成VO
      */
-    private PageResult<ParcelVO> selectParcelVOPageResult(Integer pageNum, Integer pageSize, LambdaQueryWrapper<Parcel> parcelWrapper) {
+    private PageResult<ParcelVO> selectParcelVOPageResult(
+            Integer pageNum, Integer pageSize, LambdaQueryWrapper<Parcel> parcelWrapper) {
         IPage<Parcel> page = new Page<>(pageNum, pageSize);
         IPage<Parcel> parcelPage = parcelMapper.selectPage(page, parcelWrapper);
         List<Parcel> parcels = parcelPage.getRecords();
@@ -449,7 +474,8 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         // 检查是否是管理员出库
         if (StrUtil.isBlank(phone)) {
             // TODO 验证当前用户（发起请求的用户）的管理员身份
-            Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
+            Long userId = UserInfoContextHolder.getUserInfoContext()
+                    .getUserId();
             RolesVO rolesVO = RemoteCallUtil.callAndUnwrap(
                     () -> authFeignClient.getUserRoles(userId)
             );
