@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8100
 
 spring:
@@ -36,7 +36,12 @@ spring:
           uri: lb://e-dove-parcel
           predicates:
             - Path=/parcel/**
-        # assistant 模块
+        # assistant WebSocket（小程序用户端 AI 聊天）
+        - id: e-dove-assistant-ws
+          uri: lb:ws://e-dove-assistant
+          predicates:
+            - Path=/assistant/ws/**
+        # assistant HTTP 接口
         - id: e-dove-assistant
           uri: lb://e-dove-assistant
           predicates:
@@ -44,7 +49,7 @@ spring:
 
 edove:
   uri:
-    # 验证jwt接口
+    # 验证 jwt 接口
     jwt-auth: lb://e-dove-auth/auth/validate
 
 # 健康检测，访问 http://地址:8100/actuator/health
@@ -56,3 +61,4 @@ management:
   endpoint:
     health:
       show-details: always
+

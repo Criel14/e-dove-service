@@ -74,8 +74,7 @@ public class AdminChatTool {
      */
     private <T> ToolResult<T> remoteCallWithUserAndCheck(
             String memoryId,
-            Function<Long, Result<T>> remoteCallWithUserId
-    ) {
+            Function<Long, Result<T>> remoteCallWithUserId) {
         try {
             Long userId = getUserId(memoryId);
             return remoteCallAndCheck(() -> remoteCallWithUserId.apply(userId));
@@ -117,8 +116,7 @@ public class AdminChatTool {
               - createTime：包裹创建时间
             """)
     public ToolResult<ParcelVO> queryParcelByTrackingNumber(
-            @P("快递包裹的完整运单号") String trackingNumber
-    ) {
+            @P("快递包裹的完整运单号") String trackingNumber) {
         // 参数校验
         if (StrUtil.isEmpty(trackingNumber)) {
             return ToolResult.error("运单号不能为空");
@@ -167,8 +165,7 @@ public class AdminChatTool {
             @P("(选填) 要查询的时间段类型：入库时间\"inTime\" 或 出库时间\"outTime\" 或 创建时间\"createTime\"，为空表示不指定查询时间") String timeType,
             @P("(选填) 要查询的时间段的开始时间，格式：\"yyyy-MM-dd\"") LocalDate startTime,
             @P("(选填) 要查询的时间段的结束时间，格式：\"yyyy-MM-dd\"") LocalDate endTime,
-            @ToolMemoryId String memoryId
-    ) {
+            @ToolMemoryId String memoryId) {
         // 参数校验
         if (pageNum == null || pageSize == null) {
             return ToolResult.error("分页参数不能为空");
@@ -219,8 +216,7 @@ public class AdminChatTool {
     public ToolResult<PageResult<ShelfAndLayerVO>> queryShelfAndLayer(
             @P("(必填) 分页参数：页码") Integer pageNum,
             @P("(必填) 分页参数：每页大小") Integer pageSize,
-            @ToolMemoryId String memoryId
-    ) {
+            @ToolMemoryId String memoryId) {
         // 参数校验
         if (pageNum == null || pageSize == null) {
             return ToolResult.error("分页参数不能为空");

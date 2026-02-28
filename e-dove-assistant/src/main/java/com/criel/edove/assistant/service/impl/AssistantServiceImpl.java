@@ -3,8 +3,9 @@ package com.criel.edove.assistant.service.impl;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
-import com.criel.edove.assistant.assistant.Assistant;
 import com.criel.edove.assistant.assistant.AdminAssistant;
+import com.criel.edove.assistant.assistant.Assistant;
+import com.criel.edove.assistant.assistant.UserAssistant;
 import com.criel.edove.assistant.dto.AddressGenerateDTO;
 import com.criel.edove.assistant.service.AssistantService;
 import com.criel.edove.assistant.vo.AddressGenerateVO;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * 大模型调用服务
@@ -40,6 +42,7 @@ public class AssistantServiceImpl implements AssistantService {
 
     private final Assistant assistant;
     private final AdminAssistant adminAssistant;
+    private final UserAssistant userAssistant;
     private final SnowflakeService snowflakeService;
     private final RedissonClient redissonClient;
 
@@ -53,7 +56,8 @@ public class AssistantServiceImpl implements AssistantService {
     @Override
     public AddressGenerateVO generateAddresses(AddressGenerateDTO addressGenerateDTO) {
         // 随机生成一个 memoryId
-        String randomMemoryId = UUID.randomUUID().toString();
+        String randomMemoryId = UUID.randomUUID()
+                .toString();
 
         // 调用大模型生成地址数组
         String result = assistant.generateAddress(
@@ -76,15 +80,17 @@ public class AssistantServiceImpl implements AssistantService {
     }
 
     /**
-     * 管理端AI对话
+     * 管理端AI对话（SSE）
+     *
      * @return SSE连接对象，服务端不断推新的token给前端
      */
     @Override
     public SseEmitter adminChat(String memoryId, String message) {
         // 存储 memoryId → userId 映射到redis，因为在AI工具调用时，请求头中无法包含用户ID信息，需要显式传输携带
+        Long userId = UserInfoContextHolder.getUserInfoContext()
+                .getUserId();
         String key = RedisKeyConstant.AI_CHAT_USER_ID + memoryId;
         RBucket<Long> rBucket = redissonClient.getBucket(key);
-        Long userId = UserInfoContextHolder.getUserInfoContext().getUserId();
         rBucket.set(userId, Duration.ofDays(2)); // 过期时间和会话记忆过期时间一致
 
         // timeout 为0表示永不超时
@@ -92,6 +98,7 @@ public class AssistantServiceImpl implements AssistantService {
         // 统计序列编号
         AtomicLong seq = new AtomicLong(0);
 
+        // AI对话
         TokenStream tokenStream = adminAssistant.adminChat(memoryId, message);
         tokenStream
                 .onPartialResponse(partial -> { // 每个分片 token 到达时触发
@@ -141,5 +148,37 @@ public class AssistantServiceImpl implements AssistantService {
         return new ChatCreateVO(String.valueOf(nextId));
     }
 
+    /**
+     * 用户端 WebSocket 流式聊天
+     * tip：Consumer类表示：有参无返回值的函数，类似Supplier和Function
+     *
+     * @param onToken token 分片回调（流式输出核心回调）。
+     * @param onDone  完成回调。
+     * @param onError 异常回调。
+     */
+    @Override
+    public void userChatStream(
+            Long userId,
+            String memoryId,
+            String message,
+            Consumer<String> onToken,
+            Runnable onDone,
+            Consumer<Throwable> onError) {
+        // 存储 memoryId → userId 映射到redis，因为在AI工具调用时，请求头中无法包含用户ID信息，需要显式传输携带
+        String key = RedisKeyConstant.AI_CHAT_USER_ID + memoryId;
+        RBucket<Long> rBucket = redissonClient.getBucket(key);
+        rBucket.set(userId, Duration.ofDays(2)); // 过期时间和会话记忆过期时间一致
 
+        // AI对话
+        TokenStream tokenStream = userAssistant.userChat(memoryId, message);
+        tokenStream
+                .onPartialResponse(
+                        partial -> onToken.accept(partial == null ? "" : partial)
+                )
+                .onCompleteResponse(
+                        resp -> onDone.run()
+                )
+                .onError(onError)
+                .start();
+    }
 }
