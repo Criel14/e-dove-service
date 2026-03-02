@@ -1,4 +1,4 @@
-package com.criel.edove.assistant.websocket;
+package com.criel.edove.assistant.handler;
 
 import cn.hutool.core.util.StrUtil;
 import com.criel.edove.assistant.dto.WsChatRequestDTO;
