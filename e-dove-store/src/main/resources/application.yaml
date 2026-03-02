@@ -20,6 +20,21 @@ spring:
     password: eDoveMysql1014
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # 消息队列配置
+  cloud:
+    function:
+      definition: shelfUpdate # 定义消费者方法
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${E_DOVE_DOCKER_IP_ADDR}:9876 # RocketMQ NameServer 地址
+      bindings:
+        # 消费者：更新货架
+        shelfUpdate-in-0:
+          destination: shelf-update-topic # 消息 Topic
+          group: shelf-update-group # 消费者组
+
+
 # 日志级别
 logging:
   level:

@@ -3,8 +3,14 @@ package com.criel.edove.parcel.job;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.criel.edove.common.enumeration.ParcelStatusEnum;
+import com.criel.edove.common.service.SnowflakeService;
+import com.criel.edove.common.util.RemoteCallUtil;
+import com.criel.edove.feign.store.client.StoreFeignClient;
+import com.criel.edove.feign.store.vo.StoreVO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
+import com.criel.edove.parcel.mq.EventPublisher;
+import com.criel.edove.common.mq.event.ParcelDelayEvent;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +27,10 @@ import java.util.List;
 public class ParcelJob {
 
     private final ParcelMapper parcelMapper;
+    private final EventPublisher eventPublisher;
+    private final StoreFeignClient storeFeignClient;
+    private final SnowflakeService snowflakeService;
+
 
     private static final int BATCH_SIZE = 1000; // 每一批处理的包裹数量
     private static final int MAX_STALE_DAYS = 7; // 最大滞留时间
@@ -38,11 +48,12 @@ public class ParcelJob {
     public void handleStalePackages() {
         XxlJobHelper.log("定时任务：开始标记滞留包裹");
 
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(MAX_STALE_DAYS);
+        LocalDateTime cutoff = LocalDateTime.now()
+                .minusDays(MAX_STALE_DAYS);
         int total = 0;
         long lastId = 0L;
         while (true) {
-            // 分批查询符合条件的包裹
+            // 分批查询入库时间超过7天的包裹
             LambdaQueryWrapper<Parcel> parcelSelectWrapper = new LambdaQueryWrapper<>();
             parcelSelectWrapper.eq(Parcel::getStatus, ParcelStatusEnum.IN_STORAGE.getCode())
                     .lt(Parcel::getInTime, cutoff)
@@ -54,11 +65,14 @@ public class ParcelJob {
                 break;
             }
 
+            // 发送消息：短信提醒用户包裹滞留
+            parcels.forEach(this::sendParcelDelayEvent);
+            // TODO 发送消息：通知驿站人员去处理滞留包裹（可能不用，管理员自己查询当前门店滞留的包裹就好了）
+
             // 获取id列表
             List<Long> ids = parcels.stream()
                     .map(Parcel::getId)
                     .toList();
-
             // 批量更新状态为【滞留】
             LambdaUpdateWrapper<Parcel> parcelUpdateWrapper = new LambdaUpdateWrapper<>();
             parcelUpdateWrapper.in(Parcel::getId, ids)
@@ -70,14 +84,33 @@ public class ParcelJob {
             total += ids.size();
             XxlJobHelper.log("本批处理：" + ids.size() + "条，累计：" + total + "条");
 
-            // TODO 通知驿站人员去处理滞留包裹
-            // TODO 提醒用户包裹滞留
-
             // 更新 lastId 作为下一轮游标
             lastId = ids.get(ids.size() - 1);
         }
 
         XxlJobHelper.log("定时任务：结束标记滞留包裹");
+    }
+
+    /**
+     * 发送消息：短信提醒用户包裹滞留
+     */
+    private void sendParcelDelayEvent(Parcel parcel) {
+        // 查询包裹所属门店信息
+        StoreVO storeVO = RemoteCallUtil.callAndUnwrap(
+                () -> storeFeignClient.getStoreInfoById(parcel.getStoreId())
+        );
+        // 发送消息
+        Long eventId = snowflakeService.nextId();
+        eventPublisher.sendParcelDelay(
+                ParcelDelayEvent.builder()
+                        .eventId(eventId)
+                        .occurredAt(LocalDateTime.now())
+                        .phone(parcel.getRecipientPhone())
+                        .parcelId(parcel.getId())
+                        .storeId(parcel.getStoreId())
+                        .storeName(storeVO.getStoreName())
+                        .build()
+        );
     }
 
 }

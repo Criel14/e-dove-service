@@ -1,6 +1,6 @@
 package com.criel.edove.assistant.config;
 
-import com.criel.edove.assistant.websocket.UserChatWebSocketHandler;
+import com.criel.edove.assistant.handler.UserChatWebSocketHandler;
 import com.criel.edove.assistant.interceptor.UserWsHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

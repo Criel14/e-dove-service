@@ -10,7 +10,6 @@ import com.criel.edove.common.enumeration.ParcelStatusEnum;
 import com.criel.edove.common.enumeration.RoleEnum;
 import com.criel.edove.common.exception.BizException;
 import com.criel.edove.common.result.PageResult;
-import com.criel.edove.common.result.Result;
 import com.criel.edove.common.service.SnowflakeService;
 import com.criel.edove.common.util.RemoteCallUtil;
 import com.criel.edove.feign.assistant.client.AssistantFeignClient;
@@ -19,7 +18,6 @@ import com.criel.edove.feign.assistant.vo.AddressGenerateVO;
 import com.criel.edove.feign.auth.client.AuthFeignClient;
 import com.criel.edove.feign.auth.vo.RolesVO;
 import com.criel.edove.feign.store.client.StoreFeignClient;
-import com.criel.edove.feign.store.dto.LayerReduceCountDTO;
 import com.criel.edove.feign.store.dto.ParcelCheckInDTO;
 import com.criel.edove.feign.store.vo.ParcelCheckInVO;
 import com.criel.edove.feign.store.vo.StoreVO;
@@ -32,6 +30,9 @@ import com.criel.edove.parcel.dto.ParcelAdminQueryDTO;
 import com.criel.edove.parcel.dto.ParcelUserQueryDTO;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.ParcelMapper;
+import com.criel.edove.parcel.mq.EventPublisher;
+import com.criel.edove.common.mq.event.ShelfUpdateEvent;
+import com.criel.edove.common.mq.event.StockNotifyEvent;
 import com.criel.edove.parcel.service.ParcelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.criel.edove.parcel.util.TrackingNumberGenerator;
@@ -66,6 +67,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     private final AssistantFeignClient assistantFeignClient;
     private final ParcelMapper parcelMapper;
     private final SnowflakeService snowflakeService;
+    private final EventPublisher eventPublisher;
 
     private final Random random = new Random();
 
@@ -88,13 +90,11 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
             // 【管理员出库】则保持手机号为空
         }
 
-        // TODO 消息队列异步削峰
-
         // 更新包裹
         Parcel parcel = updateParcel(phone, trackingNumber, machineId);
 
-        // 远程调用：扣减包裹所在货架层的当前包裹数
-        layerReduceCount(parcel);
+        // 发送消息：扣减包裹所在货架层的当前包裹数
+        sendShelfUpdateMessage(parcel);
 
         // 查询剩余包裹数量
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
@@ -106,7 +106,6 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
 
     /**
      * 入库：管理员将包裹入库到本门店
-     * TODO （消息队列）推送入库消息给用户
      */
     @Override
     @GlobalTransactional
@@ -127,7 +126,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
             throw new BizException(ErrorCode.PARCEL_STORE_MISMATCHED);
         }
 
-        // 远程调用：选择合适的货架层，并生成取件码
+        // 远程调用：为包裹选择合适的货架层，并更新货架层的【当前包裹数】，生成取件码
         String pickCode = getPickCode(parcel);
 
         // 更新包裹表的status和in_time和pick_code
@@ -135,6 +134,25 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         parcel.setInTime(LocalDateTime.now());
         parcel.setPickCode(pickCode);
         parcelMapper.updateById(parcel);
+
+        // 远程调用：获取当前门店信息
+        StoreVO storeVO = RemoteCallUtil.callAndUnwrap(
+                () -> storeFeignClient.getStoreInfoById(storeId)
+        );
+
+        // 发送消息：推送入库消息给用户
+        Long eventId = snowflakeService.nextId();
+        eventPublisher.sendStockNotify(
+                StockNotifyEvent.builder()
+                        .eventId(eventId)
+                        .occurredAt(LocalDateTime.now())
+                        .phone(parcel.getRecipientPhone())
+                        .parcelId(parcel.getId())
+                        .storeId(parcel.getStoreId())
+                        .pickCode(parcel.getPickCode())
+                        .storeName(storeVO.getStoreName())
+                        .build()
+        );
     }
 
     /**
@@ -511,17 +529,27 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     }
 
     /**
-     * 远程调用：扣减包裹所在货架层的当前包裹数
+     * 发送消息：扣减包裹所在货架层的当前包裹数
      */
-    private void layerReduceCount(Parcel parcel) {
+    private void sendShelfUpdateMessage(Parcel parcel) {
         Long storeId = parcel.getStoreId();
         String pickCode = parcel.getPickCode();
+
+        // 根据取件码获得【货架-货架层-编号】信息
         String[] codes = pickCode.split("-");
         Integer shelfNo = Integer.valueOf(codes[0]);
         Integer layerNo = Integer.valueOf(codes[1]);
-        LayerReduceCountDTO layerReduceCountDTO = new LayerReduceCountDTO(storeId, shelfNo, layerNo);
-        RemoteCallUtil.callAndUnwrap(
-                () -> storeFeignClient.layerReduceCount(layerReduceCountDTO)
+
+        // 发送消息
+        long eventId = snowflakeService.nextId();
+        eventPublisher.sendShelfUpdate(
+                ShelfUpdateEvent.builder()
+                        .eventId(eventId)
+                        .occurredAt(LocalDateTime.now())
+                        .storeId(storeId)
+                        .shelfNo(shelfNo)
+                        .layerNo(layerNo)
+                        .build()
         );
     }
 

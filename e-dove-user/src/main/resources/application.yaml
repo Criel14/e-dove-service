@@ -20,6 +20,24 @@ spring:
     password: eDoveMysql1014
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # 消息队列配置
+  cloud:
+    function:
+      definition: stockNotify;parcelDelay
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${E_DOVE_DOCKER_IP_ADDR}:9876 # RocketMQ NameServer 地址
+      bindings:
+        # 消费者：通知用户包裹入库
+        stockNotify-in-0:
+          destination: stock-notify-topic
+          group: stock-notify-group
+        # 消费者：通知用户包裹滞留
+        parcelDelay-in-0:
+          destination: parcel-delay-topic
+          group: parcel-delay-group
+
 # 日志级别
 logging:
   level:

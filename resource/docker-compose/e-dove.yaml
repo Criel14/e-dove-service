@@ -1,16 +1,18 @@
-# 启动命令: docker compose -f e-dove.yaml -p up -d
-# 关闭命令: docker compose -f e-dove.yaml -p down
+# 启动命令: docker compose -f e-dove.yaml up -d
+# 关闭命令: docker compose -f e-dove.yaml down
 
 networks:
   e-dove-network: # 声明自定义网络
     driver: bridge # 将在up时自动创建，在down时自动删除
 
 volumes:
-  e-dove-mysql-data: # 声明MySQL数据卷
+  e-dove-mysql-data: # 声明 MySQL 数据卷
     driver: local # 将在up时自动创建，在down时不会删除
-  e-dove-redis-data: # 声明Redis数据卷
+  e-dove-redis-data: # 声明 Redis 数据卷
     driver: local
-  e-dove-nacos-data: # 声明Nacos数据卷
+  e-dove-nacos-data: # 声明 Nacos 数据卷
+    driver: local
+  e-dove-rocketmq-data: # 声明 RocketMQ 数据卷
     driver: local
 
 services:
@@ -95,4 +97,42 @@ services:
     depends_on:
       - mysql
     restart: unless-stopped
-
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.3.1
+    container_name: e-dove-rocketmq-namesrv
+    ports:
+      - "9876:9876"
+    command: sh mqnamesrv # 启动路由注册中心 NameServer
+    networks:
+      - e-dove-network
+    restart: unless-stopped
+  rocketmq-broker:
+    image: apache/rocketmq:5.3.1
+    container_name: e-dove-rocketmq-broker
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    environment:
+      - NAMESRV_ADDR=rocketmq-namesrv:9876 # NameServer 地址
+    command: sh mqbroker -n rocketmq-namesrv:9876 -c /home/rocketmq/rocketmq-5.3.1/conf/broker.conf # -c 指定配置文件
+    volumes:
+      - e-dove-rocketmq-data:/home/rocketmq/store
+      - ./e-dove/rocketmq/conf/broker.conf:/home/rocketmq/rocketmq-5.3.1/conf/broker.conf
+      - ./e-dove/rocketmq/logs:/home/rocketmq/logs
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - e-dove-network
+    restart: unless-stopped
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:2.1.0
+    container_name: e-dove-rocketmq-dashboard
+    ports:
+      - "8088:8080" # 改成 8088，避免撞 xxl-job
+    environment:
+      - JAVA_OPTS=-Drocketmq.namesrv.addr=rocketmq-namesrv:9876 # NameServer 地址
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - e-dove-network
+    restart: unless-stopped

@@ -20,6 +20,27 @@ spring:
     password: eDoveMysql1014
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # 消息队列配置
+  cloud:
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${E_DOVE_DOCKER_IP_ADDR}:9876 # RocketMQ NameServer 地址
+      bindings:
+        # 生产者：更新货架
+        shelfUpdate-out-0:
+          destination: shelf-update-topic # 消息 Topic
+          content-type: application/json # 指定 JSON 格式
+        # 生产者：通知用户包裹入库
+        stockNotify-out-0:
+          destination: stock-notify-topic
+          content-type: application/json
+        # 生产者：通知用户包裹滞留
+        parcelDelay-out-0:
+          destination: parcel-delay-topic
+          content-type: application/json
+
+
 # 日志级别
 logging:
   level:

@@ -287,7 +287,7 @@ public class ShelfServiceImpl extends ServiceImpl<ShelfMapper, Shelf> implements
     }
 
     /**
-     * 为包裹选择合适的货架层，并生成取件码
+     * 为包裹选择合适的货架层，并更新货架层的【当前包裹数】，生成取件码
      *
      * @param parcelCheckInDTO 包裹信息
      * @return 取件码
