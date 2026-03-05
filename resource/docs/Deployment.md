@@ -131,6 +131,10 @@ DEEPSEEK_API_KEY=你的API key
 
 配置完成后的目录结构如下：
 
+> [!tip]
+>
+> 所有需要的文件已经准备在[resource/e-dove](https://github.com/Criel14/e-dove-service/tree/master/resource/e-dove)目录，可以把整个目录直接粘贴到`linux`中；
+
 ```
 home
 ├── e-dove.yaml
@@ -159,9 +163,11 @@ home
 
 ### 配置 Redis
 
-redis 的**配置**已准备在项目中：[redis.conf](https://github.com/Criel14/e-dove-service/blob/master/resource/redis/redis.conf)
+redis 的**配置**已准备在项目中：[redis.conf](https://github.com/Criel14/e-dove-service/blob/master/resource/e-dove/redis/conf/redis.conf)
 
 将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+
+> 或直接复制整个`/resource/e-dove`目录
 
 ```
 sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
@@ -171,9 +177,11 @@ sudo mv ./redis.conf ./e-dove/redis/conf/redis.conf
 
 ### 配置 XXL-JOB
 
-xxl-job 的**配置**已准备在项目中：[application.properties](https://github.com/Criel14/e-dove-service/blob/master/resource/xxl-job/application.properties)
+xxl-job 的**配置**已准备在项目中：[application.properties](https://github.com/Criel14/e-dove-service/blob/master/resource/e-dove/xxl-job/conf/application.properties)
 
 将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+
+> 或直接复制整个`/resource/e-dove`目录
 
 ```
 sudo mv ./application.properties ./e-dove/xxl-job/conf/application.properties
@@ -183,9 +191,9 @@ sudo mv ./application.properties ./e-dove/xxl-job/conf/application.properties
 
 ### 配置 Seata
 
-seata 的**配置**已准备在项目中：[application.yml](https://github.com/Criel14/e-dove-service/blob/master/resource/seata/application.yml)
+seata 的**配置**已准备在项目中：[application.yml](https://github.com/Criel14/e-dove-service/blob/master/resource/e-dove/seata/conf/application.yml)
 
-添加前，需要修改 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L73) 中的内容：
+添加前，需要修改 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L75) 中的内容：
 
 ```yml
 services:
@@ -198,17 +206,23 @@ services:
 
 将`application.yml`放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
 
+> 或直接复制整个`/resource/e-dove`目录
+
 ```
 sudo mv application.yml ./e-dove/seata/conf/
 ```
 
-除此之外，seata镜像本身不包含**jdbc**，需要自己准备，已准备在项目中：`./resource/seata/mysql-connector-j-8.4.0.jar`
+除此之外，seata镜像本身不包含**jdbc**，需要自己准备，已准备在项目中：[mysql-connector-j-8.4.0.jar](https://github.com/Criel14/e-dove-service/blob/master/resource/e-dove/seata/jdbc/mysql-connector-j-8.4.0.jar)
 
 将文件放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
+
+> 或直接复制整个`/resource/e-dove`目录
 
 ```
 sudo mv mysql-connector-j-8.4.0.jar ./e-dove/seata/jdbc/
 ```
+
+
 
 ## 启动组件
 
@@ -234,7 +248,7 @@ docker compose -f e-dove.yaml -p e-dove down
 
 docker compose 启动完成后：
 
-1. 使用 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L42) 中的 `root` 用户登录MySQL；
+1. 使用 [e-dove.yaml](https://github.com/Criel14/e-dove-service/blob/master/resource/docker-compose/e-dove.yaml#L44) 中的 `root` 用户登录MySQL；
 
 ```yaml
 services:
@@ -244,7 +258,7 @@ services:
     ...
 ```
 
-2. 执行 [./resource/mysql](https://github.com/Criel14/e-dove-service/tree/master/resource/mysql) 目录下的所有sql语句；
+2. 执行 [./resource/sql](https://github.com/Criel14/e-dove-service/tree/master/resource/sql) 目录下的所有sql语句；
 
 
 
@@ -254,7 +268,7 @@ services:
 
 组件启动后，在本机访问 `linux地址:8848/nacos` 进入nacos控台，首次进入需要设置**初始密码**，设置为：用户名`nacos`，密码`nacos`；
 
-在"**命名空间**"栏创建命名空间，命名空间ID设置为`e-dove-1014`，与[配置](https://github.com/Criel14/e-dove-service/blob/master/e-dove-auth/src/main/resources/bootstrap.yaml#L10)中一致，如下图所示：
+在"**命名空间**"栏创建命名空间，命名空间ID设置为`e-dove-1014`，与[配置文件](https://github.com/Criel14/e-dove-service/blob/master/e-dove-auth/src/main/resources/bootstrap.yaml#L10)中一致，如下图所示：
 
 ![](../images/新建nacos命名空间.png)
 
@@ -264,7 +278,7 @@ services:
 
 组件启动后，在本机访问 `linux地址:8080/xxl-job-admin` 进入xxl-job调度中心，使用默认登录账号登录：用户名`admin`，密码`123456`；
 
-以 Parcel 服务为例：在 Parcel 服务的[配置文件](https://github.com/Criel14/e-dove-service/blob/master/e-dove-parcel/src/main/resources/application.yaml#L37)中，我们做了如下配置：
+以 Parcel 服务为例：在 Parcel 服务的[配置文件](https://github.com/Criel14/e-dove-service/blob/master/e-dove-parcel/src/main/resources/application.yaml#L66)中，我们做了如下配置：
 
 ```yaml
 # xxl-job 配置
@@ -326,7 +340,7 @@ public void handleStalePackages() {
 
 
 
-## 放开端口
+## 开放端口
 
 为了使手机上运行的小程序（即微信开发者工具的“真机调试”）能够连接到电脑上运行的后端程序，我们需要放开网关的端口`8100`；Win11的操作步骤如下：
 
