@@ -12,7 +12,7 @@ volumes:
     driver: local
   e-dove-nacos-data: # 声明 Nacos 数据卷
     driver: local
-  e-dove-rocketmq-data: # 声明 RocketMQ 数据卷
+  kafka-data: # 声明 Kafka 数据卷
     driver: local
 
 services:
@@ -97,42 +97,25 @@ services:
     depends_on:
       - mysql
     restart: unless-stopped
-  rocketmq-namesrv:
-    image: apache/rocketmq:5.3.1
-    container_name: e-dove-rocketmq-namesrv
+  kafka:
+    image: apache/kafka:3.8.1
+    container_name: kafka
     ports:
-      - "9876:9876"
-    command: sh mqnamesrv # 启动路由注册中心 NameServer
-    networks:
-      - e-dove-network
-    restart: unless-stopped
-  rocketmq-broker:
-    image: apache/rocketmq:5.3.1
-    container_name: e-dove-rocketmq-broker
-    ports:
-      - "10911:10911"
-      - "10909:10909"
+      - "9092:9092"
+      - "9093:9093" # Controller 内部端口（用于内部协议）
     environment:
-      - NAMESRV_ADDR=rocketmq-namesrv:9876 # NameServer 地址
-    command: sh mqbroker -n rocketmq-namesrv:9876 -c /home/rocketmq/rocketmq-5.3.1/conf/broker.conf # -c 指定配置文件
+      KAFKA_NODE_ID: 1 # 节点 ID（唯一）
+      KAFKA_PROCESS_ROLES: "broker,controller" # 角色（单节点同时做 broker + controller）
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093" # 客户端和内部控制监听
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092" # 广播给客户端的地址(即客户端可以连上的地址)
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER" # controller 名称
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT" # listener 协议映射
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093" # 单节点集群投票者配置
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT" # 内部 broker 通信使用 PLAINTEXT
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # 直接创建后 consumer 不用等
+      # 单节点参数
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     volumes:
-      - e-dove-rocketmq-data:/home/rocketmq/store
-      - ./e-dove/rocketmq/conf/broker.conf:/home/rocketmq/rocketmq-5.3.1/conf/broker.conf
-      - ./e-dove/rocketmq/logs:/home/rocketmq/logs
-    depends_on:
-      - rocketmq-namesrv
-    networks:
-      - e-dove-network
-    restart: unless-stopped
-  rocketmq-dashboard:
-    image: apacherocketmq/rocketmq-dashboard:2.1.0
-    container_name: e-dove-rocketmq-dashboard
-    ports:
-      - "8088:8080" # 改成 8088，避免撞 xxl-job
-    environment:
-      - JAVA_OPTS=-Drocketmq.namesrv.addr=rocketmq-namesrv:9876 # NameServer 地址
-    depends_on:
-      - rocketmq-namesrv
-    networks:
-      - e-dove-network
-    restart: unless-stopped
+      - kafka-data:/var/lib/kafka/data

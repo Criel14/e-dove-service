@@ -25,9 +25,9 @@ spring:
     function:
       definition: shelfUpdate # 定义消费者方法
     stream:
-      rocketmq:
+      kafka:
         binder:
-          name-server: ${E_DOVE_DOCKER_IP_ADDR}:9876 # RocketMQ NameServer 地址
+          brokers: ${E_DOVE_DOCKER_IP_ADDR}:9092
       bindings:
         # 消费者：更新货架
         shelfUpdate-in-0:

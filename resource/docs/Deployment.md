@@ -210,30 +210,6 @@ sudo mv application.yml ./e-dove/seata/conf/
 sudo mv mysql-connector-j-8.4.0.jar ./e-dove/seata/jdbc/
 ```
 
-
-
-### 配置 RocketMQ
-
-RocketMQ 的**配置**已准备在项目中：[broker.conf](https://github.com/Criel14/e-dove-service/blob/master/resource/rockermq/broker.conf)
-
-添加前，需要修改配置文件中的内容：
-
-```properties
-...
-namesrvAddr=rocketmq-namesrv:9876
-#下面这个配置项改成linux的ip地址，可用`ip a`命令查看
-brokerIP1=172.28.80.78 
-...
-```
-
-将`broker.conf`放入linux的`home`目录，并将文件移动到挂载配置文件的位置；
-
-```
-sudo mv broker.conf ./e-dove/rockeqmq/conf
-```
-
-
-
 ## 启动组件
 
 >  上述步骤完成就即可启动 docker compose，接着再完成后面的步骤
