@@ -312,7 +312,7 @@ public void handleStalePackages() {
 
 ![](../images/xxl-job执行器状态.png)
 
-同样地，还需要新增其他用到了xxl-job的服务：
+同样地，还需要新增其他用到了xxl-job的服务，即store服务：
 
 **Store 服务**：
 
@@ -334,7 +334,15 @@ public void handleStalePackages() {
 
 同样地，还需要新增其他任务：
 
-**Store 服务**：
+**parcel 服务的“发送消息任务”**：
+
+> 每5s执行一次
+
+![xxl-job新增任务-发送消息](../images/xxl-job新增任务-发送消息.png)
+
+**Store 服务的“重置货架层当天最大序号”任务**：
+
+> 每天凌晨3点执行一次
 
 ![](../images/xxl-job新增任务-重置当天最大序号.png)
 
