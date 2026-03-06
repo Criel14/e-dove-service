@@ -76,16 +76,16 @@ public class MybatisPlusGenerator {
         String parcelPackageName = "com.criel.edove.parcel";
 
         // 表名
-        String[] userTables = {"user", "user_address"};
+        String[] userTables = {"mq_consumed_event"};
         String[] authTables = {"user_auth", "role", "user_role", "permission", "role_permission"};
-        String[] storeTables = {"store", "shelf", "shelf_layer"};
+        String[] storeTables = {"mq_consumed_event"};
         String[] parcelTables = {"parcel"};
 
         // 当前配置
         // CurrentConfig config = new CurrentConfig(userUrl, userPath, userPackageName, userTables);
         // CurrentConfig config = new CurrentConfig(authUrl, authPath, authPackageName, authTables);
-        // CurrentConfig config = new CurrentConfig(storeUrl, storePath, storePackageName, storeTables);
-        CurrentConfig config = new CurrentConfig(parcelUrl, parcelPath, parcelPackageName, parcelTables);
+         CurrentConfig config = new CurrentConfig(storeUrl, storePath, storePackageName, storeTables);
+        // CurrentConfig config = new CurrentConfig(parcelUrl, parcelPath, parcelPackageName, parcelTables);
 
         return config;
     }

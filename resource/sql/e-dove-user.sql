@@ -50,27 +50,15 @@ CREATE TABLE `user_info`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='存储系统所有用户的基本信息，包括用户、驿站工作人员、系统管理员等';
 
--- 创建用户地址表
--- DROP TABLE IF EXISTS `user_address`;
-CREATE TABLE `user_address`
+-- 消息队列消息表，用于防止消息重复消费
+DROP TABLE IF EXISTS `mq_consumed_event`;
+CREATE TABLE `mq_consumed_event`
 (
-    `address_id`     BIGINT       NOT NULL COMMENT '地址唯一标识ID',
-    `user_id`        BIGINT       NOT NULL COMMENT '关联的用户ID',
-    `receiver_name`  VARCHAR(50)  NOT NULL COMMENT '收件人姓名',
-    `receiver_phone` VARCHAR(20)  NOT NULL COMMENT '收件人手机号',
-    `country`        VARCHAR(50)  NOT NULL DEFAULT '中国' COMMENT '国家',
-    `province`       VARCHAR(50)  NOT NULL COMMENT '省份',
-    `city`           VARCHAR(50)  NOT NULL COMMENT '城市',
-    `district`       VARCHAR(50)  NOT NULL COMMENT '区/县',
-    `detail_address` VARCHAR(255) NOT NULL COMMENT '详细地址',
-    `postal_code`    VARCHAR(10)  NULL COMMENT '邮政编码（可选）',
-    `is_default`     TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否默认地址：0-否，1-是',
-    `create_time`    DATETIME     NOT NULL COMMENT '创建时间',
-    `update_time`    DATETIME     NOT NULL COMMENT '最后更新时间',
-    PRIMARY KEY (`address_id`),
-    INDEX `idx_user_id` (`user_id`)
+    event_id     BIGINT   NOT NULL PRIMARY KEY COMMENT '消息唯一ID（雪花算法）',
+    produce_time DATETIME NOT NULL COMMENT '生产时间',
+    consume_time DATETIME NOT NULL COMMENT '消费时间'
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='存储用户的收货地址信息，支持设置默认地址';
+  DEFAULT CHARSET = utf8mb4 COMMENT ='消息队列的消息去重表';
 
 -- Seata AT模式使用的表
 -- DROP TABLE IF EXISTS `undo_log`;

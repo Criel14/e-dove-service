@@ -92,6 +92,15 @@ CREATE TABLE shelf_layer
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT = '货架层表';
 
+-- 消息队列消息表，用于防止消息重复消费
+DROP TABLE IF EXISTS `mq_consumed_event`;
+CREATE TABLE `mq_consumed_event`
+(
+    event_id     BIGINT   NOT NULL PRIMARY KEY COMMENT '消息唯一ID（雪花算法）',
+    produce_time DATETIME NOT NULL COMMENT '生产时间',
+    consume_time DATETIME NOT NULL COMMENT '消费时间'
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='消息队列的消息去重表';
 
 -- Seata AT模式使用的表
 -- DROP TABLE IF EXISTS `undo_log`;
