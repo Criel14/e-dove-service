@@ -31,6 +31,7 @@ FLUSH PRIVILEGES;
 USE e_dove_store;
 
 -- 门店表（store）
+DROP TABLE IF EXISTS store;
 CREATE TABLE store
 (
     id              BIGINT       NOT NULL COMMENT '雪花算法生成的门店唯一 ID',
@@ -54,6 +55,7 @@ CREATE TABLE store
   DEFAULT CHARSET = utf8mb4 COMMENT = '门店信息表';
 
 -- 货架表（shelf）
+DROP TABLE IF EXISTS shelf;
 CREATE TABLE shelf
 (
     id          BIGINT   NOT NULL COMMENT '雪花算法生成的货架唯一 ID',
@@ -75,6 +77,7 @@ CREATE TABLE shelf
   DEFAULT CHARSET = utf8mb4 COMMENT = '货架表';
 
 -- 货架层表（shelf_layer）
+DROP TABLE IF EXISTS shelf_layer;
 CREATE TABLE shelf_layer
 (
     id            BIGINT   NOT NULL COMMENT '雪花算法生成的层唯一 ID',
@@ -103,7 +106,7 @@ CREATE TABLE `mq_consumed_event`
   DEFAULT CHARSET = utf8mb4 COMMENT ='消息队列的消息去重表';
 
 -- Seata AT模式使用的表
--- DROP TABLE IF EXISTS `undo_log`;
+DROP TABLE IF EXISTS `undo_log`;
 CREATE TABLE `undo_log`
 (
     `id`            bigint(20)   NOT NULL AUTO_INCREMENT,

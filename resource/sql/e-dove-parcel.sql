@@ -70,7 +70,7 @@ CREATE TABLE parcel
 
 
 -- Seata AT模式使用的表
--- DROP TABLE IF EXISTS `undo_log`;
+DROP TABLE IF EXISTS `undo_log`;
 CREATE TABLE `undo_log`
 (
     `id`            bigint(20)   NOT NULL AUTO_INCREMENT,
