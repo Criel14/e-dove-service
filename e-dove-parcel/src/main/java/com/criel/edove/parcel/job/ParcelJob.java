@@ -31,7 +31,6 @@ public class ParcelJob {
     private final StoreFeignClient storeFeignClient;
     private final SnowflakeService snowflakeService;
 
-
     private static final int BATCH_SIZE = 1000; // 每一批处理的包裹数量
     private static final int MAX_STALE_DAYS = 7; // 最大滞留时间
 

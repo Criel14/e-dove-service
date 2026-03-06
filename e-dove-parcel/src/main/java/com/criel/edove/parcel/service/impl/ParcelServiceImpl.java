@@ -1,11 +1,13 @@
 package com.criel.edove.parcel.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.criel.edove.common.context.UserInfoContextHolder;
 import com.criel.edove.common.enumeration.ErrorCode;
+import com.criel.edove.common.enumeration.OutboxEventStatusEnum;
 import com.criel.edove.common.enumeration.ParcelStatusEnum;
 import com.criel.edove.common.enumeration.RoleEnum;
 import com.criel.edove.common.exception.BizException;
@@ -24,11 +26,14 @@ import com.criel.edove.feign.store.vo.StoreVO;
 import com.criel.edove.feign.user.client.UserFeignClient;
 import com.criel.edove.feign.user.vo.UserInfoVO;
 import com.criel.edove.feign.user.vo.VerifyBarcodeVO;
+import com.criel.edove.parcel.constant.BindingNameConstant;
 import com.criel.edove.parcel.dto.CheckInDTO;
 import com.criel.edove.parcel.dto.CheckOutDTO;
 import com.criel.edove.parcel.dto.ParcelAdminQueryDTO;
 import com.criel.edove.parcel.dto.ParcelUserQueryDTO;
+import com.criel.edove.parcel.entity.OutboxEvent;
 import com.criel.edove.parcel.entity.Parcel;
+import com.criel.edove.parcel.mapper.OutboxEventMapper;
 import com.criel.edove.parcel.mapper.ParcelMapper;
 import com.criel.edove.parcel.mq.EventPublisher;
 import com.criel.edove.common.mq.event.ShelfUpdateEvent;
@@ -67,7 +72,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
     private final AssistantFeignClient assistantFeignClient;
     private final ParcelMapper parcelMapper;
     private final SnowflakeService snowflakeService;
-    private final EventPublisher eventPublisher;
+    private final OutboxEventMapper outboxEventMapper;
 
     private final Random random = new Random();
 
@@ -140,19 +145,24 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
                 () -> storeFeignClient.getStoreInfoById(storeId)
         );
 
-        // 发送消息：推送入库消息给用户
+        // 不直接发送消息，而是存入outbox表
         Long eventId = snowflakeService.nextId();
-        eventPublisher.sendStockNotify(
-                StockNotifyEvent.builder()
-                        .eventId(eventId)
-                        .occurredAt(LocalDateTime.now())
-                        .phone(parcel.getRecipientPhone())
-                        .parcelId(parcel.getId())
-                        .storeId(parcel.getStoreId())
-                        .pickCode(parcel.getPickCode())
-                        .storeName(storeVO.getStoreName())
-                        .build()
-        );
+        StockNotifyEvent event = StockNotifyEvent.builder()
+                .eventId(eventId)
+                .occurredAt(LocalDateTime.now())
+                .phone(parcel.getRecipientPhone())
+                .parcelId(parcel.getId())
+                .storeId(parcel.getStoreId())
+                .pickCode(parcel.getPickCode())
+                .storeName(storeVO.getStoreName())
+                .build();
+        OutboxEvent outboxEvent = OutboxEvent.builder()
+                .eventId(eventId)
+                .bindingName(BindingNameConstant.STOCK_NOTIFY_OUT)
+                .payload(JSONUtil.toJsonStr(event))
+                .status(OutboxEventStatusEnum.UNSENT.getCode())
+                .build();
+        outboxEventMapper.insert(outboxEvent);
     }
 
     /**
@@ -540,17 +550,22 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         Integer shelfNo = Integer.valueOf(codes[0]);
         Integer layerNo = Integer.valueOf(codes[1]);
 
-        // 发送消息
+        // 不直接发送消息，而是存入outbox表
         long eventId = snowflakeService.nextId();
-        eventPublisher.sendShelfUpdate(
-                ShelfUpdateEvent.builder()
-                        .eventId(eventId)
-                        .occurredAt(LocalDateTime.now())
-                        .storeId(storeId)
-                        .shelfNo(shelfNo)
-                        .layerNo(layerNo)
-                        .build()
-        );
+        ShelfUpdateEvent event = ShelfUpdateEvent.builder()
+                .eventId(eventId)
+                .occurredAt(LocalDateTime.now())
+                .storeId(storeId)
+                .shelfNo(shelfNo)
+                .layerNo(layerNo)
+                .build();
+        OutboxEvent outboxEvent = OutboxEvent.builder()
+                .eventId(eventId)
+                .bindingName(BindingNameConstant.SHELF_UPDATE_OUT)
+                .payload(JSONUtil.toJsonStr(event))
+                .status(OutboxEventStatusEnum.UNSENT.getCode())
+                .build();
+        outboxEventMapper.insert(outboxEvent);
     }
 
     /**

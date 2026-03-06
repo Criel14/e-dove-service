@@ -61,13 +61,23 @@ CREATE TABLE parcel
 
     PRIMARY KEY (id),
     UNIQUE KEY uk_tracking_number_phone (tracking_number, recipient_phone), -- 唯一索引：运单号 + 手机号，方便出库时快速查找
-    INDEX idx_recipient_phone (recipient_phone), -- 用户查询自己的包裹
-    INDEX idx_tracking_number (tracking_number), -- 运单号查包裹
-    INDEX idx_store_id (store_id), -- 门店查送至门店的包裹
-    INDEX idx_status_in_time_id (status, in_time, id) -- 方便查找出滞留包裹
+    INDEX idx_recipient_phone (recipient_phone),                            -- 用户查询自己的包裹
+    INDEX idx_tracking_number (tracking_number),                            -- 运单号查包裹
+    INDEX idx_store_id (store_id),                                          -- 门店查送至门店的包裹
+    INDEX idx_status_in_time_id (status, in_time, id)                       -- 方便查找出滞留包裹
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT = '包裹信息表';
 
+-- 消息队列生产者消息表
+DROP TABLE IF EXISTS outbox_event;
+CREATE TABLE outbox_event
+(
+    event_id     BIGINT      NOT NULL PRIMARY KEY COMMENT '消息唯一ID（雪花算法）',
+    binding_name VARCHAR(50) NOT NULL COMMENT '消息绑定名称',
+    payload      TEXT        NOT NULL COMMENT '消息内容（格式化的JSON对象）',
+    status       INT     NOT NULL DEFAULT 0 COMMENT '消息状态：0=未发送，1=已发送',
+    create_time  DATETIME    NOT NULL COMMENT '记录创建时间'
+);
 
 -- Seata AT模式使用的表
 DROP TABLE IF EXISTS `undo_log`;

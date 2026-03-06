@@ -79,15 +79,13 @@ public class MybatisPlusGenerator {
         String[] userTables = {"mq_consumed_event"};
         String[] authTables = {"user_auth", "role", "user_role", "permission", "role_permission"};
         String[] storeTables = {"mq_consumed_event"};
-        String[] parcelTables = {"parcel"};
+        String[] parcelTables = {"outbox_event"};
 
         // 当前配置
-        // CurrentConfig config = new CurrentConfig(userUrl, userPath, userPackageName, userTables);
-        // CurrentConfig config = new CurrentConfig(authUrl, authPath, authPackageName, authTables);
-         CurrentConfig config = new CurrentConfig(storeUrl, storePath, storePackageName, storeTables);
-        // CurrentConfig config = new CurrentConfig(parcelUrl, parcelPath, parcelPackageName, parcelTables);
-
-        return config;
+        // return new CurrentConfig(userUrl, userPath, userPackageName, userTables);
+        // return new CurrentConfig(authUrl, authPath, authPackageName, authTables);
+        // return new CurrentConfig(storeUrl, storePath, storePackageName, storeTables);
+        return new CurrentConfig(parcelUrl, parcelPath, parcelPackageName, parcelTables);
     }
 
     /**
