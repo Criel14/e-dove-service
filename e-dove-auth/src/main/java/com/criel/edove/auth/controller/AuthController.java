@@ -102,7 +102,7 @@ public class AuthController {
     /**
      * 修改密码：验证手机验证码，不需要验证旧密码
      */
-    @PatchMapping("/password")
+    @PutMapping("/password")
     public Result<Void> updatePassword(@RequestBody UpdatePasswordDTO updatePasswordDTO) {
         authService.updatePassword(updatePasswordDTO);
         return Result.success();

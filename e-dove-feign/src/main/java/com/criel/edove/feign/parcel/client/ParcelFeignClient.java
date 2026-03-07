@@ -32,6 +32,6 @@ public interface ParcelFeignClient {
      * 用户端分页查询个人包裹信息
      */
     @GetMapping("/parcel/user/info")
-    Result<PageResult<ParcelVO>> userInfo(ParcelUserQueryDTO parcelUserQueryDTO);
+    Result<PageResult<ParcelVO>> userInfo(@SpringQueryMap ParcelUserQueryDTO parcelUserQueryDTO);
 
 }

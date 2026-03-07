@@ -61,7 +61,7 @@ public class StoreController {
     /**
      * （店长）修改门店信息：除了门店状态外的其他字段
      */
-    @PatchMapping("/update")
+    @PutMapping("/update")
     public Result<StoreVO> updateStoreInfo(@RequestBody StoreDTO storeDTO) {
         return Result.success(storeService.updateStore(storeDTO));
     }
@@ -69,7 +69,7 @@ public class StoreController {
     /**
      * （店长/店员）更新门店状态：营业 / 休息
      */
-    @PatchMapping("/status")
+    @PutMapping("/status")
     public Result<StoreVO> updateStoreStatus(@RequestBody StoreDTO storeDTO) {
         return Result.success(storeService.updateStore(storeDTO));
     }
@@ -77,7 +77,7 @@ public class StoreController {
     /**
      * （店长）注销门店
      */
-    @PatchMapping("/deactivate")
+    @PutMapping("/deactivate")
     public Result<Void> deleteStore(@RequestBody StoreIdDTO storeIdDTO) {
         storeService.deactivateStore(storeIdDTO);
         return Result.success();
@@ -86,7 +86,7 @@ public class StoreController {
     /**
      * （店长/店员）绑定门店
      */
-    @PostMapping("/bind")
+    @PutMapping("/bind")
     public Result<Void> bindStore(@RequestBody StoreIdDTO storeIdDTO) {
         storeService.bindStore(storeIdDTO);
         return Result.success();
@@ -95,7 +95,7 @@ public class StoreController {
     /**
      * （店长/店员）解绑门店
      */
-    @PostMapping("/unbind")
+    @PutMapping("/unbind")
     public Result<Void> unbindStore(@RequestBody StoreIdDTO storeIdDTO) {
         storeService.unbindStore(storeIdDTO);
         return Result.success();

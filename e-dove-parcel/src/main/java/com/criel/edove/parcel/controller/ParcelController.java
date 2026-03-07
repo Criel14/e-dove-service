@@ -24,7 +24,7 @@ public class ParcelController {
      * 出库：机器调用或管理员手动出库
      * @return 返回剩余的包裹数量
      */
-    @PostMapping("/out")
+    @PutMapping("/out")
     public Result<CheckOutVO> checkOut(@RequestBody CheckOutDTO checkOutDTO) {
         return Result.success(parcelService.checkOut(checkOutDTO));
     }
@@ -32,7 +32,7 @@ public class ParcelController {
     /**
      * 入库
      */
-    @PostMapping("/in")
+    @PutMapping("/in")
     public Result<Void> checkIn(@RequestBody CheckInDTO checkInDTO) {
         parcelService.checkIn(checkInDTO);
         return Result.success();

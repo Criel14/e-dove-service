@@ -54,7 +54,7 @@ public class ShelfController {
     /**
      * （仅远程调用）扣减包裹所在货架层的【当前包裹数】
      */
-    @PostMapping("/layer/reduce")
+    @PutMapping("/layer/reduce")
     public Result<Void> layerReduceCount(@RequestBody LayerReduceCountDTO layerReduceCountDTO) {
         shelfService.layerReduceCount(layerReduceCountDTO);
         return Result.success();
@@ -65,7 +65,7 @@ public class ShelfController {
      *
      * @return 取件码
      */
-    @PostMapping("/choose")
+    @PutMapping("/choose")
     public Result<ParcelCheckInVO> parcelCheckIn(@RequestBody ParcelCheckInDTO parcelCheckInDTO) {
         return Result.success(shelfService.parcelCheckIn(parcelCheckInDTO));
     }

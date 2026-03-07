@@ -21,14 +21,14 @@ public interface StoreFeignClient {
     /**
      * （仅远程调用）扣减包裹所在货架层的【当前包裹数】
      */
-    @PostMapping("/shelf/layer/reduce")
+    @PutMapping("/shelf/layer/reduce")
     Result<Void> layerReduceCount(@RequestBody LayerReduceCountDTO layerReduceCountDTO);
 
     /**
      * （仅远程调用）为包裹选择合适的货架层，并生成取件码
      * @return 取件码
      */
-    @PostMapping("/shelf/choose")
+    @PutMapping("/shelf/choose")
     Result<ParcelCheckInVO> parcelCheckIn(@RequestBody ParcelCheckInDTO parcelCheckInDTO);
 
     /**
