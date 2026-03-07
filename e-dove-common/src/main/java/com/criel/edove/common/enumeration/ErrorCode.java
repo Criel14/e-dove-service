@@ -75,9 +75,14 @@ public enum ErrorCode {
     PARCEL_PHONE_NOT_MATCH("5006", "非本人包裹，禁止取出"),
     CHECK_OUT_PERMISSION_DENIED("5007", "无出库权限"),
     INVALID_TIME_TYPE("5008", "包裹查询时间类型错误"),
+    PARCEL_ALREADY_IN_STORAGE("5009", "包裹已入库，请勿重复操作"),
+    PARCEL_ALREADY_OUT_STORAGE("5010", "包裹已出库，操作失败"),
+    PARCEL_STALE("5011", "包裹为滞留件，操作失败"),
+    PARCEL_RETURNED("5012", "包裹已标记为退回，操作失败"),
+    PARCEL_STATUS_ERROR("5013", "包裹状态异常，请联系管理员"),
 
     // assistant服务异常
-    MESSAGE_PARSE_JSON_ERROR("6001", "大模型异常，请联系管理员");
+    MESSAGE_PARSE_JSON_ERROR("6001", "大模型异常，请联系管理员"), ;
 
     private final String code;
     private final String message;

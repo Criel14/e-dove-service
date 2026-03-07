@@ -35,7 +35,6 @@ import com.criel.edove.parcel.entity.OutboxEvent;
 import com.criel.edove.parcel.entity.Parcel;
 import com.criel.edove.parcel.mapper.OutboxEventMapper;
 import com.criel.edove.parcel.mapper.ParcelMapper;
-import com.criel.edove.parcel.mq.EventPublisher;
 import com.criel.edove.common.mq.event.ShelfUpdateEvent;
 import com.criel.edove.common.mq.event.StockNotifyEvent;
 import com.criel.edove.parcel.service.ParcelService;
@@ -96,7 +95,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
         }
 
         // 更新包裹
-        Parcel parcel = updateParcel(phone, trackingNumber, machineId);
+        Parcel parcel = checkAndUpdateParcel(phone, trackingNumber, machineId);
 
         // 发送消息：扣减包裹所在货架层的当前包裹数
         sendShelfUpdateMessage(parcel);
@@ -131,8 +130,24 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
             throw new BizException(ErrorCode.PARCEL_STORE_MISMATCHED);
         }
 
+        // 校验包裹状态
+        switch (ParcelStatusEnum.fromCode(parcel.getStatus())) {
+            // 未入库
+            case NEW_PARCEL -> {
+                // 正确状态
+            }
+            // 已入库
+            case IN_STORAGE -> throw new BizException(ErrorCode.PARCEL_ALREADY_IN_STORAGE);
+            // 已出库
+            case OUT_STORAGE -> throw new BizException(ErrorCode.PARCEL_ALREADY_OUT_STORAGE);
+            // 包裹滞留
+            case STALE -> throw new BizException(ErrorCode.PARCEL_STALE);
+            // 包裹退回
+            case RETURN -> throw new BizException(ErrorCode.PARCEL_RETURNED);
+        }
+
         // 远程调用：为包裹选择合适的货架层，并更新货架层的【当前包裹数】，生成取件码
-        String pickCode = getPickCode(parcel);
+        String pickCode = getPickCodeAndUpdateShelf(parcel);
 
         // 更新包裹表的status和in_time和pick_code
         parcel.setStatus(ParcelStatusEnum.IN_STORAGE.getCode());
@@ -467,7 +482,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      * @param parcel 要入库的包裹信息
      * @return 取件码
      */
-    private String getPickCode(Parcel parcel) {
+    private String getPickCodeAndUpdateShelf(Parcel parcel) {
         ParcelCheckInDTO parcelCheckInDTO = new ParcelCheckInDTO();
         BeanUtils.copyProperties(parcel, parcelCheckInDTO);
         ParcelCheckInVO parcelCheckInVO = RemoteCallUtil.callAndUnwrap(
@@ -490,7 +505,7 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
      *
      * @param phone 管理员出库时，直接传入空字符串
      */
-    private Parcel updateParcel(String phone, String trackingNumber, Long machineId) {
+    private Parcel checkAndUpdateParcel(String phone, String trackingNumber, Long machineId) {
         // 用运单号查询包裹
         LambdaQueryWrapper<Parcel> parcelWrapper = new LambdaQueryWrapper<>();
         parcelWrapper.eq(Parcel::getTrackingNumber, trackingNumber);
@@ -521,9 +536,20 @@ public class ParcelServiceImpl extends ServiceImpl<ParcelMapper, Parcel> impleme
             }
         }
 
-        // 校验包裹状态是否为“1-已入库”
-        if (!Objects.equals(parcel.getStatus(), ParcelStatusEnum.IN_STORAGE.getCode())) {
-            throw new BizException(ErrorCode.PARCEL_NOT_IN_STORAGE);
+        // 校验包裹状态
+        switch (ParcelStatusEnum.fromCode(parcel.getStatus())) {
+            // 未入库
+            case NEW_PARCEL -> {
+                throw new BizException(ErrorCode.PARCEL_NOT_IN_STORAGE);
+            }
+            // 已入库
+            case IN_STORAGE -> {
+                // 正确状态
+            }
+            // 其他状态
+            default -> {
+                throw new BizException(ErrorCode.PARCEL_STATUS_ERROR);
+            }
         }
 
         // 更新包裹表的status和out_time

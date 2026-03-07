@@ -22,4 +22,16 @@ public enum ParcelStatusEnum {
         this.desc = desc;
     }
 
+    /**
+     * Integer 转 Enum
+     */
+    public static ParcelStatusEnum fromCode(Integer code) {
+        for (ParcelStatusEnum e : values()) {
+            if (e.code.equals(code)) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("未知状态: " + code);
+    }
+
 }
