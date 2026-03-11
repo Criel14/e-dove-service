@@ -24,3 +24,9 @@
 # 部署
 
 具体参考[项目部署](./resource/docs/Deployment.md)
+
+
+
+# 其他
+
+时间有限，有些想做的东西没机会做出来，比如RAG、完整的RBAC、Nginx部署前端等
